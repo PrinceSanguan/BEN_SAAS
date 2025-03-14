@@ -24,10 +24,10 @@ import gsap from "gsap"
 import { ScrollTrigger } from "gsap/ScrollTrigger"
 
 declare global {
-  interface Window {
-    route: any
+    interface Window {
+      route: (...args: unknown[]) => string
+    }
   }
-}
 
 export default function Welcome() {
   const { auth } = usePage<SharedData>().props
