@@ -11,6 +11,7 @@ Route::get('/', function () {
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('dashboard', [AdminDashboardController::class, 'show'])->name('admin.dashboard');
+    Route::post('athletes', [AdminDashboardController::class, 'createAthlete'])->name('admin.athletes.create');
 });
 
 Route::get('/register', [RegisteredUserController::class, 'create'])->name('register');

@@ -1,22 +1,20 @@
 import { Head, useForm } from '@inertiajs/react';
-import { LoaderCircle, Mail, Lock } from 'lucide-react';
 import { FormEventHandler } from 'react';
+import { LoaderCircle, Lock, User } from 'lucide-react';
 
 import InputError from '@/components/input-error';
-import TextLink from '@/components/text-link';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import AuthLayout from '@/layouts/auth-layout';
 
 /**
  * Interface for the login form data.
  */
 interface LoginForm {
-  email: string;
+  username: string;
   password: string;
-  remember: boolean;
+  isAdmin: boolean; // For administrator login
   [key: string]: string | boolean;
 }
 
@@ -25,15 +23,14 @@ interface LoginForm {
  */
 interface LoginProps {
   status?: string;
-  canResetPassword: boolean;
 }
 
-export default function Login({ status, canResetPassword }: LoginProps) {
+export default function Login({ status }: LoginProps) {
   // Set up form state using Inertia's useForm hook.
   const { data, setData, post, processing, errors, reset } = useForm<LoginForm>({
-    email: '',
+    username: '',
     password: '',
-    remember: false,
+    isAdmin: false,
   });
 
   const submit: FormEventHandler = (e) => {
@@ -44,149 +41,130 @@ export default function Login({ status, canResetPassword }: LoginProps) {
   };
 
   return (
-    <AuthLayout
-      title="Welcome Back"
-      description="Sign in to your account to continue your journey"
+    <div
+      className="relative min-h-screen bg-cover bg-center bg-no-repeat"
+      style={{
+        backgroundImage:
+          "url('https://images.unsplash.com/photo-1599058917212-d750089bc07e?q=80&w=1469&auto=format&fit=crop')",
+      }}
     >
       <Head title="Log in" />
 
-      {/* Display status message if available */}
-      {status && (
-        <div className="mb-6 rounded-lg bg-green-50 p-3 text-center text-sm font-medium text-green-600 shadow-sm">
-          {status}
-        </div>
-      )}
+      {/* Black Gradient Overlay */}
+      <div className="absolute inset-0 bg-gradient-to-b from-black/70 to-black/30" />
 
-      <div className="mb-8 flex justify-center">
-        <div className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            className="h-6 w-6 text-primary"
-          >
-            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-          </svg>
-        </div>
-      </div>
+      {/* Centered Form Container */}
+      <div className="relative z-10 flex min-h-screen items-center justify-center p-4">
+        <div className="w-full max-w-sm rounded-lg bg-black/70 p-6 text-white shadow-2xl backdrop-blur-md">
+          {/* Larger, bolder, centered title */}
+          <h1 className="mb-2 text-center text-3xl font-extrabold">
+            <span className="text-blue-500">Young Athlete</span>{' '}
+            <span className="text-white">App</span>
+          </h1>
+          <p className="mb-6 text-center text-sm text-gray-300">
+            Sign in to access your training program
+          </p>
 
-      <form className="flex flex-col gap-6" onSubmit={submit}>
-        <div className="grid gap-6">
-          {/* Email Input */}
-          <div className="grid gap-2">
-            <Label htmlFor="email" className="text-sm font-medium">
-              Email address
-            </Label>
-            <div className="relative">
-              <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
-                <Mail className="h-4 w-4 text-muted-foreground" />
-              </div>
-              <Input
-                id="email"
-                type="email"
-                required
-                autoFocus
-                tabIndex={1}
-                autoComplete="email"
-                value={data.email}
-                onChange={(e) => setData('email', e.target.value)}
-                placeholder="email@example.com"
-                className="pl-10"
-              />
+          {/* Display any status message if available */}
+          {status && (
+            <div className="mb-4 rounded bg-green-100 p-3 text-center text-sm font-medium text-green-700 shadow-sm">
+              {status}
             </div>
-            <InputError message={errors.email} />
-          </div>
+          )}
 
-          {/* Password Input */}
-          <div className="grid gap-2">
-            <div className="flex items-center">
-              <Label htmlFor="password" className="text-sm font-medium">
+          {/* Form */}
+          <form onSubmit={submit} className="space-y-6">
+            {/* Username */}
+            <div>
+              <Label htmlFor="username" className="mb-1 text-sm font-medium">
+                Username
+              </Label>
+              <div className="relative">
+                <div className="pointer-events-none absolute inset-y-0 left-3 flex items-center">
+                  <User className="h-4 w-4 text-gray-400" />
+                </div>
+                <Input
+                  id="username"
+                  type="text"
+                  required
+                  autoFocus
+                  tabIndex={1}
+                  autoComplete="username"
+                  value={data.username}
+                  onChange={(e) => setData('username', e.target.value)}
+                  placeholder="admin@gmail.com"
+                  className="border-gray-600 bg-gray-800 pl-10 text-white placeholder-gray-400"
+                />
+              </div>
+              <InputError message={errors.username} />
+            </div>
+
+            {/* Password */}
+            <div>
+              <Label htmlFor="password" className="mb-1 text-sm font-medium">
                 Password
               </Label>
-              {canResetPassword && (
-                <TextLink
-                  href={route('password.request')}
-                  className="ml-auto text-sm hover:text-primary"
-                  tabIndex={5}
-                >
-                  Forgot password?
-                </TextLink>
-              )}
-            </div>
-            <div className="relative">
-              <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
-                <Lock className="h-4 w-4 text-muted-foreground" />
+              <div className="relative">
+                <div className="pointer-events-none absolute inset-y-0 left-3 flex items-center">
+                  <Lock className="h-4 w-4 text-gray-400" />
+                </div>
+                <Input
+                  id="password"
+                  type="password"
+                  required
+                  tabIndex={2}
+                  autoComplete="current-password"
+                  value={data.password}
+                  onChange={(e) => setData('password', e.target.value)}
+                  placeholder="••••••••"
+                  className="border-gray-600 bg-gray-800 pl-10 text-white placeholder-gray-400"
+                />
               </div>
-              <Input
-                id="password"
-                type="password"
-                required
-                tabIndex={2}
-                autoComplete="current-password"
-                value={data.password}
-                onChange={(e) => setData('password', e.target.value)}
-                placeholder="••••••••"
-                className="pl-10"
-              />
+              <InputError message={errors.password} />
+              <p className="mt-1 text-xs text-gray-400">
+                (Hint: For demo, use <strong>password</strong> for athlete login)
+              </p>
             </div>
-            <InputError message={errors.password} />
-          </div>
 
-          {/* Remember Me Checkbox */}
-          <div className="flex items-center space-x-3">
-            <Checkbox
-              id="remember"
-              name="remember"
-              tabIndex={3}
-              checked={data.remember}
-              onCheckedChange={(checked) => setData('remember', checked === true)}
-            />
-            <Label htmlFor="remember" className="text-sm text-muted-foreground">
-              Remember me for 30 days
-            </Label>
-          </div>
-
-          {/* Submit Button */}
-          <Button
-            type="submit"
-            className="mt-4 w-full py-6 text-base font-medium transition-all hover:shadow-lg"
-            tabIndex={4}
-            disabled={processing}
-          >
-            {processing ? (
-              <span className="flex items-center justify-center gap-2">
-                <LoaderCircle className="h-4 w-4 animate-spin" />
-                Signing in...
-              </span>
-            ) : (
-              "Sign in"
-            )}
-          </Button>
-        </div>
-
-        {/* Sign Up Link */}
-        <div className="text-center">
-          <div className="relative flex items-center justify-center">
-            <div className="absolute inset-0 flex items-center">
-              <span className="w-full border-t"></span>
+            {/* Admin Checkbox */}
+            <div>
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="isAdmin"
+                  name="isAdmin"
+                  tabIndex={3}
+                  checked={data.isAdmin}
+                  onCheckedChange={(checked) => setData('isAdmin', checked === true)}
+                  className="border-gray-500 text-blue-500"
+                />
+                <Label htmlFor="isAdmin" className="text-sm text-gray-300">
+                  Login as Administrator
+                </Label>
+              </div>
+              <p className="mt-1 text-xs text-gray-400">
+                (For admin, use username <strong>admin</strong> and password <strong>admin</strong>)
+              </p>
             </div>
-            <span className="relative bg-background px-4 text-xs uppercase text-muted-foreground">
-              Or continue with
-            </span>
-          </div>
 
-          <div className="mt-6 text-muted-foreground text-sm">
-            Don't have an account?{' '}
-            <TextLink href={route('register')} tabIndex={5} className="font-medium hover:text-primary">
-              Create an account
-            </TextLink>
-          </div>
+            {/* Submit Button */}
+            <Button
+              type="submit"
+              className="w-full py-3 text-base font-medium transition-all hover:shadow-lg"
+              tabIndex={4}
+              disabled={processing}
+            >
+              {processing ? (
+                <span className="flex items-center justify-center gap-2">
+                  <LoaderCircle className="h-4 w-4 animate-spin" />
+                  Signing in...
+                </span>
+              ) : (
+                'Sign In'
+              )}
+            </Button>
+          </form>
         </div>
-      </form>
-    </AuthLayout>
+      </div>
+    </div>
   );
 }

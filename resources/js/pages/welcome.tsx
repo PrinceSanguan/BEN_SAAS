@@ -355,7 +355,7 @@ export default function Welcome() {
         className="relative min-h-screen overflow-hidden bg-cover bg-center pt-24"
         style={{
           backgroundImage:
-            "linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.7)), url('https://images.unsplash.com/photo-1517637382994-f02da38c6728?q=80&w=1974&auto=format&fit=crop')",
+            "linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0)), url('https://images.unsplash.com/photo-1584735935682-2f2b69dff9d2?q=80&w=1471&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D')",
         }}
       >
         <div className="absolute inset-0 bg-gradient-to-b from-blue-900/30 to-black/70"></div>

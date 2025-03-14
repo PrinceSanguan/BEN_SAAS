@@ -14,20 +14,23 @@ export default function AuthSimpleLayout({ children, title, description }: AuthL
                 <div className="flex flex-col gap-8">
                     <div className="flex flex-col items-center gap-4">
                         <Link href={route('home')} className="flex flex-col items-center gap-2 font-medium">
-                            <div className="flex items-center justify-center">
-                                <img
-                                    src="/assets/images/company-logo.webp"
-                                    alt="Company Logo"
-                                    width="64"
-                                    height="64"
-                                    className="rounded-full" // This makes the logo circular
-                                />
-                            </div>
+                            {/* Commenting out the logo:
+                            <img
+                                src="/assets/images/company-logo.webp"
+                                alt="Company Logo"
+                                width="64"
+                                height="64"
+                                className="rounded-full"
+                            /> */}
                             <span className="sr-only">{title}</span>
                         </Link>
 
                         <div className="space-y-2 text-center">
-                            <h1 className="text-xl font-medium">{title}</h1>
+                            {/* Changed the title to 'Young Athlete App' in blue */}
+                            <h1 className="text-center text-3xl font-extrabold">
+                                <span className="text-blue-500">Young Athlete</span>{' '}
+                                <span className="text-white">App</span>
+                            </h1>
                             <p className="text-muted-foreground text-center text-sm">{description}</p>
                         </div>
                     </div>
