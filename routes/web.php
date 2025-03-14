@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
+use App\Http\Controllers\Admin\AdminDashboardController;
 use App\Http\Controllers\Auth\RegisteredUserController;
 
 Route::get('/', function () {
@@ -9,9 +10,7 @@ Route::get('/', function () {
 })->name('home');
 
 Route::middleware(['auth', 'verified'])->group(function () {
-    Route::get('dashboard', function () {
-        return Inertia::render('dashboard');
-    })->name('dashboard');
+    Route::get('dashboard', [AdminDashboardController::class, 'show'])->name('admin.dashboard');
 });
 
 Route::get('/register', [RegisteredUserController::class, 'create'])->name('register');
