@@ -1,17 +1,16 @@
-import RankingSection from '@/components/ranking-section';
+
 import { Button } from '@/components/ui/button';
 import { Head, Link, usePage } from '@inertiajs/react';
 import { Activity, Menu, X } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
-// Import your new subcomponents
-import Hero from "@/components/welcome/hero"
-import Features from "@/components/welcome/features"
-import HowItWorks from "@/components/welcome/howitworks"
-import Testimonials from "@/components/welcome/testimonials"
-import FAQ from "@/components/welcome/faq"
-import CTA from "@/components/welcome/cta"
-import Footer from "@/components/welcome/footer"
+import Hero from "@/components/welcome/Hero";
+import Features from "@/components/welcome/Features";
+import HowItWorks from "@/components/welcome/HowItWorks";
+import RankingSection from "@/components/welcome/ranking-section"
+import Testimonials from "@/components/welcome/Testimonials";
+import CTA from "@/components/welcome/CTA";
+import Footer from "@/components/welcome/Footer";
 
 import type { SharedData } from '@/types';
 
@@ -22,13 +21,22 @@ declare global {
 }
 
 export default function Welcome() {
-  const { auth } = usePage<SharedData>().props
-  const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const { auth } = usePage<SharedData>().props;
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+
+  // Add dark mode class to body
+  useEffect(() => {
+    document.documentElement.classList.add("dark");
+
+    return () => {
+      document.documentElement.classList.remove("dark");
+    };
+  }, []);
 
   // Toggle mobile menu
   const toggleMenu = () => {
-    setIsMenuOpen(!isMenuOpen)
-  }
+    setIsMenuOpen(!isMenuOpen);
+  };
 
   return (
     <>
@@ -44,12 +52,12 @@ export default function Welcome() {
         />
       </Head>
 
-      {/* Header remains in this file */}
-      <header className="fixed top-0 left-0 right-0 z-50 border-b border-gray-200 bg-white/90 backdrop-blur-md dark:border-gray-800 dark:bg-gray-950/90">
+      {/* Header with dark mode styles */}
+      <header className="fixed top-0 left-0 right-0 z-50 border-b border-gray-800 bg-gray-950/90 backdrop-blur-md">
         <div className="container mx-auto flex h-16 items-center justify-between px-4">
           <div className="flex items-center gap-2">
-            <Activity className="h-8 w-8 text-blue-600 dark:text-blue-500" />
-            <span className="text-xl font-bold">AthleteTrack</span>
+            <Activity className="h-8 w-8 text-blue-500" />
+            <span className="text-xl font-bold text-white">AthleteTrack</span>
           </div>
 
           <nav className="hidden md:flex">
@@ -57,7 +65,7 @@ export default function Welcome() {
               <li>
                 <a
                   href="#features"
-                  className="text-sm font-medium text-gray-700 transition-colors hover:text-blue-600 dark:text-gray-300 dark:hover:text-blue-400"
+                  className="text-sm font-medium text-gray-300 transition-colors hover:text-blue-400"
                 >
                   Features
                 </a>
@@ -65,7 +73,7 @@ export default function Welcome() {
               <li>
                 <a
                   href="#how-it-works"
-                  className="text-sm font-medium text-gray-700 transition-colors hover:text-blue-600 dark:text-gray-300 dark:hover:text-blue-400"
+                  className="text-sm font-medium text-gray-300 transition-colors hover:text-blue-400"
                 >
                   How It Works
                 </a>
@@ -73,15 +81,23 @@ export default function Welcome() {
               <li>
                 <a
                   href="#ranking"
-                  className="text-sm font-medium text-gray-700 transition-colors hover:text-blue-600 dark:text-gray-300 dark:hover:text-blue-400"
+                  className="text-sm font-medium text-gray-300 transition-colors hover:text-blue-400"
                 >
                   Rankings
                 </a>
               </li>
               <li>
                 <a
+                  href="#latest-news"
+                  className="text-sm font-medium text-gray-300 transition-colors hover:text-blue-400"
+                >
+                  Latest News
+                </a>
+              </li>
+              <li>
+                <a
                   href="#testimonials"
-                  className="text-sm font-medium text-gray-700 transition-colors hover:text-blue-600 dark:text-gray-300 dark:hover:text-blue-400"
+                  className="text-sm font-medium text-gray-300 transition-colors hover:text-blue-400"
                 >
                   Testimonials
                 </a>
@@ -89,7 +105,7 @@ export default function Welcome() {
               <li>
                 <a
                   href="#faq"
-                  className="text-sm font-medium text-gray-700 transition-colors hover:text-blue-600 dark:text-gray-300 dark:hover:text-blue-400"
+                  className="text-sm font-medium text-gray-300 transition-colors hover:text-blue-400"
                 >
                   FAQ
                 </a>
@@ -100,25 +116,25 @@ export default function Welcome() {
           <div className="flex items-center space-x-4">
             {auth.user ? (
               <Link href={window.route("dashboard")} className="text-sm font-medium text-white">
-                <Button className="shadow-lg transition-all hover:shadow-blue-500/20">Dashboard</Button>
+                <Button className="bg-blue-600 hover:bg-blue-700 shadow-lg transition-all hover:shadow-blue-500/20">Dashboard</Button>
               </Link>
             ) : (
               <>
                 <Link
                   href={window.route("login")}
-                  className="hidden text-sm font-medium text-gray-700 transition-colors hover:text-blue-600 dark:text-gray-300 dark:hover:text-blue-400 md:block"
+                  className="hidden text-sm font-medium text-gray-300 transition-colors hover:text-blue-400 md:block"
                 >
                   Log in
                 </Link>
                 <Link href={window.route("register")} className="text-sm font-medium text-white">
-                  <Button className="shadow-lg transition-all hover:shadow-blue-500/20">Get Started</Button>
+                  <Button className="bg-blue-600 hover:bg-blue-700 shadow-lg transition-all hover:shadow-blue-500/20">Get Started</Button>
                 </Link>
               </>
             )}
 
             {/* Mobile menu button */}
             <button
-              className="flex items-center justify-center rounded-md p-2 text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800 md:hidden"
+              className="flex items-center justify-center rounded-md p-2 text-gray-300 hover:bg-gray-800 md:hidden"
               onClick={toggleMenu}
             >
               {isMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
@@ -128,12 +144,12 @@ export default function Welcome() {
 
         {/* Mobile menu */}
         <div className={`md:hidden ${isMenuOpen ? "block" : "hidden"}`}>
-          <div className="border-t border-gray-200 px-4 py-3 dark:border-gray-800">
+          <div className="border-t border-gray-800 px-4 py-3">
             <ul className="space-y-3">
               <li>
                 <a
                   href="#features"
-                  className="block text-sm font-medium text-gray-700 hover:text-blue-600 dark:text-gray-300 dark:hover:text-blue-400"
+                  className="block text-sm font-medium text-gray-300 hover:text-blue-400"
                   onClick={() => setIsMenuOpen(false)}
                 >
                   Features
@@ -142,7 +158,7 @@ export default function Welcome() {
               <li>
                 <a
                   href="#how-it-works"
-                  className="block text-sm font-medium text-gray-700 hover:text-blue-600 dark:text-gray-300 dark:hover:text-blue-400"
+                  className="block text-sm font-medium text-gray-300 hover:text-blue-400"
                   onClick={() => setIsMenuOpen(false)}
                 >
                   How It Works
@@ -151,7 +167,7 @@ export default function Welcome() {
               <li>
                 <a
                   href="#ranking"
-                  className="block text-sm font-medium text-gray-700 hover:text-blue-600 dark:text-gray-300 dark:hover:text-blue-400"
+                  className="block text-sm font-medium text-gray-300 hover:text-blue-400"
                   onClick={() => setIsMenuOpen(false)}
                 >
                   Rankings
@@ -159,8 +175,17 @@ export default function Welcome() {
               </li>
               <li>
                 <a
+                  href="#latest-news"
+                  className="block text-sm font-medium text-gray-300 hover:text-blue-400"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  Latest News
+                </a>
+              </li>
+              <li>
+                <a
                   href="#testimonials"
-                  className="block text-sm font-medium text-gray-700 hover:text-blue-600 dark:text-gray-300 dark:hover:text-blue-400"
+                  className="block text-sm font-medium text-gray-300 hover:text-blue-400"
                   onClick={() => setIsMenuOpen(false)}
                 >
                   Testimonials
@@ -169,7 +194,7 @@ export default function Welcome() {
               <li>
                 <a
                   href="#faq"
-                  className="block text-sm font-medium text-gray-700 hover:text-blue-600 dark:text-gray-300 dark:hover:text-blue-400"
+                  className="block text-sm font-medium text-gray-300 hover:text-blue-400"
                   onClick={() => setIsMenuOpen(false)}
                 >
                   FAQ
@@ -178,7 +203,7 @@ export default function Welcome() {
               <li>
                 <Link
                   href={window.route("login")}
-                  className="block text-sm font-medium text-gray-700 hover:text-blue-600 dark:text-gray-300 dark:hover:text-blue-400"
+                  className="block text-sm font-medium text-gray-300 hover:text-blue-400"
                   onClick={() => setIsMenuOpen(false)}
                 >
                   Log in
@@ -190,14 +215,15 @@ export default function Welcome() {
       </header>
 
       {/* Sub-components below */}
-      <Hero />
-      <Features />
-      <HowItWorks />
-      <RankingSection />
-      <Testimonials />
-      <FAQ />
-      <CTA />
-      <Footer />
+      <div className="bg-gray-950 text-white">
+        <Hero />
+        <Features />
+        <HowItWorks />
+        <RankingSection />
+        <Testimonials />
+        <CTA />
+        <Footer />
+      </div>
     </>
-  )
+  );
 }
