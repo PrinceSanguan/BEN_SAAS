@@ -96,7 +96,7 @@ export default function Welcome() {
 
                     <div className="flex items-center space-x-4">
                         {auth.user ? (
-                            <Link href={window.route('dashboard')} className="text-sm font-medium text-white">
+                            <Link href={window.route('login')} className="text-sm font-medium text-white">
                                 <Button className="shadow-lg transition-all hover:shadow-blue-500/20">Dashboard</Button>
                             </Link>
                         ) : (

@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Admin;
 
 use Inertia\Inertia;
-use Inertia\Response;
 use App\Models\User;
 use App\Models\TrainingResult;
 use App\Http\Controllers\Controller;

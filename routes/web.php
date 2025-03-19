@@ -46,3 +46,16 @@ use App\Http\Middleware\AdminMiddleware;
 Route::middleware(AdminMiddleware::class)->group(function () {
     Route::get('/admin/dashboard', [AdminDashboardController::class, 'index'])->name('admin.dashboard');
 });
+
+/*
+|--------------------------------------------------------------------------
+| This controller handles All Student Logic
+|--------------------------------------------------------------------------
+*/
+
+use App\Http\Controllers\Student\StudentDashboardController;
+use App\Http\Middleware\StudentMiddleware;
+
+Route::middleware(StudentMiddleware::class)->group(function () {
+    Route::get('/student/dashboard', [StudentDashboardController::class, 'index'])->name('student.dashboard');
+});

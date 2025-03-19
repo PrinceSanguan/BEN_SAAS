@@ -7,7 +7,7 @@ use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Illuminate\Support\Facades\Auth;
 
-class AdminMiddleware
+class StudentMiddleware
 {
     /**
      * Handle an incoming request.
@@ -27,11 +27,11 @@ class AdminMiddleware
             return redirect()->route('login')->with('error', 'Please login to access this page');
         }
 
-        // Check if authenticated user has admin role
-        if (Auth::user()->user_role !== 'admin') {
+        // Check if authenticated user has student role
+        if (Auth::user()->user_role !== 'student') {
             if ($request->wantsJson() || $request->is('api/*')) {
                 return response()->json([
-                    'message' => 'Access denied. Admin privileges required',
+                    'message' => 'Access denied. Student privileges required',
                 ], 403);
             }
 
