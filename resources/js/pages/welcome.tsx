@@ -113,24 +113,24 @@ export default function Welcome() {
             </ul>
           </nav>
 
-          <div className="flex items-center space-x-4">
-            {auth.user ? (
-              <Link href={window.route("dashboard")} className="text-sm font-medium text-white">
-                <Button className="bg-blue-600 hover:bg-blue-700 shadow-lg transition-all hover:shadow-blue-500/20">Dashboard</Button>
-              </Link>
-            ) : (
-              <>
-                <Link
-                  href={window.route("login")}
-                  className="hidden text-sm font-medium text-gray-300 transition-colors hover:text-blue-400 md:block"
-                >
-                  Log in
-                </Link>
-                <Link href={window.route("register")} className="text-sm font-medium text-white">
-                  <Button className="bg-blue-600 hover:bg-blue-700 shadow-lg transition-all hover:shadow-blue-500/20">Get Started</Button>
-                </Link>
-              </>
-            )}
+                    <div className="flex items-center space-x-4">
+                        {auth.user ? (
+                            <Link href={window.route('login')} className="text-sm font-medium text-white">
+                                <Button className="shadow-lg transition-all hover:shadow-blue-500/20">Dashboard</Button>
+                            </Link>
+                        ) : (
+                            <>
+                                <Link
+                                    href={window.route('login')}
+                                    className="hidden text-sm font-medium text-gray-700 transition-colors hover:text-blue-600 md:block dark:text-gray-300 dark:hover:text-blue-400"
+                                >
+                                    Log in
+                                </Link>
+                                <Link href={window.route('register')} className="text-sm font-medium text-white">
+                                    <Button className="shadow-lg transition-all hover:shadow-blue-500/20">Get Started</Button>
+                                </Link>
+                            </>
+                        )}
 
             {/* Mobile menu button */}
             <button
