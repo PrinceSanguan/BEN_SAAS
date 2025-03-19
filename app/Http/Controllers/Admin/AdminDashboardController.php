@@ -17,17 +17,10 @@ class AdminDashboardController extends Controller
     /**
      * Display the admin dashboard.
      */
-    public function show(): Response
-    {
-        // Fetch users from the database
-        $users = User::select('id', 'email', 'username')
-            ->orderBy('created_at', 'desc')
-            ->get();
 
-        // Pass the users data to the Inertia view
-        return Inertia::render('admin/dashboard', [
-            'users' => $users,
-        ]);
+    public function index()
+    {
+        return Inertia::render('Admin/AdminDashboard');
     }
 
     /**
