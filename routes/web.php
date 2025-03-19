@@ -54,8 +54,10 @@ Route::middleware(AdminMiddleware::class)->group(function () {
 */
 
 use App\Http\Controllers\Student\StudentDashboardController;
+use App\Http\Controllers\Student\StudentTrainingController;
 use App\Http\Middleware\StudentMiddleware;
 
 Route::middleware(StudentMiddleware::class)->group(function () {
     Route::get('/student/dashboard', [StudentDashboardController::class, 'index'])->name('student.dashboard');
+    Route::get('/student/training', [StudentTrainingController::class, 'index'])->name('student.training');
 });

@@ -14,12 +14,13 @@ return new class extends Migration
         Schema::create('training_results', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
-            $table->integer('standing_long_jump');
-            $table->integer('single_leg_jump_left');
-            $table->integer('single_leg_jump_right');
-            $table->integer('wall_sit');
-            $table->integer('core_endurance');
-            $table->integer('bent_arm_hang');
+            $table->foreignId('session_id')->constrained('training_sessions')->onDelete('cascade');
+            $table->string('warmup_completed')->default('NO');
+            $table->string('plyometrics_score')->nullable();
+            $table->string('power_score')->nullable();
+            $table->string('lower_body_strength_score')->nullable();
+            $table->string('upper_body_core_strength_score')->nullable();
+            $table->timestamp('completed_at')->useCurrent();
             $table->timestamps();
         });
     }
