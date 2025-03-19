@@ -1,5 +1,5 @@
 import { Head, useForm } from '@inertiajs/react';
-import { LoaderCircle, Lock, User } from 'lucide-react';
+import { LoaderCircle, Lock, User, AlertCircle } from 'lucide-react';
 import { FormEventHandler } from 'react';
 
 import InputError from '@/components/input-error';
@@ -7,27 +7,26 @@ import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
-/**
- * Interface for the login form data.
- */
 interface LoginForm {
     username: string;
     password: string;
-    isAdmin: boolean; // For administrator login
+    isAdmin: boolean;
     [key: string]: string | boolean;
 }
 
-/**
- * Component props.
- */
 interface LoginProps {
     status?: string;
+    errors: {
+        credentials?: string;
+        username?: string;
+        password?: string;
+    };
 }
 
-export default function Login({ status }: LoginProps) {
-    // Set up form state using Inertia's useForm hook.
-    const { data, setData, post, processing, errors, reset } = useForm<LoginForm>({
+export default function Login({ status, errors }: LoginProps) {
+    const { data, setData, post, processing, reset } = useForm<LoginForm>({
         username: '',
         password: '',
         isAdmin: false,
@@ -35,7 +34,7 @@ export default function Login({ status }: LoginProps) {
 
     const submit: FormEventHandler = (e) => {
         e.preventDefault();
-        post(route('login'), {
+        post(route('login.submit'), {
             onFinish: () => reset('password'),
         });
     };
@@ -49,24 +48,26 @@ export default function Login({ status }: LoginProps) {
         >
             <Head title="Log in" />
 
-            {/* Black Gradient Overlay */}
             <div className="absolute inset-0 bg-gradient-to-b from-black/70 to-black/30" />
 
-            {/* Centered Form Container */}
             <div className="relative z-10 flex min-h-screen items-center justify-center p-4">
                 <div className="w-full max-w-sm rounded-lg bg-black/70 p-6 text-white shadow-2xl backdrop-blur-md">
-                    {/* Larger, bolder, centered title */}
                     <h1 className="mb-2 text-center text-3xl font-extrabold">
                         <span className="text-blue-500">Young Athlete</span> <span className="text-white">App</span>
                     </h1>
                     <p className="mb-6 text-center text-sm text-gray-300">Sign in to access your training program</p>
 
-                    {/* Display any status message if available */}
                     {status && <div className="mb-4 rounded bg-green-100 p-3 text-center text-sm font-medium text-green-700 shadow-sm">{status}</div>}
 
-                    {/* Form */}
+                    {/* Display global credentials error */}
+                    {errors.credentials && (
+                        <Alert variant="destructive" className="mb-4 border-red-500 bg-red-900/50 text-white">
+                            <AlertCircle className="h-4 w-4" />
+                            <AlertDescription>{errors.credentials}</AlertDescription>
+                        </Alert>
+                    )}
+
                     <form onSubmit={submit} className="space-y-6">
-                        {/* Username */}
                         <div>
                             <Label htmlFor="username" className="mb-1 text-sm font-medium">
                                 Username
@@ -91,7 +92,6 @@ export default function Login({ status }: LoginProps) {
                             <InputError message={errors.username} />
                         </div>
 
-                        {/* Password */}
                         <div>
                             <Label htmlFor="password" className="mb-1 text-sm font-medium">
                                 Password
@@ -118,7 +118,6 @@ export default function Login({ status }: LoginProps) {
                             </p>
                         </div>
 
-                        {/* Admin Checkbox */}
                         <div>
                             <div className="flex items-center space-x-2">
                                 <Checkbox
@@ -138,7 +137,6 @@ export default function Login({ status }: LoginProps) {
                             </p>
                         </div>
 
-                        {/* Submit Button */}
                         <Button
                             type="submit"
                             className="w-full py-3 text-base font-medium transition-all hover:shadow-lg"

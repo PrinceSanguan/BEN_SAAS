@@ -43,8 +43,20 @@ Route::post('login', [LoginController::class, 'store'])->name('login.submit');
 use App\Http\Controllers\Admin\AdminDashboardController;
 use App\Http\Middleware\AdminMiddleware;
 
-Route::middleware(AdminMiddleware::class)->group(function () {
+Route::middleware([AdminMiddleware::class])->group(function () {
+    // Dashboard route
     Route::get('/admin/dashboard', [AdminDashboardController::class, 'index'])->name('admin.dashboard');
+
+    // Athletes routes
+    Route::get('/admin/athletes', [AdminDashboardController::class, 'athletes'])->name('admin.athletes');
+
+    Route::post('/admin/athletes', [AdminDashboardController::class, 'createAthlete'])->name('admin.athletes.store');
+    Route::post('/admin/create-athlete', [AdminDashboardController::class, 'createAthlete'])->name('admin.createAthlete');
+
+    Route::get('/admin/analytics', [AdminDashboardController::class, 'analytics'])->name('admin.analytics');
+    Route::get('/admin/settings', [AdminDashboardController::class, 'settings'])->name('admin.settings');
+
+    Route::post('/admin/logout', [LoginController::class, 'logout'])->name('admin.logout');
 });
 
 /*

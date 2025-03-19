@@ -19,6 +19,23 @@ class TrainingResult extends Model
     ];
 
     /**
+     * Get the attributes that should be cast.
+     *
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'standing_long_jump' => 'float',
+            'single_leg_jump_left' => 'float',
+            'single_leg_jump_right' => 'float',
+            'wall_sit' => 'float',
+            'core_endurance' => 'float',
+            'bent_arm_hang' => 'float',
+        ];
+    }
+
+    /**
      * Relationship: TrainingResult belongs to a User with the role 'student'.
      */
     public function user(): BelongsTo
