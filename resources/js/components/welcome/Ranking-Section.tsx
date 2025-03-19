@@ -101,14 +101,15 @@ export default function TopThreeLeaderboard() {
   return (
     <section
       ref={containerRef}
-      className="py-16 bg-gradient-to-b from-white to-gray-50 dark:from-gray-900 dark:to-gray-950"
+      className="py-16 bg-gradient-to-b from-gray-900 to-gray-950"
+      id="ranking"
     >
       <div className="container px-4 mx-auto">
         <div className="max-w-lg mx-auto mb-12 text-center">
-          <h2 className="mb-3 text-4xl font-bold text-gray-900 dark:text-white">
+          <h2 className="mb-3 text-4xl font-bold text-white">
             Leaderboard Champions
           </h2>
-          <p className="text-lg text-gray-600 dark:text-gray-400">
+          <p className="text-lg text-gray-400">
             Top performers recognized for their excellence
           </p>
         </div>
@@ -126,16 +127,16 @@ export default function TopThreeLeaderboard() {
                 key={user.name}
                 className={`rank-card ${isFirst ? "md:order-2" : rank === 2 ? "md:order-1" : "md:order-3"}`}
               >
-                <Card className={`relative overflow-hidden p-6 text-center transition-all duration-300 hover:shadow-xl ${
-                  isFirst ? "border-yellow-500 dark:border-yellow-500 bg-yellow-50 dark:bg-yellow-950/10" :
-                  rank === 2 ? "border-gray-400 dark:border-gray-400 bg-gray-50 dark:bg-gray-800/30" :
-                  "border-amber-700 dark:border-amber-700 bg-amber-50 dark:bg-amber-950/10"
+                <Card className={`relative overflow-hidden p-6 text-center transition-all duration-300 hover:shadow-xl bg-gray-800 ${
+                  isFirst ? "border-yellow-500" :
+                  rank === 2 ? "border-gray-400" :
+                  "border-amber-700"
                 }`}>
                   {/* Rank Banner */}
-                  <div className="absolute top-0 left-0 right-0 py-1 bg-gradient-to-r from-transparent via-gray-100 dark:via-gray-800 to-transparent">
+                  <div className="absolute top-0 left-0 right-0 py-1 bg-gradient-to-r from-transparent via-gray-700 to-transparent">
                     <div className="flex items-center justify-center gap-2">
                       {getRankIcon(rank)}
-                      <span className="font-bold text-lg">
+                      <span className="font-bold text-lg text-white">
                         {rank === 1 ? "🏆 Champion" : rank === 2 ? "🥈 Runner-up" : "🥉 Third Place"}
                       </span>
                     </div>
@@ -147,21 +148,21 @@ export default function TopThreeLeaderboard() {
                       isFirst ? "ring-yellow-500" : rank === 2 ? "ring-gray-400" : "ring-amber-700"
                     } shadow-lg`}>
                       <AvatarImage src={user.avatar} alt={user.name} />
-                      <AvatarFallback>
-                        <User className="h-8 w-8" />
+                      <AvatarFallback className="bg-gray-700">
+                        <User className="h-8 w-8 text-gray-300" />
                       </AvatarFallback>
                     </Avatar>
                   </div>
 
                   {/* User Info */}
-                  <h3 className="text-xl font-bold mb-1 dark:text-white">{user.name}</h3>
+                  <h3 className="text-xl font-bold mb-1 text-white">{user.name}</h3>
                   <div className="flex justify-center items-center gap-2 mb-4">
-                    <Badge variant={isFirst ? "default" : "outline"} className={
+                    <Badge className={
                       isFirst
-                        ? "bg-yellow-500 hover:bg-yellow-600"
+                        ? "bg-yellow-500 hover:bg-yellow-600 text-black"
                         : rank === 2
-                          ? "border-gray-400 text-gray-500"
-                          : "border-amber-700 text-amber-700"
+                          ? "bg-gray-500 hover:bg-gray-600 text-white"
+                          : "bg-amber-700 hover:bg-amber-800 text-white"
                     }>
                       {user.xp.toLocaleString()} XP
                     </Badge>
