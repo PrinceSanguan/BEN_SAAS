@@ -1,15 +1,70 @@
 "use client"
 
-import React from "react"
+import type React from "react"
+import { useRef, useEffect } from "react"
 import { Activity } from "lucide-react"
+import gsap from "gsap"
+import { ScrollTrigger } from "gsap/ScrollTrigger"
 
 const Footer: React.FC = () => {
+  const footerRef = useRef<HTMLElement | null>(null)
+  const logoRef = useRef<HTMLDivElement | null>(null)
+  const columnsRef = useRef<HTMLDivElement | null>(null)
+  const copyrightRef = useRef<HTMLDivElement | null>(null)
+
+  useEffect(() => {
+    gsap.registerPlugin(ScrollTrigger)
+
+    // Animate footer logo
+    gsap.from(logoRef.current, {
+      scrollTrigger: {
+        trigger: footerRef.current,
+        start: "top bottom-=100",
+        toggleActions: "play none none none",
+      },
+      y: 20,
+      opacity: 0,
+      duration: 0.8,
+      ease: "power3.out",
+    })
+
+    // Animate footer columns
+    if (columnsRef.current) {
+      const columns = columnsRef.current.children
+      gsap.from(columns, {
+        scrollTrigger: {
+          trigger: columnsRef.current,
+          start: "top bottom-=100",
+          toggleActions: "play none none none",
+        },
+        y: 30,
+        opacity: 0,
+        duration: 0.5,
+        stagger: 0.1,
+        ease: "power3.out",
+      })
+    }
+
+    // Animate copyright
+    gsap.from(copyrightRef.current, {
+      scrollTrigger: {
+        trigger: copyrightRef.current,
+        start: "top bottom-=50",
+        toggleActions: "play none none none",
+      },
+      opacity: 0,
+      duration: 0.8,
+      delay: 0.5,
+      ease: "power3.out",
+    })
+  }, [])
+
   return (
-    <footer className="bg-gray-900 py-12 text-gray-400">
+    <footer ref={footerRef} className="bg-gray-950 py-12 text-gray-400">
       <div className="container mx-auto px-4">
-        <div className="grid gap-8 md:grid-cols-4">
+        <div ref={columnsRef} className="grid gap-8 md:grid-cols-4">
           <div>
-            <div className="mb-4 flex items-center gap-2">
+            <div ref={logoRef} className="mb-4 flex items-center gap-2">
               <Activity className="h-6 w-6 text-blue-500" />
               <span className="text-lg font-bold text-white">AthleteTrack</span>
             </div>
@@ -109,7 +164,7 @@ const Footer: React.FC = () => {
           </div>
         </div>
 
-        <div className="mt-12 border-t border-gray-800 pt-8 text-center">
+        <div ref={copyrightRef} className="mt-12 border-t border-gray-800 pt-8 text-center">
           <p>&copy; {new Date().getFullYear()} AthleteTrack. All rights reserved.</p>
         </div>
       </div>
@@ -118,3 +173,4 @@ const Footer: React.FC = () => {
 }
 
 export default Footer
+
