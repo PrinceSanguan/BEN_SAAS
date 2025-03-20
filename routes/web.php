@@ -72,4 +72,5 @@ use App\Http\Middleware\StudentMiddleware;
 Route::middleware(StudentMiddleware::class)->group(function () {
     Route::get('/student/dashboard', [StudentDashboardController::class, 'index'])->name('student.dashboard');
     Route::get('/student/training', [StudentTrainingController::class, 'index'])->name('student.training');
+    Route::get('/training/session/{sessionId}', [StudentTrainingController::class, 'showSession'])->name('training.session.show');
 });
