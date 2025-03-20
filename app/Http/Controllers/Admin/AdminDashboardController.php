@@ -10,16 +10,26 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rules\Password;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 class AdminDashboardController extends Controller
 {
     /**
      * Display the admin dashboard.
      */
-
     public function index()
     {
-        return Inertia::render('Admin/AdminDashboard');
+        try {
+            $athletes = $this->getAthletesWithTrainingResults();
+        } catch (\Exception $e) {
+
+            $athletes = $this->getBasicAthleteData();
+        }
+
+        return Inertia::render('Admin/AdminDashboard', [
+            'athletes' => $athletes,
+            'activePage' => 'dashboard'
+        ]);
     }
 
     /**
@@ -27,51 +37,160 @@ class AdminDashboardController extends Controller
      */
     public function createAthlete(Request $request)
     {
-        // Validate the request
-        $validated = $request->validate([
-            'username' => ['required', 'string', 'max:255', 'unique:users'],
-            'parentEmail' => ['required', 'string', 'email', 'max:255'],
-            'password' => ['required', Password::defaults()],
-            'standingLongJump' => ['nullable', 'numeric'],
-            'singleLegJumpLeft' => ['nullable', 'numeric'],
-            'singleLegJumpRight' => ['nullable', 'numeric'],
-            'wallSit' => ['nullable', 'numeric'],
-            'coreEndurance' => ['nullable', 'numeric'],
-            'bentArmHang' => ['nullable', 'numeric'],
-        ]);
-
         try {
-            // Use a database transaction to ensure both user and training results are created
+
+            $existingUser = User::where('email', $request->input('parent_email'))->first();
+            if ($existingUser) {
+                return redirect()->back()->withErrors([
+                    'parent_email' => 'This email is already associated with another user.'
+                ])->withInput();
+            }
+
+            // Validate the request with custom error messages
+            $validated = $request->validate([
+                'username' => ['required', 'string', 'max:255', 'unique:users'],
+                'parent_email' => ['required', 'string', 'email', 'max:255'],
+                'password' => ['required', Password::defaults()],
+                'standing_long_jump' => ['nullable', 'numeric'],
+                'single_leg_jump_left' => ['nullable', 'numeric'],
+                'single_leg_jump_right' => ['nullable', 'numeric'],
+                'wall_sit' => ['nullable', 'numeric'],
+                'core_endurance' => ['nullable', 'numeric'],
+                'bent_arm_hang' => ['nullable', 'numeric'],
+            ], [
+                'parent_email.required' => 'The parent email field is required.',
+                'parent_email.email' => 'The parent email must be a valid email address.',
+                'username.required' => 'The athlete username field is required.',
+                'username.unique' => 'This username is already taken.',
+                'password.required' => 'The password field is required.',
+            ]);
+
+            $trainingResults = $request->input('training_results', []);
+
             DB::beginTransaction();
 
             // Create the user
             $user = User::create([
                 'username' => $validated['username'],
-                'email' => $validated['parentEmail'],
+                'email' => $validated['parent_email'],
                 'password' => Hash::make($validated['password']),
-                'user_role' => 'student', // Set the role to student/athlete
+                'user_role' => 'student',
             ]);
 
             // Create the training results
-            TrainingResult::create([
+            $trainingResult = TrainingResult::create([
                 'user_id' => $user->id,
-                'standing_long_jump' => $validated['standingLongJump'] ?? null,
-                'single_leg_jump_left' => $validated['singleLegJumpLeft'] ?? null,
-                'single_leg_jump_right' => $validated['singleLegJumpRight'] ?? null,
-                'wall_sit' => $validated['wallSit'] ?? null,
-                'core_endurance' => $validated['coreEndurance'] ?? null,
-                'bent_arm_hang' => $validated['bentArmHang'] ?? null,
+                'standing_long_jump' => $trainingResults['standing_long_jump'] ?? null,
+                'single_leg_jump_left' => $trainingResults['single_leg_jump_left'] ?? null,
+                'single_leg_jump_right' => $trainingResults['single_leg_jump_right'] ?? null,
+                'wall_sit' => $trainingResults['wall_sit'] ?? null,
+                'core_endurance' => $trainingResults['core_endurance'] ?? null,
+                'bent_arm_hang' => $trainingResults['bent_arm_hang'] ?? null,
             ]);
 
             DB::commit();
 
-            // Return success response
-            return redirect()->back()->with('success', 'Athlete created successfully!');
+            // Prepare response data
+            $athleteData = [
+                'id' => $user->id,
+                'username' => $user->username,
+                'email' => $user->email,
+                'training_results' => [
+                    'standing_long_jump' => $trainingResult->standing_long_jump,
+                    'single_leg_jump_left' => $trainingResult->single_leg_jump_left,
+                    'single_leg_jump_right' => $trainingResult->single_leg_jump_right,
+                    'wall_sit' => $trainingResult->wall_sit,
+                    'core_endurance' => $trainingResult->core_endurance,
+                    'bent_arm_hang' => $trainingResult->bent_arm_hang,
+                ]
+            ];
+
+            return redirect()->back()->with('success', 'Athlete created successfully!')->with('newAthlete', $athleteData);
+
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return redirect()->back()->withErrors($e->errors())->withInput();
         } catch (\Exception $e) {
             DB::rollBack();
-
-            // Return error response
-            return redirect()->back()->with('error', 'Failed to create athlete: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Failed to create athlete: ' . $e->getMessage())->withInput();
         }
+    }
+
+    /**
+     * Display the athletes page
+     */
+    public function athletes()
+    {
+        try {
+            $athletes = $this->getAthletesWithTrainingResults();
+        } catch (\Exception $e) {
+
+            $athletes = $this->getBasicAthleteData();
+        }
+
+        return Inertia::render('Admin/AdminDashboard', [
+            'athletes' => $athletes,
+            'activePage' => 'athletes'
+        ]);
+    }
+
+    /**
+     * Display the analytics page
+     */
+    public function analytics()
+    {
+        return Inertia::render('Admin/AdminDashboard', [
+            'activePage' => 'analytics'
+        ]);
+    }
+
+    /**
+     * Display the settings page
+     */
+    public function settings()
+    {
+        return Inertia::render('Admin/AdminDashboard', [
+            'activePage' => 'settings'
+        ]);
+    }
+
+    /**
+     * Get athletes with their training results
+     */
+    private function getAthletesWithTrainingResults()
+    {
+        return User::where('user_role', 'student')
+            ->with('trainingResults')
+            ->get()
+            ->map(function ($user) {
+                return [
+                    'id' => $user->id,
+                    'username' => $user->username,
+                    'email' => $user->email,
+                    'training_results' => $user->trainingResults ? [
+                        'standing_long_jump' => $user->trainingResults->standing_long_jump,
+                        'single_leg_jump_left' => $user->trainingResults->single_leg_jump_left,
+                        'single_leg_jump_right' => $user->trainingResults->single_leg_jump_right,
+                        'wall_sit' => $user->trainingResults->wall_sit,
+                        'core_endurance' => $user->trainingResults->core_endurance,
+                        'bent_arm_hang' => $user->trainingResults->bent_arm_hang,
+                    ] : null,
+                ];
+            });
+    }
+
+    /**
+     * Get basic athlete data without training results
+     */
+    private function getBasicAthleteData()
+    {
+        return User::where('user_role', 'student')
+            ->get()
+            ->map(function ($user) {
+                return [
+                    'id' => $user->id,
+                    'username' => $user->username,
+                    'email' => $user->email,
+                ];
+            });
     }
 }
