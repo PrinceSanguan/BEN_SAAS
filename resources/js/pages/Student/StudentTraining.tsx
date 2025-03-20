@@ -1,107 +1,155 @@
-import { Head } from '@inertiajs/react';
-import { useState } from 'react';
+import { Head, useForm } from '@inertiajs/react';
 
-interface Session {
-    id: number;
-    label: string;
-    session_type: string;
-    is_completed: boolean;
+interface SessionData {
+    session_number?: string | number;
+    week_number?: string | number;
+    block_number?: string | number;
+    id?: string | number;
 }
 
-interface Week {
-    week_number: number;
-    sessions: Session[];
+interface TrainingSessionProps {
+    session?: SessionData;
+    existingResult: any | null;
 }
 
-interface Block {
-    id: number;
-    block_number: number;
-    weeks: Week[];
-}
+const TrainingSession = ({ session = {}, existingResult = null }: TrainingSessionProps) => {
+    // Add defaults in case session is undefined
+    const sessionData: SessionData = session || {};
+    const sessionNumber = sessionData.session_number || 'Unknown';
+    const weekNumber = sessionData.week_number || 'Unknown';
+    const blockNumber = sessionData.block_number || 'Unknown';
+    const sessionId = sessionData.id || '';
 
-const StudentTraining = ({ blocks }: { blocks: Block[] }) => {
-    const [activeBlock, setActiveBlock] = useState<number | null>(null);
+    const { data, setData, post, processing, errors } = useForm({
+        warmup_completed: existingResult ? existingResult.warmup_completed : 'NO',
+        plyometrics_score: existingResult ? existingResult.plyometrics_score : '',
+        power_score: existingResult ? existingResult.power_score : '',
+        lower_body_strength_score: existingResult ? existingResult.lower_body_strength_score : '',
+        upper_body_core_strength_score: existingResult ? existingResult.upper_body_core_strength_score : '',
+    });
 
-    const toggleBlock = (blockId: number) => {
-        setActiveBlock(activeBlock === blockId ? null : blockId);
+    const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+        e.preventDefault();
+        if (sessionId) {
+            post(`/training/session/${sessionId}/save`);
+        }
     };
 
     return (
-        <div className="min-h-screen bg-gray-100 pb-16">
-            <Head title="Your Training" />
+        <div className="min-h-screen bg-gray-100">
+            <Head title={`Training Session ${sessionNumber}`} />
 
             <header className="bg-white shadow">
-                <div className="mx-auto max-w-7xl px-4 py-4">
-                    <h1 className="text-2xl font-bold text-gray-900">Your Training</h1>
+                <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4">
+                    <div>
+                        <h1 className="text-2xl font-bold text-gray-900">Session {sessionNumber}</h1>
+                        <p className="text-gray-600">
+                            Block {blockNumber} - Week {weekNumber}
+                        </p>
+                    </div>
+
+                    {existingResult && <div className="rounded-full bg-green-100 px-3 py-1 text-sm font-medium text-green-800">Completed</div>}
                 </div>
             </header>
 
             <div className="mx-auto max-w-7xl px-4 py-6">
-                {blocks.length === 0 ? (
-                    <div className="overflow-hidden rounded-lg bg-white p-6 text-center shadow-sm">
-                        <p className="text-gray-500">No training blocks available yet.</p>
-                    </div>
-                ) : (
-                    <div className="space-y-4">
-                        {blocks.map((block) => (
-                            <div key={block.id} className="overflow-hidden rounded-lg bg-white shadow-sm">
+                <div className="overflow-hidden rounded-lg bg-white shadow-sm">
+                    <form onSubmit={handleSubmit} className="space-y-6 p-6">
+                        <div>
+                            <label className="mb-1 block text-sm font-medium text-gray-700">Did you complete the warm up?</label>
+                            <div className="flex space-x-4">
                                 <button
-                                    onClick={() => toggleBlock(block.id)}
-                                    className="w-full border-b border-gray-200 px-4 py-5 text-left font-medium text-gray-900 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none"
+                                    type="button"
+                                    onClick={() => setData('warmup_completed', 'YES')}
+                                    className={`rounded-lg px-4 py-2 transition-colors ${
+                                        data.warmup_completed === 'YES' ? 'bg-green-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                                    }`}
                                 >
-                                    <div className="flex items-center justify-between">
-                                        <span>Block {block.block_number}</span>
-                                        <svg
-                                            xmlns="http://www.w3.org/2000/svg"
-                                            className={`h-5 w-5 transition-transform duration-200 ${activeBlock === block.id ? 'rotate-180 transform' : ''}`}
-                                            viewBox="0 0 20 20"
-                                            fill="currentColor"
-                                        >
-                                            <path
-                                                fillRule="evenodd"
-                                                d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
-                                                clipRule="evenodd"
-                                            />
-                                        </svg>
-                                    </div>
+                                    YES
                                 </button>
-
-                                {activeBlock === block.id && (
-                                    <div className="divide-y divide-gray-200 px-4 py-4">
-                                        {block.weeks.map((week) => (
-                                            <div key={week.week_number} className="py-3">
-                                                <h3 className="mb-2 text-lg font-medium text-gray-900">Week {week.week_number}</h3>
-                                                <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-                                                    {week.sessions.map((session) => (
-                                                        <div
-                                                            key={session.id}
-                                                            className={`rounded-md px-4 py-3 ${
-                                                                session.session_type === 'testing'
-                                                                    ? 'border border-yellow-400 bg-yellow-100'
-                                                                    : session.session_type === 'rest'
-                                                                      ? 'border border-gray-300 bg-gray-100'
-                                                                      : session.is_completed
-                                                                        ? 'border border-green-300 bg-green-50'
-                                                                        : 'border border-blue-300 bg-blue-50'
-                                                            }`}
-                                                        >
-                                                            <a
-                                                                href={session.session_type !== 'rest' ? `/training/session/${session.id}` : '#'}
-                                                                className={`block w-full ${session.session_type === 'rest' ? 'cursor-default' : ''}`}
-                                                            >
-                                                                {session.label}
-                                                            </a>
-                                                        </div>
-                                                    ))}
-                                                </div>
-                                            </div>
-                                        ))}
-                                    </div>
-                                )}
+                                <button
+                                    type="button"
+                                    onClick={() => setData('warmup_completed', 'NO')}
+                                    className={`rounded-lg px-4 py-2 transition-colors ${
+                                        data.warmup_completed === 'NO' ? 'bg-red-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                                    }`}
+                                >
+                                    NO
+                                </button>
                             </div>
-                        ))}
-                    </div>
-                )}
+                            {errors.warmup_completed && <p className="mt-1 text-sm text-red-600">{errors.warmup_completed}</p>}
+                        </div>
+
+                        <div>
+                            <label className="mb-1 block text-sm font-medium text-gray-700">PLYOMETRICS – What was your best score?</label>
+                            <input
+                                type="text"
+                                value={data.plyometrics_score}
+                                onChange={(e) => setData('plyometrics_score', e.target.value)}
+                                className="focus:ring-opacity-50 mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-500"
+                                placeholder="Enter your score"
+                            />
+                            {errors.plyometrics_score && <p className="mt-1 text-sm text-red-600">{errors.plyometrics_score}</p>}
+                        </div>
+
+                        <div>
+                            <label className="mb-1 block text-sm font-medium text-gray-700">POWER – What was your best score/level?</label>
+                            <input
+                                type="text"
+                                value={data.power_score}
+                                onChange={(e) => setData('power_score', e.target.value)}
+                                className="focus:ring-opacity-50 mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-500"
+                                placeholder="Enter your score/level"
+                            />
+                            {errors.power_score && <p className="mt-1 text-sm text-red-600">{errors.power_score}</p>}
+                        </div>
+
+                        <div>
+                            <label className="mb-1 block text-sm font-medium text-gray-700">LOWER BODY STRENGTH – What was your best score?</label>
+                            <input
+                                type="text"
+                                value={data.lower_body_strength_score}
+                                onChange={(e) => setData('lower_body_strength_score', e.target.value)}
+                                className="focus:ring-opacity-50 mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-500"
+                                placeholder="Enter your score"
+                            />
+                            {errors.lower_body_strength_score && <p className="mt-1 text-sm text-red-600">{errors.lower_body_strength_score}</p>}
+                        </div>
+
+                        <div>
+                            <label className="mb-1 block text-sm font-medium text-gray-700">
+                                UPPER BODY/CORE STRENGTH – What was your best score?
+                            </label>
+                            <input
+                                type="text"
+                                value={data.upper_body_core_strength_score}
+                                onChange={(e) => setData('upper_body_core_strength_score', e.target.value)}
+                                className="focus:ring-opacity-50 mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-500"
+                                placeholder="Enter your score"
+                            />
+                            {errors.upper_body_core_strength_score && (
+                                <p className="mt-1 text-sm text-red-600">{errors.upper_body_core_strength_score}</p>
+                            )}
+                        </div>
+
+                        <div className="flex justify-between pt-4">
+                            <a
+                                href="/training"
+                                className="inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none"
+                            >
+                                Back to Training
+                            </a>
+
+                            <button
+                                type="submit"
+                                disabled={processing}
+                                className="inline-flex items-center rounded-md border border-transparent bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none disabled:opacity-50"
+                            >
+                                {processing ? 'Saving...' : existingResult ? 'Update Results' : 'Save Results'}
+                            </button>
+                        </div>
+                    </form>
+                </div>
             </div>
 
             {/* Simple Bottom Navigation */}
@@ -125,4 +173,4 @@ const StudentTraining = ({ blocks }: { blocks: Block[] }) => {
     );
 };
 
-export default StudentTraining;
+export default TrainingSession;
