@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Student;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use App\Models\User;
+use Illuminate\Support\Facades\Auth;
 
 class StudentDashboardController extends Controller
 {
@@ -13,6 +15,10 @@ class StudentDashboardController extends Controller
      */
     public function index()
     {
-        return Inertia::render('Student/StudentDashboard');
+        $username = Auth::user()->username;
+
+        return Inertia::render('Student/StudentDashboard', [
+            'username' => $username
+        ]);
     }
 }

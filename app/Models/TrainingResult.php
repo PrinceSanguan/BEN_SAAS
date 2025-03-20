@@ -2,23 +2,41 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class TrainingResult extends Model
 {
-    // Define the fillable attributes for mass assignment
+    use HasFactory;
+
+    /**
+     * The attributes that are mass assignable.
+     *
+     * @var array<int, string>
+     */
     protected $fillable = [
         'user_id',
-        'standing_long_jump',
-        'single_leg_jump_left',
-        'single_leg_jump_right',
-        'wall_sit',
-        'core_endurance',
-        'bent_arm_hang'
+        'session_id',
+        'warmup_completed',
+        'plyometrics_score',
+        'power_score',
+        'lower_body_strength_score',
+        'upper_body_core_strength_score',
+        'completed_at'
     ];
 
     /**
+     * The attributes that should be cast.
+     *
+     * @var array<string, string>
+     */
+    protected $casts = [
+        'completed_at' => 'datetime',
+    ];
+
+    /**
+
      * Get the attributes that should be cast.
      *
      * @return array<string, string>
@@ -37,9 +55,54 @@ class TrainingResult extends Model
 
     /**
      * Relationship: TrainingResult belongs to a User with the role 'student'.
+
      */
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class)->where('user_role', 'student');
+    }
+
+    /**
+     * Relationship: TrainingResult belongs to a TrainingSession.
+     */
+    public function session(): BelongsTo
+    {
+        return $this->belongsTo(TrainingSession::class, 'session_id');
+    }
+
+    /**
+     * Check if the warmup was completed.
+     *
+     * @return bool
+     */
+    public function isWarmupCompleted(): bool
+    {
+        return $this->warmup_completed === 'YES';
+    }
+
+    /**
+     * Get all scores as an array.
+     *
+     * @return array
+     */
+    public function getAllScores(): array
+    {
+        return [
+            'plyometrics' => $this->plyometrics_score,
+            'power' => $this->power_score,
+            'lower_body_strength' => $this->lower_body_strength_score,
+            'upper_body_core_strength' => $this->upper_body_core_strength_score
+        ];
+    }
+
+    /**
+     * Scope a query to only include completed sessions.
+     *
+     * @param \Illuminate\Database\Eloquent\Builder $query
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
+    public function scopeCompleted($query)
+    {
+        return $query->whereNotNull('completed_at');
     }
 }
