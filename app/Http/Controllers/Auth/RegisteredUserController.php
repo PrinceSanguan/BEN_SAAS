@@ -4,23 +4,18 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
-use Illuminate\Auth\Events\Registered;
-use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules;
 use Inertia\Inertia;
-use Inertia\Response;
 
 class RegisteredUserController extends Controller
 {
     /**
      * Show the registration page.
      */
-    public function create(): Response
+    public function index()
     {
-        return Inertia::render('auth/register');
+        return Inertia::render('Auth/Register');
     }
 
     /**
@@ -28,24 +23,23 @@ class RegisteredUserController extends Controller
      *
      * @throws \Illuminate\Validation\ValidationException
      */
-    public function store(Request $request): RedirectResponse
+
+    public function store(Request $request)
     {
         $request->validate([
             'username' => 'required|string|max:255',
-            'email' => 'required|string|lowercase|email|max:255|unique:' . User::class,
+            'email' => 'required|string|lowercase|email|max:255|unique:users,email',
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
         ]);
 
-        $user = User::create([
-            'username' => $request->name,
+        // Insert the data into the User table
+        User::create([
+            'username' => $request->username,
             'email' => $request->email,
-            'password' => Hash::make($request->password),
+            'password' => bcrypt($request->password),
         ]);
 
-        event(new Registered($user));
-
-        Auth::login($user);
-
-        return to_route('dashboard');
+        // Redirect to the 'home' route
+        return redirect()->route('home')->with('success', 'User registered successfully!');
     }
 }
