@@ -4,7 +4,10 @@ namespace App\Http\Controllers\Student;
 
 use App\Http\Controllers\Controller;
 use App\Models\Block;
+use App\Models\TrainingResult;
+use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
+use App\Models\TrainingSession;
 
 class StudentTrainingController extends Controller
 {
@@ -13,25 +16,32 @@ class StudentTrainingController extends Controller
      */
     public function index()
     {
+        $user = Auth::user();
+
         // Get all blocks with their training sessions
         $blocks = Block::with(['sessions' => function ($query) {
             $query->orderBy('week_number')->orderBy('session_number');
         }])->orderBy('block_number')->get();
 
+        // Get user's completed training sessions
+        $completedSessions = TrainingResult::where('user_id', $user->id)
+            ->pluck('session_id')
+            ->toArray();
+
         // Format data for the frontend
-        $formattedBlocks = $blocks->map(function ($block) {
+        $formattedBlocks = $blocks->map(function ($block) use ($completedSessions) {
             // Group sessions by week
             $sessionsByWeek = collect($block->sessions)->groupBy('week_number');
 
-            $weeks = $sessionsByWeek->map(function ($sessions, $weekNumber) {
+            $weeks = $sessionsByWeek->map(function ($sessions, $weekNumber) use ($completedSessions) {
                 return [
                     'week_number' => $weekNumber,
-                    'sessions' => $sessions->map(function ($session) {
+                    'sessions' => $sessions->map(function ($session) use ($completedSessions) {
                         return [
                             'id' => $session->id,
                             'session_number' => $session->session_number,
                             'session_type' => $session->session_type,
-                            'is_completed' => false, // You would check completion status here
+                            'is_completed' => in_array($session->id, $completedSessions),
                             'label' => $session->session_type === 'testing'
                                 ? 'TESTING'
                                 : ($session->session_type === 'rest'
@@ -51,6 +61,35 @@ class StudentTrainingController extends Controller
 
         return Inertia::render('Student/StudentTraining', [
             'blocks' => $formattedBlocks
+        ]);
+    }
+
+    public function showSession($sessionId)
+    {
+        $user = Auth::user();
+        $session = TrainingSession::findOrFail($sessionId);
+
+        // Get existing result if any
+        $trainingResult = TrainingResult::where('user_id', $user->id)
+            ->where('session_id', $sessionId)
+            ->first();
+
+        return Inertia::render('Student/TrainingSession', [
+            'session' => [
+                'id' => $session->id,
+                'week_number' => $session->week_number,
+                'session_number' => $session->session_number,
+                'session_type' => $session->session_type,
+                'block_number' => $session->block ? $session->block->block_number : null,
+            ],
+            'existingResult' => $trainingResult ? [
+                'warmup_completed' => $trainingResult->warmup_completed,
+                'plyometrics_score' => $trainingResult->plyometrics_score,
+                'power_score' => $trainingResult->power_score,
+                'lower_body_strength_score' => $trainingResult->lower_body_strength_score,
+                'upper_body_core_strength_score' => $trainingResult->upper_body_core_strength_score,
+                'completed_at' => $trainingResult->completed_at,
+            ] : null
         ]);
     }
 }
