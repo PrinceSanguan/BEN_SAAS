@@ -44,7 +44,7 @@ export default function AdminDashboard({ athletes: initialAthletes = [] }: Props
     const { form, showModal, setShowModal, handleChange, handleSubmit, isSubmitting, error } = useAthleteForm(athletes, setAthletes);
 
     return (
-        <div className="flex min-h-screen bg-gray-100 dark:bg-gray-900">
+        <div className="flex min-h-screen bg-gradient-to-b from-[#0a1e3c] to-[#0f2a4a]">
             {/* Sidebar */}
             <AdminSidebar activePage="dashboard" />
 
@@ -57,9 +57,8 @@ export default function AdminDashboard({ athletes: initialAthletes = [] }: Props
                         {/* Button to open the Add Athlete modal */}
                         <button
                             onClick={() => setShowModal(true)}
-                            className="rounded-md bg-gradient-to-r from-blue-600 to-indigo-600 px-4 py-2 text-white shadow hover:from-blue-500 hover:to-indigo-500"
+                            className="rounded-lg bg-gradient-to-r px-4 py-2 transition-all duration-300"
                         >
-                            Add Athlete
                         </button>
 
                         {/* Stats Cards */}
@@ -75,20 +74,23 @@ export default function AdminDashboard({ athletes: initialAthletes = [] }: Props
                         <ViewToggle viewMode={viewMode} setViewMode={setViewMode} />
                     </div>
 
-                    {/* Athlete Cards View */}
-                    {viewMode === 'cards' && athletes.length > 0 && (
-                        <AthleteCards athletes={athletes} onAddClick={() => setShowModal(true)} />
-                    )}
+                    {/* Content Container with Blue Theme */}
+                    <div className="rounded-xl bg-[#112845] shadow-lg border border-[#1e3a5f] p-6">
+                        {/* Athlete Cards View */}
+                        {viewMode === 'cards' && athletes.length > 0 && (
+                            <AthleteCards athletes={athletes} onAddClick={() => setShowModal(true)} />
+                        )}
 
-                    {/* Table of Athletes */}
-                    {viewMode === 'table' && athletes.length > 0 && (
-                        <AthleteTable athletes={athletes} onAddClick={() => setShowModal(true)} />
-                    )}
+                        {/* Table of Athletes */}
+                        {viewMode === 'table' && athletes.length > 0 && (
+                            <AthleteTable athletes={athletes} onAddClick={() => setShowModal(true)} />
+                        )}
 
-                    {/* "No Athletes" message when there are no athletes */}
-                    {athletes.length === 0 && (
-                        <NoAthletes onAddClick={() => setShowModal(true)} />
-                    )}
+                        {/* "No Athletes" message when there are no athletes */}
+                        {athletes.length === 0 && (
+                            <NoAthletes onAddClick={() => setShowModal(true)} />
+                        )}
+                    </div>
                 </div>
 
                 {/* MODAL for Adding a New Athlete */}

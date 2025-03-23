@@ -21,23 +21,23 @@ export default function StatsCards({ numberOfUsers, numberOfActive, numberOfOnli
 
     return (
         <div ref={cardsRef} className="grid w-full grid-cols-1 gap-4 sm:grid-cols-3 lg:w-auto">
-            <div className="flex h-24 rounded-lg bg-gradient-to-r from-indigo-600 to-purple-600 p-4 shadow-lg transition-transform hover:scale-105">
+            <div className="flex h-24 rounded-lg bg-violet-600 p-4 shadow-lg transition-transform hover:scale-105 hover:shadow-violet-500/20">
                 <div className="flex flex-col justify-between">
-                    <span className="text-xs uppercase tracking-wider text-indigo-100">NUMBER OF USERS</span>
+                    <span className="text-xs uppercase tracking-wider text-violet-200">NUMBER OF USERS</span>
                     <span className="text-3xl font-bold text-white">{numberOfUsers}</span>
                 </div>
             </div>
 
-            <div className="flex h-24 rounded-lg bg-gradient-to-r from-green-500 to-teal-500 p-4 shadow-lg transition-transform hover:scale-105">
+            <div className="flex h-24 rounded-lg bg-green-600 p-4 shadow-lg transition-transform hover:scale-105 hover:shadow-green-500/20">
                 <div className="flex flex-col justify-between">
-                    <span className="text-xs uppercase tracking-wider text-green-100">NUMBER OF ACTIVE</span>
+                    <span className="text-xs uppercase tracking-wider text-green-200">NUMBER OF ACTIVE</span>
                     <span className="text-3xl font-bold text-white">{numberOfActive}</span>
                 </div>
             </div>
 
-            <div className="flex h-24 rounded-lg bg-gradient-to-r from-pink-600 to-rose-500 p-4 shadow-lg transition-transform hover:scale-105">
+            <div className="flex h-24 rounded-lg bg-pink-600 p-4 shadow-lg transition-transform hover:scale-105 hover:shadow-pink-500/20">
                 <div className="flex flex-col justify-between">
-                    <span className="text-xs uppercase tracking-wider text-pink-100">HOW MANY ONLINE</span>
+                    <span className="text-xs uppercase tracking-wider text-pink-200">HOW MANY ONLINE</span>
                     <span className="text-3xl font-bold text-white">{numberOfOnline}</span>
                 </div>
             </div>

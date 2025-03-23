@@ -20,44 +20,74 @@ interface AthleteTableProps {
 }
 
 export default function AthleteTable({ athletes, onAddClick }: AthleteTableProps) {
-    return (
-        <Card className="shadow-md">
-            <CardHeader className="flex flex-row items-center justify-between">
-                <CardTitle>List of Athletes</CardTitle>
+    if (athletes.length === 0) {
+        return (
+            <div className="flex flex-col items-center justify-center rounded-lg bg-gray-900/50 p-12 text-center">
+                <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-blue-500/20">
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="#3b82f6"
+                        strokeWidth="2"
+                        className="h-8 w-8"
+                    >
+                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="9" cy="7" r="4"></circle>
+                        <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                        <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                    </svg>
+                </div>
+                <h2 className="mb-2 text-xl font-semibold text-white">No Athletes Found</h2>
+                <p className="mb-6 text-gray-400">Get started by adding a new athlete to your team.</p>
                 <button
                     onClick={onAddClick}
-                    className="rounded-md bg-gradient-to-r from-blue-600 to-indigo-600 px-4 py-2 text-sm text-white shadow hover:from-blue-500 hover:to-indigo-500"
+                    className="inline-flex items-center justify-center rounded-md bg-blue-500 px-4 py-2 text-sm font-medium text-white hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                >
+                    Add Your First Athlete
+                </button>
+            </div>
+        );
+    }
+
+    return (
+        <Card className="border-gray-700 bg-gray-900/50 shadow-md">
+            <CardHeader className="flex flex-row items-center justify-between border-b border-gray-700 bg-gray-800/50">
+                <CardTitle className="text-white">List of Athletes</CardTitle>
+                <button
+                    onClick={onAddClick}
+                    className="rounded-md bg-blue-500 px-4 py-2 text-sm font-medium text-white hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
                 >
                     Add Athlete
                 </button>
             </CardHeader>
-            <CardContent>
-                <div className="relative overflow-x-auto shadow sm:rounded-lg">
-                    <table className="w-full table-auto text-left text-sm text-gray-700 dark:text-gray-400">
-                        <thead className="bg-gray-100 text-xs uppercase text-gray-700 dark:bg-gray-700 dark:text-gray-200">
+            <CardContent className="p-0">
+                <div className="overflow-x-auto">
+                    <table className="w-full table-auto text-left text-sm">
+                        <thead className="bg-gray-800/70 text-xs uppercase text-gray-300">
                             <tr>
-                                <th scope="col" className="px-4 py-2">
+                                <th scope="col" className="px-4 py-3">
                                     Username
                                 </th>
-                                <th scope="col" className="px-4 py-2">
+                                <th scope="col" className="px-4 py-3">
                                     Email
                                 </th>
-                                <th scope="col" className="px-4 py-2">
+                                <th scope="col" className="px-4 py-3">
                                     Standing Long Jump
                                 </th>
-                                <th scope="col" className="px-4 py-2">
+                                <th scope="col" className="px-4 py-3">
                                     Single Leg Jump (Left)
                                 </th>
-                                <th scope="col" className="px-4 py-2">
+                                <th scope="col" className="px-4 py-3">
                                     Single Leg Jump (Right)
                                 </th>
-                                <th scope="col" className="px-4 py-2">
+                                <th scope="col" className="px-4 py-3">
                                     Wall Sit
                                 </th>
-                                <th scope="col" className="px-4 py-2">
+                                <th scope="col" className="px-4 py-3">
                                     Core Endurance
                                 </th>
-                                <th scope="col" className="px-4 py-2">
+                                <th scope="col" className="px-4 py-3">
                                     Bent Arm Hang
                                 </th>
                             </tr>
@@ -66,18 +96,18 @@ export default function AthleteTable({ athletes, onAddClick }: AthleteTableProps
                             {athletes.map((athlete) => (
                                 <tr
                                     key={athlete.id}
-                                    className="border-b bg-white hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:hover:bg-gray-600"
+                                    className="border-b border-gray-700 bg-gray-900/30 hover:bg-gray-800/50"
                                 >
-                                    <td className="whitespace-nowrap px-4 py-2 font-medium text-gray-900 dark:text-white">
+                                    <td className="whitespace-nowrap px-4 py-3 font-medium text-blue-400">
                                         {athlete.username}
                                     </td>
-                                    <td className="px-4 py-2">{athlete.email}</td>
-                                    <td className="px-4 py-2">{athlete.training_results?.standing_long_jump || '-'}</td>
-                                    <td className="px-4 py-2">{athlete.training_results?.single_leg_jump_left || '-'}</td>
-                                    <td className="px-4 py-2">{athlete.training_results?.single_leg_jump_right || '-'}</td>
-                                    <td className="px-4 py-2">{athlete.training_results?.wall_sit || '-'}</td>
-                                    <td className="px-4 py-2">{athlete.training_results?.core_endurance || '-'}</td>
-                                    <td className="px-4 py-2">{athlete.training_results?.bent_arm_hang || '-'}</td>
+                                    <td className="px-4 py-3 text-gray-300">{athlete.email}</td>
+                                    <td className="px-4 py-3 text-gray-300">{athlete.training_results?.standing_long_jump || '-'} cm</td>
+                                    <td className="px-4 py-3 text-gray-300">{athlete.training_results?.single_leg_jump_left || '-'} cm</td>
+                                    <td className="px-4 py-3 text-gray-300">{athlete.training_results?.single_leg_jump_right || '-'} cm</td>
+                                    <td className="px-4 py-3 text-gray-300">{athlete.training_results?.wall_sit || '-'} sec</td>
+                                    <td className="px-4 py-3 text-gray-300">{athlete.training_results?.core_endurance || '-'} sec</td>
+                                    <td className="px-4 py-3 text-gray-300">{athlete.training_results?.bent_arm_hang || '-'} sec</td>
                                 </tr>
                             ))}
                         </tbody>
