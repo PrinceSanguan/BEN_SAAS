@@ -8,6 +8,7 @@ use App\Models\TrainingResult;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 use App\Models\TrainingSession;
+use Illuminate\Http\Request;
 
 class StudentTrainingController extends Controller
 {
@@ -67,7 +68,7 @@ class StudentTrainingController extends Controller
     public function showSession($sessionId)
     {
         $user = Auth::user();
-        $session = TrainingSession::findOrFail($sessionId);
+        $session = TrainingSession::with('block')->findOrFail($sessionId);
 
         // Get existing result if any
         $trainingResult = TrainingResult::where('user_id', $user->id)
@@ -91,5 +92,37 @@ class StudentTrainingController extends Controller
                 'completed_at' => $trainingResult->completed_at,
             ] : null
         ]);
+    }
+
+    public function saveTrainingResult(Request $request, $sessionId)
+    {
+        $user = Auth::user();
+
+        $validated = $request->validate([
+            'warmup_completed' => 'required|in:YES,NO',
+            'plyometrics_score' => 'required|string',
+            'power_score' => 'required|string',
+            'lower_body_strength_score' => 'required|string',
+            'upper_body_core_strength_score' => 'required|string',
+        ]);
+
+        // Update or create the training result
+        TrainingResult::updateOrCreate(
+            [
+                'user_id' => $user->id,
+                'session_id' => $sessionId,
+            ],
+            [
+                'warmup_completed' => $validated['warmup_completed'],
+                'plyometrics_score' => $validated['plyometrics_score'],
+                'power_score' => $validated['power_score'],
+                'lower_body_strength_score' => $validated['lower_body_strength_score'],
+                'upper_body_core_strength_score' => $validated['upper_body_core_strength_score'],
+                'completed_at' => now(),
+            ]
+        );
+
+        return redirect()->route('student.training')
+            ->with('success', 'Training results saved successfully!');
     }
 }
