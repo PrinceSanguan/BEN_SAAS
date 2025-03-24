@@ -11,6 +11,13 @@ class TrainingResult extends Model
     use HasFactory;
 
     /**
+     * The table associated with the model.
+     *
+     * @var string
+     */
+    protected $table = 'test_results';
+
+    /**
      * The attributes that are mass assignable.
      *
      * @var array<int, string>
@@ -18,11 +25,12 @@ class TrainingResult extends Model
     protected $fillable = [
         'user_id',
         'session_id',
-        'warmup_completed',
-        'plyometrics_score',
-        'power_score',
-        'lower_body_strength_score',
-        'upper_body_core_strength_score',
+        'standing_long_jump',
+        'single_leg_jump_left',
+        'single_leg_jump_right',
+        'wall_sit_assessment',
+        'high_plank_assessment',
+        'bent_arm_hang_assessment',
         'completed_at'
     ];
 
@@ -33,29 +41,16 @@ class TrainingResult extends Model
      */
     protected $casts = [
         'completed_at' => 'datetime',
+        'standing_long_jump' => 'float',
+        'single_leg_jump_left' => 'float',
+        'single_leg_jump_right' => 'float',
+        'wall_sit_assessment' => 'float',
+        'high_plank_assessment' => 'float',
+        'bent_arm_hang_assessment' => 'float',
     ];
 
     /**
-
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
-     */
-    protected function casts(): array
-    {
-        return [
-            'standing_long_jump' => 'float',
-            'single_leg_jump_left' => 'float',
-            'single_leg_jump_right' => 'float',
-            'wall_sit' => 'float',
-            'core_endurance' => 'float',
-            'bent_arm_hang' => 'float',
-        ];
-    }
-
-    /**
      * Relationship: TrainingResult belongs to a User with the role 'student'.
-
      */
     public function user(): BelongsTo
     {
@@ -88,10 +83,12 @@ class TrainingResult extends Model
     public function getAllScores(): array
     {
         return [
-            'plyometrics' => $this->plyometrics_score,
-            'power' => $this->power_score,
-            'lower_body_strength' => $this->lower_body_strength_score,
-            'upper_body_core_strength' => $this->upper_body_core_strength_score
+            'standing_long_jump' => $this->standing_long_jump,
+            'single_leg_jump_left' => $this->single_leg_jump_left,
+            'single_leg_jump_right' => $this->single_leg_jump_right,
+            'wall_sit' => $this->wall_sit_assessment,
+            'high_plank' => $this->high_plank_assessment,
+            'bent_arm_hang' => $this->bent_arm_hang_assessment
         ];
     }
 

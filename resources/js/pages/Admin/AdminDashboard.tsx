@@ -57,8 +57,9 @@ export default function AdminDashboard({ athletes: initialAthletes = [] }: Props
                         {/* Button to open the Add Athlete modal */}
                         <button
                             onClick={() => setShowModal(true)}
-                            className="rounded-lg bg-gradient-to-r px-4 py-2 transition-all duration-300"
+                            className="rounded-lg bg-gradient-to-r from-blue-500 to-blue-700 px-4 py-2 text-white font-medium transition-all duration-300 hover:from-blue-600 hover:to-blue-800"
                         >
+                            Add Athlete
                         </button>
 
                         {/* Stats Cards */}
