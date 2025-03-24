@@ -14,7 +14,7 @@ import {
     Home,
     LogOut,
     Menu,
-    Settings,
+    // Settings,
     TrendingUp,
     Trophy,
     User,
@@ -482,13 +482,13 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({
                             <Trophy className="mb-1 h-6 w-6" />
                             <span className="text-xs">Progress</span>
                         </a>
-                        <a
+                        {/* <a
                             href={getRoute('student.settings')}
                             className="flex flex-col items-center px-4 py-3 text-[#a3c0e6] transition-colors hover:text-white"
                         >
                             <Settings className="mb-1 h-6 w-6" />
                             <span className="text-xs">Settings</span>
-                        </a>
+                        </a> */}
                     </div>
                 </div>
 

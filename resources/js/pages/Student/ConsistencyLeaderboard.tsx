@@ -7,10 +7,8 @@ import {
     BarChart2,
     Home,
     LogOut,
-    Menu,
     Trophy,
     User,
-    X,
 } from 'lucide-react';
 
 interface LeaderboardUser {
@@ -37,7 +35,6 @@ const ConsistencyLeaderboard: React.FC<ConsistencyLeaderboardProps> = ({
 }) => {
     // State for responsive design
     const [isMobile, setIsMobile] = useState(false);
-    const [sidebarOpen, setSidebarOpen] = useState(false);
 
     // Refs for GSAP animations
     const pageRef = useRef<HTMLDivElement>(null);
@@ -125,11 +122,6 @@ const ConsistencyLeaderboard: React.FC<ConsistencyLeaderboardProps> = ({
         };
     }, [isMobile]);
 
-    // Toggle sidebar for mobile
-    const toggleSidebar = () => {
-        setSidebarOpen(!sidebarOpen);
-    };
-
     // Get route helper function
     const getRoute = (name: string): string => {
         // Check if routes object exists and contains the route
@@ -156,6 +148,119 @@ const ConsistencyLeaderboard: React.FC<ConsistencyLeaderboardProps> = ({
         };
 
         return fallbackRoutes[name] || '#';
+    };
+
+    // Render leaderboard cards for mobile
+    const renderMobileLeaderboard = () => {
+        if (leaderboardData.length === 0) {
+            return (
+                <div className="py-4 text-center text-[#a3c0e6]">
+                    No data available yet
+                </div>
+            );
+        }
+
+        return (
+            <div className="space-y-3 px-1 py-2">
+                {leaderboardData.map((user) => (
+                    <div
+                        key={user.id}
+                        className={`rounded-lg border border-[#1e3a5f] p-4 ${user.isYou ? 'bg-[#1e3a5f]/30' : 'bg-[#112845]'}`}
+                    >
+                        <div className="flex items-center justify-between mb-2">
+                            <div className="flex items-center">
+                                <span className="mr-3 text-xl font-bold text-white">
+                                    {user.rank === 1 && <span className="mr-1">🏆</span>}
+                                    {user.rank === 2 && <span className="mr-1">🥈</span>}
+                                    {user.rank === 3 && <span className="mr-1">🥉</span>}
+                                    {user.rank}
+                                </span>
+                                <span className="text-base text-[#a3c0e6]">
+                                    {user.username} {user.isYou && <span className="text-sm font-medium text-[#4a90e2]">(You)</span>}
+                                </span>
+                            </div>
+                            <span className="rounded-full bg-[#1e3a5f] px-2 py-1 text-xs text-[#a3c0e6]">
+                                {user.completed_sessions} sessions
+                            </span>
+                        </div>
+                        <div className="mt-3">
+                            <div className="flex items-center">
+                                <div className="mr-3 h-2.5 w-full rounded-full bg-[#1e3a5f]">
+                                    <div
+                                        className="h-2.5 rounded-full bg-[#4a90e2]"
+                                        style={{ width: `${user.consistency_score}%` }}
+                                    ></div>
+                                </div>
+                                <span className="ml-2 whitespace-nowrap text-sm font-medium text-[#4a90e2]">
+                                    {user.consistency_score}%
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                ))}
+            </div>
+        );
+    };
+
+    // Render desktop table
+    const renderDesktopTable = () => {
+        return (
+            <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-[#1e3a5f]">
+                    <thead className="bg-[#0a1e3c]">
+                        <tr>
+                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium tracking-wider text-[#4a90e2] uppercase">
+                                Rank
+                            </th>
+                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium tracking-wider text-[#4a90e2] uppercase">
+                                Username
+                            </th>
+                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium tracking-wider text-[#4a90e2] uppercase">
+                                Consistency
+                            </th>
+                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium tracking-wider text-[#4a90e2] uppercase">
+                                Completed Sessions
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody className="divide-y divide-[#1e3a5f] bg-[#112845]">
+                        {leaderboardData.length > 0 ? (
+                            leaderboardData.map((user) => (
+                                <tr key={user.id} className={user.isYou ? 'bg-[#1e3a5f]/30' : undefined}>
+                                    <td className="px-6 py-4 text-sm font-medium whitespace-nowrap text-white">
+                                        {user.rank === 1 && <span className="mr-2">🏆</span>}
+                                        {user.rank === 2 && <span className="mr-2">🥈</span>}
+                                        {user.rank === 3 && <span className="mr-2">🥉</span>}
+                                        {user.rank}
+                                    </td>
+                                    <td className="px-6 py-4 text-sm whitespace-nowrap text-[#a3c0e6]">
+                                        {user.username} {user.isYou && <span className="font-medium text-[#4a90e2]">(You)</span>}
+                                    </td>
+                                    <td className="px-6 py-4 text-sm font-medium whitespace-nowrap">
+                                        <div className="flex items-center">
+                                            <div className="mr-2 h-2 w-24 rounded-full bg-[#1e3a5f]">
+                                                <div
+                                                    className="h-2 rounded-full bg-[#4a90e2]"
+                                                    style={{ width: `${user.consistency_score}%` }}
+                                                ></div>
+                                            </div>
+                                            <span className="text-[#4a90e2]">{user.consistency_score}%</span>
+                                        </div>
+                                    </td>
+                                    <td className="px-6 py-4 text-sm whitespace-nowrap text-[#a3c0e6]">{user.completed_sessions}</td>
+                                </tr>
+                            ))
+                        ) : (
+                            <tr>
+                                <td colSpan={4} className="px-6 py-4 text-center text-sm text-[#a3c0e6]">
+                                    No data available yet
+                                </td>
+                            </tr>
+                        )}
+                    </tbody>
+                </table>
+            </div>
+        );
     };
 
     return (
@@ -248,82 +353,6 @@ const ConsistencyLeaderboard: React.FC<ConsistencyLeaderboardProps> = ({
                 </div>
             </div>
 
-            {/* Mobile sidebar overlay */}
-            {sidebarOpen && <div className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm lg:hidden" onClick={toggleSidebar}></div>}
-
-            {/* Mobile sidebar */}
-            <div
-                className={`fixed inset-y-0 left-0 z-50 w-64 transform border-r border-[#1e3a5f] bg-[#0a1e3c] transition-transform duration-300 ease-in-out lg:hidden ${
-                    sidebarOpen ? 'translate-x-0' : '-translate-x-full'
-                }`}
-            >
-                <div className="flex h-16 items-center justify-between border-b border-[#1e3a5f] px-6">
-                    <div className="flex items-center">
-                        <div className="mr-2 flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-[#4a90e2] to-[#63b3ed]">
-                            <Trophy className="h-4 w-4 text-white" />
-                        </div>
-                        <h1 className="text-lg font-bold text-white">AthleteTrack</h1>
-                    </div>
-                    <button onClick={toggleSidebar} className="text-[#a3c0e6] hover:text-white">
-                        <X className="h-5 w-5" />
-                    </button>
-                </div>
-
-                {/* Mobile Navigation */}
-                <nav className="flex-1 space-y-1 px-2 py-4">
-                    <a
-                        href={getRoute('student.dashboard')}
-                        className="flex items-center rounded-md px-4 py-3 text-[#a3c0e6] hover:bg-[#1e3a5f]/50"
-                    >
-                        <Home className="mr-3 h-5 w-5 text-[#4a90e2]" />
-                        <span>Dashboard</span>
-                    </a>
-                    <a
-                        href={getRoute('student.training')}
-                        className="flex items-center rounded-md px-4 py-3 text-[#a3c0e6] hover:bg-[#1e3a5f]/50"
-                    >
-                        <Activity className="mr-3 h-5 w-5 text-[#4a90e2]" />
-                        <span>Training</span>
-                    </a>
-                    <a
-                        href={getRoute('student.progress')}
-                        className="flex items-center rounded-md px-4 py-3 text-[#a3c0e6] hover:bg-[#1e3a5f]/50"
-                    >
-                        <svg
-                            className="mr-3 h-5 w-5 text-[#4a90e2]"
-                            xmlns="http://www.w3.org/2000/svg"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="2"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                        >
-                            <path d="M22 12h-4l-3 9L9 3l-3 9H2"></path>
-                        </svg>
-                        <span>Progress</span>
-                    </a>
-
-                    <div className="mt-4 border-t border-[#1e3a5f] pt-4">
-                        <h3 className="mb-2 px-4 text-xs font-semibold tracking-wider text-[#a3c0e6] uppercase">Leaderboards</h3>
-                        <a
-                            href={getRoute('leaderboard.strength')}
-                            className="flex items-center rounded-md px-4 py-3 text-[#a3c0e6] hover:bg-[#1e3a5f]/50"
-                        >
-                            <Award className="mr-3 h-5 w-5 text-[#4a90e2]" />
-                            <span>Strength</span>
-                        </a>
-                        <a
-                            href={getRoute('leaderboard.consistency')}
-                            className="flex items-center rounded-md bg-[#1e3a5f] px-4 py-3 text-white"
-                        >
-                            <BarChart2 className="mr-3 h-5 w-5 text-[#4a90e2]" />
-                            <span>Consistency</span>
-                        </a>
-                    </div>
-                </nav>
-            </div>
-
             {/* Main Content */}
             <div className="flex-1 lg:ml-64">
                 {/* Header */}
@@ -333,9 +362,6 @@ const ConsistencyLeaderboard: React.FC<ConsistencyLeaderboardProps> = ({
                 >
                     <div className="mx-auto flex max-w-7xl items-center justify-between">
                         <div className="flex items-center">
-                            <button onClick={toggleSidebar} className="mr-4 text-[#a3c0e6] hover:text-white lg:hidden">
-                                <Menu className="h-6 w-6" />
-                            </button>
                             <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-[#4a90e2] to-[#63b3ed] mr-3">
                                 <BarChart2 className="h-5 w-5 text-white" />
                             </div>
@@ -347,60 +373,14 @@ const ConsistencyLeaderboard: React.FC<ConsistencyLeaderboardProps> = ({
                 {/* Main Content */}
                 <main ref={mainContentRef} className="mx-auto max-w-7xl px-4 py-6 pb-24 lg:pb-6">
                     <div className="overflow-hidden rounded-xl bg-[#112845] shadow-lg border border-[#1e3a5f]">
-                        <div className="overflow-x-auto">
-                            <table className="min-w-full divide-y divide-[#1e3a5f]">
-                                <thead className="bg-[#0a1e3c]">
-                                    <tr>
-                                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium tracking-wider text-[#4a90e2] uppercase">
-                                            Rank
-                                        </th>
-                                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium tracking-wider text-[#4a90e2] uppercase">
-                                            Username
-                                        </th>
-                                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium tracking-wider text-[#4a90e2] uppercase">
-                                            Consistency
-                                        </th>
-                                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium tracking-wider text-[#4a90e2] uppercase">
-                                            Completed Sessions
-                                        </th>
-                                    </tr>
-                                </thead>
-                                <tbody className="divide-y divide-[#1e3a5f] bg-[#112845]">
-                                    {leaderboardData.length > 0 ? (
-                                        leaderboardData.map((user) => (
-                                            <tr key={user.id} className={user.isYou ? 'bg-[#1e3a5f]/30' : undefined}>
-                                                <td className="px-6 py-4 text-sm font-medium whitespace-nowrap text-white">
-                                                    {user.rank === 1 && <span className="mr-2">🏆</span>}
-                                                    {user.rank === 2 && <span className="mr-2">🥈</span>}
-                                                    {user.rank === 3 && <span className="mr-2">🥉</span>}
-                                                    {user.rank}
-                                                </td>
-                                                <td className="px-6 py-4 text-sm whitespace-nowrap text-[#a3c0e6]">
-                                                    {user.username} {user.isYou && <span className="font-medium text-[#4a90e2]">(You)</span>}
-                                                </td>
-                                                <td className="px-6 py-4 text-sm font-medium whitespace-nowrap">
-                                                    <div className="flex items-center">
-                                                        <div className="mr-2 h-2 w-24 rounded-full bg-[#1e3a5f]">
-                                                            <div
-                                                                className="h-2 rounded-full bg-[#4a90e2]"
-                                                                style={{ width: `${user.consistency_score}%` }}
-                                                            ></div>
-                                                        </div>
-                                                        <span className="text-[#4a90e2]">{user.consistency_score}%</span>
-                                                    </div>
-                                                </td>
-                                                <td className="px-6 py-4 text-sm whitespace-nowrap text-[#a3c0e6]">{user.completed_sessions}</td>
-                                            </tr>
-                                        ))
-                                    ) : (
-                                        <tr>
-                                            <td colSpan={4} className="px-6 py-4 text-center text-sm text-[#a3c0e6]">
-                                                No data available yet
-                                            </td>
-                                        </tr>
-                                    )}
-                                </tbody>
-                            </table>
+                        {/* Desktop view - Table */}
+                        <div className="hidden sm:block">
+                            {renderDesktopTable()}
+                        </div>
+
+                        {/* Mobile view - Cards */}
+                        <div className="block sm:hidden">
+                            {renderMobileLeaderboard()}
                         </div>
                     </div>
                 </main>

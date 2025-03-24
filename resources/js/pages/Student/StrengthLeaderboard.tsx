@@ -158,6 +158,58 @@ const ConsistencyLeaderboard: React.FC<ConsistencyLeaderboardProps> = ({
         return fallbackRoutes[name] || '#';
     };
 
+    // Render leaderboard cards for mobile
+    const renderMobileLeaderboard = () => {
+        if (leaderboardData.length === 0) {
+            return (
+                <div className="py-4 text-center text-[#a3c0e6]">
+                    No data available yet
+                </div>
+            );
+        }
+
+        return (
+            <div className="space-y-3 px-1 py-2">
+                {leaderboardData.map((user) => (
+                    <div
+                        key={user.id}
+                        className={`rounded-lg border border-[#1e3a5f] p-4 ${user.isYou ? 'bg-[#1e3a5f]/30' : 'bg-[#112845]'}`}
+                    >
+                        <div className="flex items-center justify-between mb-2">
+                            <div className="flex items-center">
+                                <span className="mr-3 text-xl font-bold text-white">
+                                    {user.rank === 1 && <span className="mr-1">🏆</span>}
+                                    {user.rank === 2 && <span className="mr-1">🥈</span>}
+                                    {user.rank === 3 && <span className="mr-1">🥉</span>}
+                                    {user.rank}
+                                </span>
+                                <span className="text-base text-[#a3c0e6]">
+                                    {user.username} {user.isYou && <span className="text-sm font-medium text-[#4a90e2]">(You)</span>}
+                                </span>
+                            </div>
+                            <span className="rounded-full bg-[#1e3a5f] px-2 py-1 text-xs text-[#a3c0e6]">
+                                {user.completed_sessions} sessions
+                            </span>
+                        </div>
+                        <div className="mt-3">
+                            <div className="flex items-center">
+                                <div className="mr-3 h-2.5 w-full rounded-full bg-[#1e3a5f]">
+                                    <div
+                                        className="h-2.5 rounded-full bg-[#7c3aed]"
+                                        style={{ width: `${user.consistency_score}%` }}
+                                    ></div>
+                                </div>
+                                <span className="ml-2 whitespace-nowrap text-sm font-medium text-[#7c3aed]">
+                                    {user.consistency_score}%
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                ))}
+            </div>
+        );
+    };
+
     return (
         <div ref={pageRef} className="flex min-h-screen bg-gradient-to-b from-[#0a1e3c] to-[#0f2a4a]">
             <Head title="Consistency Leaderboard" />
@@ -311,60 +363,68 @@ const ConsistencyLeaderboard: React.FC<ConsistencyLeaderboardProps> = ({
                 {/* Main Content */}
                 <main ref={mainContentRef} className="mx-auto max-w-7xl px-4 py-6 pb-24 lg:pb-6">
                     <div className="overflow-hidden rounded-xl bg-[#112845] shadow-lg border border-[#1e3a5f]">
-                        <div className="overflow-x-auto">
-                            <table className="min-w-full divide-y divide-[#1e3a5f]">
-                                <thead className="bg-[#0a1e3c]">
-                                    <tr>
-                                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium tracking-wider text-[#4a90e2] uppercase">
-                                            Rank
-                                        </th>
-                                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium tracking-wider text-[#4a90e2] uppercase">
-                                            Username
-                                        </th>
-                                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium tracking-wider text-[#4a90e2] uppercase">
-                                            Consistency
-                                        </th>
-                                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium tracking-wider text-[#4a90e2] uppercase">
-                                            Completed Sessions
-                                        </th>
-                                    </tr>
-                                </thead>
-                                <tbody className="divide-y divide-[#1e3a5f] bg-[#112845]">
-                                    {leaderboardData.length > 0 ? (
-                                        leaderboardData.map((user) => (
-                                            <tr key={user.id} className={user.isYou ? 'bg-[#1e3a5f]/30' : undefined}>
-                                                <td className="px-6 py-4 text-sm font-medium whitespace-nowrap text-white">
-                                                    {user.rank === 1 && <span className="mr-2">🏆</span>}
-                                                    {user.rank === 2 && <span className="mr-2">🥈</span>}
-                                                    {user.rank === 3 && <span className="mr-2">🥉</span>}
-                                                    {user.rank}
-                                                </td>
-                                                <td className="px-6 py-4 text-sm whitespace-nowrap text-[#a3c0e6]">
-                                                    {user.username} {user.isYou && <span className="font-medium text-[#4a90e2]">(You)</span>}
-                                                </td>
-                                                <td className="px-6 py-4 text-sm font-medium whitespace-nowrap">
-                                                    <div className="flex items-center">
-                                                        <div className="mr-2 h-2 w-24 rounded-full bg-[#1e3a5f]">
-                                                            <div
-                                                                className="h-2 rounded-full bg-[#7c3aed]"
-                                                                style={{ width: `${user.consistency_score}%` }}
-                                                            ></div>
-                                                        </div>
-                                                        <span className="text-[#7c3aed]">{user.consistency_score}%</span>
-                                                    </div>
-                                                </td>
-                                                <td className="px-6 py-4 text-sm whitespace-nowrap text-[#a3c0e6]">{user.completed_sessions}</td>
-                                            </tr>
-                                        ))
-                                    ) : (
+                        {/* Desktop view - Table */}
+                        <div className="hidden sm:block">
+                            <div className="overflow-x-auto">
+                                <table className="min-w-full divide-y divide-[#1e3a5f]">
+                                    <thead className="bg-[#0a1e3c]">
                                         <tr>
-                                            <td colSpan={4} className="px-6 py-4 text-center text-sm text-[#a3c0e6]">
-                                                No data available yet
-                                            </td>
+                                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium tracking-wider text-[#4a90e2] uppercase">
+                                                Rank
+                                            </th>
+                                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium tracking-wider text-[#4a90e2] uppercase">
+                                                Username
+                                            </th>
+                                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium tracking-wider text-[#4a90e2] uppercase">
+                                                Consistency
+                                            </th>
+                                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium tracking-wider text-[#4a90e2] uppercase">
+                                                Completed Sessions
+                                            </th>
                                         </tr>
-                                    )}
-                                </tbody>
-                            </table>
+                                    </thead>
+                                    <tbody className="divide-y divide-[#1e3a5f] bg-[#112845]">
+                                        {leaderboardData.length > 0 ? (
+                                            leaderboardData.map((user) => (
+                                                <tr key={user.id} className={user.isYou ? 'bg-[#1e3a5f]/30' : undefined}>
+                                                    <td className="px-6 py-4 text-sm font-medium whitespace-nowrap text-white">
+                                                        {user.rank === 1 && <span className="mr-2">🏆</span>}
+                                                        {user.rank === 2 && <span className="mr-2">🥈</span>}
+                                                        {user.rank === 3 && <span className="mr-2">🥉</span>}
+                                                        {user.rank}
+                                                    </td>
+                                                    <td className="px-6 py-4 text-sm whitespace-nowrap text-[#a3c0e6]">
+                                                        {user.username} {user.isYou && <span className="font-medium text-[#4a90e2]">(You)</span>}
+                                                    </td>
+                                                    <td className="px-6 py-4 text-sm font-medium whitespace-nowrap">
+                                                        <div className="flex items-center">
+                                                            <div className="mr-2 h-2 w-24 rounded-full bg-[#1e3a5f]">
+                                                                <div
+                                                                    className="h-2 rounded-full bg-[#7c3aed]"
+                                                                    style={{ width: `${user.consistency_score}%` }}
+                                                                ></div>
+                                                            </div>
+                                                            <span className="text-[#7c3aed]">{user.consistency_score}%</span>
+                                                        </div>
+                                                    </td>
+                                                    <td className="px-6 py-4 text-sm whitespace-nowrap text-[#a3c0e6]">{user.completed_sessions}</td>
+                                                </tr>
+                                            ))
+                                        ) : (
+                                            <tr>
+                                                <td colSpan={4} className="px-6 py-4 text-center text-sm text-[#a3c0e6]">
+                                                    No data available yet
+                                                </td>
+                                            </tr>
+                                        )}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        {/* Mobile view - Cards */}
+                        <div className="block sm:hidden">
+                            {renderMobileLeaderboard()}
                         </div>
                     </div>
                 </main>
