@@ -11,11 +11,10 @@ import {
     ChevronUp,
     Clock,
     Dumbbell,
-    FileText,
     Home,
     LogOut,
     Menu,
-    Settings,
+    // Settings,
     TrendingUp,
     Trophy,
     User,
@@ -483,13 +482,13 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({
                             <Trophy className="mb-1 h-6 w-6" />
                             <span className="text-xs">Progress</span>
                         </a>
-                        <a
+                        {/* <a
                             href={getRoute('student.settings')}
                             className="flex flex-col items-center px-4 py-3 text-[#a3c0e6] transition-colors hover:text-white"
                         >
                             <Settings className="mb-1 h-6 w-6" />
                             <span className="text-xs">Settings</span>
-                        </a>
+                        </a> */}
                     </div>
                 </div>
 
@@ -659,10 +658,16 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({
 
                 {/* Footer */}
                 <div className="border-t border-[#1e3a5f] p-4">
-                    <a href="#" className="flex items-center px-4 py-2 text-[#a3c0e6] transition-colors hover:text-white">
-                        <LogOut className="mr-3 h-5 w-5 text-[#4a90e2]" />
-                        <span>Logout</span>
-                    </a>
+                    <Link
+                        href={getRoute('admin.logout')}
+                        method="post"
+                        as="button"
+                        className="flex w-full items-center rounded-lg px-4 py-3 text-[#a3c0e6] hover:bg-[#112845] hover:text-white transition-colors"
+                        preserveScroll
+                    >
+                        <LogOut className="mr-3 h-5 w-5" />
+                        Logout
+                    </Link>
                 </div>
             </div>
 
@@ -919,7 +924,7 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({
                         </div>
                     </div>
 
-                    {/* Stats Cards */}
+                    {/* Stats Cards
                     <div className="mb-8 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
                         <div className="rounded-xl border border-[#1e3a5f] bg-[#112845] p-5 shadow-lg transition-transform duration-300 hover:scale-105 hover:transform">
                             <div className="mb-2 flex items-center justify-between">
@@ -974,10 +979,10 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({
                                 <span>Until your next training session</span>
                             </div>
                         </div>
-                    </div>
+                    </div> */}
 
                     {/* Recent Activity */}
-                    <div className="rounded-xl border border-[#1e3a5f] bg-[#112845] p-6 shadow-lg">
+                    {/* <div className="rounded-xl border border-[#1e3a5f] bg-[#112845] p-6 shadow-lg">
                         <div className="mb-4 flex items-center justify-between">
                             <h2 className="text-lg font-semibold text-white">Recent Activity</h2>
                             <button className="text-sm text-[#4a90e2] transition-colors hover:text-[#63b3ed]">View all</button>
@@ -1017,7 +1022,7 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({
                                 </div>
                             </div>
                         </div>
-                    </div>
+                    </div> */}
                 </main>
             </div>
 

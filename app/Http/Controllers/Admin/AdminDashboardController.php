@@ -4,13 +4,14 @@ namespace App\Http\Controllers\Admin;
 
 use Inertia\Inertia;
 use App\Models\User;
-use App\Models\TrainingResult;
+use App\Models\PreTrainingTest;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rules\Password;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Support\Facades\Log;
 
 class AdminDashboardController extends Controller
 {
@@ -22,7 +23,6 @@ class AdminDashboardController extends Controller
         try {
             $athletes = $this->getAthletesWithTrainingResults();
         } catch (\Exception $e) {
-
             $athletes = $this->getBasicAthleteData();
         }
 
@@ -33,13 +33,15 @@ class AdminDashboardController extends Controller
     }
 
     /**
-     * Create a new athlete user with training results.
+     * Create a new athlete user with pre-training test results.
      */
     public function createAthlete(Request $request)
     {
         try {
+            // Debug incoming request data
+            Log::info('Athlete creation request data:', $request->all());
 
-            $existingUser = User::where('email', $request->input('parent_email'))->first();
+            $existingUser = User::where('parent_email', $request->input('parent_email'))->first();
             if ($existingUser) {
                 return redirect()->back()->withErrors([
                     'parent_email' => 'This email is already associated with another user.'
@@ -67,18 +69,20 @@ class AdminDashboardController extends Controller
 
             $trainingResults = $request->input('training_results', []);
 
+            Log::info('Training results data:', $trainingResults);
+
             DB::beginTransaction();
 
             // Create the user
             $user = User::create([
                 'username' => $validated['username'],
-                'email' => $validated['parent_email'],
+                'parent_email' => $validated['parent_email'],
                 'password' => Hash::make($validated['password']),
                 'user_role' => 'student',
             ]);
 
-            // Create the training results
-            $trainingResult = TrainingResult::create([
+            // Create the pre-training test instead of the training result
+            $preTrainingTest = PreTrainingTest::create([
                 'user_id' => $user->id,
                 'standing_long_jump' => $trainingResults['standing_long_jump'] ?? null,
                 'single_leg_jump_left' => $trainingResults['single_leg_jump_left'] ?? null,
@@ -86,7 +90,11 @@ class AdminDashboardController extends Controller
                 'wall_sit' => $trainingResults['wall_sit'] ?? null,
                 'core_endurance' => $trainingResults['core_endurance'] ?? null,
                 'bent_arm_hang' => $trainingResults['bent_arm_hang'] ?? null,
+                'tested_at' => now()
             ]);
+
+            Log::info('User created successfully:', ['user_id' => $user->id]);
+            Log::info('Pre-training test created successfully:', ['test_id' => $preTrainingTest->id]);
 
             DB::commit();
 
@@ -94,23 +102,25 @@ class AdminDashboardController extends Controller
             $athleteData = [
                 'id' => $user->id,
                 'username' => $user->username,
-                'email' => $user->email,
+                'email' => $user->parent_email,
                 'training_results' => [
-                    'standing_long_jump' => $trainingResult->standing_long_jump,
-                    'single_leg_jump_left' => $trainingResult->single_leg_jump_left,
-                    'single_leg_jump_right' => $trainingResult->single_leg_jump_right,
-                    'wall_sit' => $trainingResult->wall_sit,
-                    'core_endurance' => $trainingResult->core_endurance,
-                    'bent_arm_hang' => $trainingResult->bent_arm_hang,
+                    'standing_long_jump' => $preTrainingTest->standing_long_jump,
+                    'single_leg_jump_left' => $preTrainingTest->single_leg_jump_left,
+                    'single_leg_jump_right' => $preTrainingTest->single_leg_jump_right,
+                    'wall_sit' => $preTrainingTest->wall_sit,
+                    'core_endurance' => $preTrainingTest->core_endurance,
+                    'bent_arm_hang' => $preTrainingTest->bent_arm_hang,
                 ]
             ];
 
             return redirect()->back()->with('success', 'Athlete created successfully!')->with('newAthlete', $athleteData);
 
         } catch (\Illuminate\Validation\ValidationException $e) {
+            Log::error('Validation error:', $e->errors());
             return redirect()->back()->withErrors($e->errors())->withInput();
         } catch (\Exception $e) {
             DB::rollBack();
+            Log::error('Error creating athlete: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
             return redirect()->back()->with('error', 'Failed to create athlete: ' . $e->getMessage())->withInput();
         }
     }
@@ -123,7 +133,6 @@ class AdminDashboardController extends Controller
         try {
             $athletes = $this->getAthletesWithTrainingResults();
         } catch (\Exception $e) {
-
             $athletes = $this->getBasicAthleteData();
         }
 
@@ -154,25 +163,25 @@ class AdminDashboardController extends Controller
     }
 
     /**
-     * Get athletes with their training results
+     * Get athletes with their pre-training test results
      */
     private function getAthletesWithTrainingResults()
     {
         return User::where('user_role', 'student')
-            ->with('trainingResults')
+            ->with('preTrainingTest')
             ->get()
             ->map(function ($user) {
                 return [
                     'id' => $user->id,
                     'username' => $user->username,
-                    'email' => $user->email,
-                    'training_results' => $user->trainingResults ? [
-                        'standing_long_jump' => $user->trainingResults->standing_long_jump,
-                        'single_leg_jump_left' => $user->trainingResults->single_leg_jump_left,
-                        'single_leg_jump_right' => $user->trainingResults->single_leg_jump_right,
-                        'wall_sit' => $user->trainingResults->wall_sit,
-                        'core_endurance' => $user->trainingResults->core_endurance,
-                        'bent_arm_hang' => $user->trainingResults->bent_arm_hang,
+                    'email' => $user->parent_email,
+                    'training_results' => $user->preTrainingTest ? [
+                        'standing_long_jump' => $user->preTrainingTest->standing_long_jump,
+                        'single_leg_jump_left' => $user->preTrainingTest->single_leg_jump_left,
+                        'single_leg_jump_right' => $user->preTrainingTest->single_leg_jump_right,
+                        'wall_sit' => $user->preTrainingTest->wall_sit,
+                        'core_endurance' => $user->preTrainingTest->core_endurance,
+                        'bent_arm_hang' => $user->preTrainingTest->bent_arm_hang,
                     ] : null,
                 ];
             });
@@ -189,7 +198,7 @@ class AdminDashboardController extends Controller
                 return [
                     'id' => $user->id,
                     'username' => $user->username,
-                    'email' => $user->email,
+                    'email' => $user->parent_email,
                 ];
             });
     }
