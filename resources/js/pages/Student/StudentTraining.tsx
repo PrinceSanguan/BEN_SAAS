@@ -13,6 +13,7 @@ import {
     User,
     X,
 } from 'lucide-react';
+import { Link } from '@inertiajs/react';
 
 interface Session {
     id: number;
@@ -241,10 +242,16 @@ const StudentTraining: React.FC<StudentTrainingProps> = ({
 
                 {/* Footer */}
                 <div className="border-t border-[#1e3a5f] p-4">
-                    <a href="#" className="flex items-center px-4 py-2 text-[#a3c0e6] transition-colors hover:text-white">
-                        <LogOut className="mr-3 h-5 w-5 text-[#4a90e2]" />
-                        <span>Logout</span>
-                    </a>
+                    <Link
+                        href={getRoute('admin.logout')}
+                        method="post"
+                        as="button"
+                        className="flex w-full items-center rounded-lg px-4 py-3 text-[#a3c0e6] hover:bg-[#112845] hover:text-white transition-colors"
+                        preserveScroll
+                    >
+                        <LogOut className="mr-3 h-5 w-5" />
+                        Logout
+                    </Link>
                 </div>
             </div>
 
