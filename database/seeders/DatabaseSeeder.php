@@ -11,8 +11,22 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        $this->call(UserSeeder::class);
-        $this->call(BlockSeeder::class);
-        $this->call(TrainingSessionSeeder::class);
+        $this->call([
+
+            // First create users
+            UserSeeder::class,
+
+            // Then create training blocks
+            BlockSeeder::class,
+
+            // Then populate training sessions
+            TrainingSessionSeeder::class,
+
+            // Then create student users and their training results
+            TrainingResultsSeeder::class,
+
+            // Finally calculate and update user stats
+            UserStatsSeeder::class,
+        ]);
     }
 }

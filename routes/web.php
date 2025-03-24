@@ -55,9 +55,9 @@ Route::middleware([AdminMiddleware::class])->group(function () {
 
     Route::get('/admin/analytics', [AdminDashboardController::class, 'analytics'])->name('admin.analytics');
     Route::get('/admin/settings', [AdminDashboardController::class, 'settings'])->name('admin.settings');
-
-    Route::post('/admin/logout', [LoginController::class, 'logout'])->name('admin.logout');
 });
+
+Route::post('/admin/logout', [LoginController::class, 'logout'])->name('admin.logout');
 
 /*
 |--------------------------------------------------------------------------
@@ -67,10 +67,15 @@ Route::middleware([AdminMiddleware::class])->group(function () {
 
 use App\Http\Controllers\Student\StudentDashboardController;
 use App\Http\Controllers\Student\StudentTrainingController;
+use App\Http\Controllers\LeaderboardController;
 use App\Http\Middleware\StudentMiddleware;
 
 Route::middleware(StudentMiddleware::class)->group(function () {
     Route::get('/student/dashboard', [StudentDashboardController::class, 'index'])->name('student.dashboard');
     Route::get('/student/training', [StudentTrainingController::class, 'index'])->name('student.training');
     Route::get('/training/session/{sessionId}', [StudentTrainingController::class, 'showSession'])->name('training.session.show');
+    Route::post('/training/session/{sessionId}/save', [StudentTrainingController::class, 'saveTrainingResult'])->name('training.session.save');
+    // Add these routes to your Student middleware group
+    Route::get('/leaderboard/consistency', [LeaderboardController::class, 'consistency'])->name('leaderboard.consistency');
+    Route::get('/leaderboard/strength', [LeaderboardController::class, 'strength'])->name('leaderboard.strength');
 });
