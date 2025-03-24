@@ -69,6 +69,7 @@ use App\Http\Controllers\Student\StudentDashboardController;
 use App\Http\Controllers\Student\StudentTrainingController;
 use App\Http\Controllers\LeaderboardController;
 use App\Http\Controllers\Student\ProgressController;
+use App\Http\Controllers\Student\XpController;
 use App\Http\Middleware\StudentMiddleware;
 
 Route::middleware(StudentMiddleware::class)->group(function () {
@@ -82,4 +83,6 @@ Route::middleware(StudentMiddleware::class)->group(function () {
 
     Route::get('/progress', [ProgressController::class, 'index'])->name('student.progress');
     Route::post('/progress/recalculate', [ProgressController::class, 'recalculateProgress'])->name('student.progress.recalculate');
+    Route::get('/student/xp', [XpController::class, 'index'])->name('student.xp');
+    Route::get('/student/xp/progress', [XpController::class, 'showLevelProgress'])->name('student.xp.progress');
 });

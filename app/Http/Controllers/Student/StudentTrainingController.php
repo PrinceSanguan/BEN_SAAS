@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Models\Block;
 use App\Models\TrainingResult;
 use App\Models\TestResult;
+use App\Services\XpService;
+use App\Services\UserStatService;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 use App\Models\TrainingSession;
@@ -13,6 +15,21 @@ use Illuminate\Http\Request;
 
 class StudentTrainingController extends Controller
 {
+    protected $xpService;
+    protected $userStatService;
+
+    /**
+     * Create a new controller instance.
+     *
+     * @param XpService $xpService
+     * @param UserStatService $userStatService
+     */
+    public function __construct(XpService $xpService, UserStatService $userStatService)
+    {
+        $this->xpService = $xpService;
+        $this->userStatService = $userStatService;
+    }
+
     /**
      * Display the Student training.
      */
@@ -93,9 +110,18 @@ class StudentTrainingController extends Controller
             ];
         });
 
+        // Get XP information
+        $xpSummary = $this->xpService->getUserXpSummary($user->id);
+
         // Render with Inertia to your Student/StudentTraining page
         return Inertia::render('Student/StudentTraining', [
             'blocks' => $formattedBlocks,
+            'xp' => [
+                'total' => $xpSummary['total_xp'],
+                'level' => $xpSummary['current_level'],
+                'nextLevel' => $xpSummary['next_level'],
+                'xpNeeded' => $xpSummary['xp_needed_for_next_level'],
+            ],
         ]);
     }
 
@@ -116,6 +142,9 @@ class StudentTrainingController extends Controller
                 ->where('session_id', $sessionId)
                 ->first();
         }
+
+        // Get XP information
+        $xpSummary = $this->xpService->getUserXpSummary($user->id);
 
         return Inertia::render('Student/TrainingSession', [
             'session' => [
@@ -142,9 +171,16 @@ class StudentTrainingController extends Controller
                 'single_leg_jump_right'    => $testResult->single_leg_jump_right,
                 'wall_sit_assessment'      => $testResult->wall_sit_assessment,
                 'high_plank_assessment'    => $testResult->high_plank_assessment,
-                'bent_arm_hang_assessment' => $testResult->bent_arm_hang_assessment,
+                'bent_arm_hang_assessment' => $testResult->bent_arm_hang_assessment, // Bonus assessment
                 'completed_at'             => $testResult->completed_at,
             ] : null,
+            'xp' => [
+                'total' => $xpSummary['total_xp'],
+                'level' => $xpSummary['current_level'],
+                'nextLevel' => $xpSummary['next_level'],
+                'xpNeeded' => $xpSummary['xp_needed_for_next_level'],
+                'bonusFields' => ['bent_arm_hang_assessment'], // Indicate which fields are bonus
+            ],
         ]);
     }
 
@@ -160,7 +196,7 @@ class StudentTrainingController extends Controller
                 'single_leg_jump_right'    => 'required|numeric',
                 'wall_sit_assessment'      => 'required|numeric',
                 'high_plank_assessment'    => 'required|numeric',
-                'bent_arm_hang_assessment' => 'required|numeric',
+                'bent_arm_hang_assessment' => 'nullable|numeric', // Optional field
             ]);
 
             TestResult::updateOrCreate(
@@ -174,7 +210,7 @@ class StudentTrainingController extends Controller
                     'single_leg_jump_right'    => $validated['single_leg_jump_right'],
                     'wall_sit_assessment'      => $validated['wall_sit_assessment'],
                     'high_plank_assessment'    => $validated['high_plank_assessment'],
-                    'bent_arm_hang_assessment' => $validated['bent_arm_hang_assessment'],
+                    'bent_arm_hang_assessment' => $validated['bent_arm_hang_assessment'] ?? null,
                     'completed_at'             => now(),
                 ]
             );
@@ -203,7 +239,19 @@ class StudentTrainingController extends Controller
             );
         }
 
+        // Calculate and award XP for this session and update user stats
+        $this->userStatService->updateStatsAfterSession($user->id, $sessionId);
+
+        // Get the updated XP data for the success message
+        $xpSummary = $this->xpService->getUserXpSummary($user->id);
+        $successMessage = 'Training results saved successfully!';
+
+        // Add XP information to the success message
+        if ($xpSummary['current_level'] > 1) {
+            $successMessage .= ' Your current strength level is ' . $xpSummary['current_level'] . '.';
+        }
+
         return redirect()->route('student.training')
-            ->with('success', 'Training results saved successfully!');
+            ->with('success', $successMessage);
     }
 }
