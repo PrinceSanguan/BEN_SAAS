@@ -11,7 +11,6 @@ import {
     ChevronUp,
     Clock,
     Dumbbell,
-    FileText,
     Home,
     LogOut,
     Menu,
@@ -919,7 +918,7 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({
                         </div>
                     </div>
 
-                    {/* Stats Cards */}
+                    {/* Stats Cards
                     <div className="mb-8 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
                         <div className="rounded-xl border border-[#1e3a5f] bg-[#112845] p-5 shadow-lg transition-transform duration-300 hover:scale-105 hover:transform">
                             <div className="mb-2 flex items-center justify-between">
@@ -974,10 +973,10 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({
                                 <span>Until your next training session</span>
                             </div>
                         </div>
-                    </div>
+                    </div> */}
 
                     {/* Recent Activity */}
-                    <div className="rounded-xl border border-[#1e3a5f] bg-[#112845] p-6 shadow-lg">
+                    {/* <div className="rounded-xl border border-[#1e3a5f] bg-[#112845] p-6 shadow-lg">
                         <div className="mb-4 flex items-center justify-between">
                             <h2 className="text-lg font-semibold text-white">Recent Activity</h2>
                             <button className="text-sm text-[#4a90e2] transition-colors hover:text-[#63b3ed]">View all</button>
@@ -1017,7 +1016,7 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({
                                 </div>
                             </div>
                         </div>
-                    </div>
+                    </div> */}
                 </main>
             </div>
 

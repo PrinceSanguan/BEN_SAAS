@@ -28,6 +28,28 @@ interface AthleteFormData {
     [key: string]: string | number | boolean | undefined;
 }
 
+// Define interface for the formatted form data to fix TypeScript errors
+interface FormattedData {
+    username: string;
+    parent_email: string;
+    password: string;
+    standing_long_jump: number | null;
+    single_leg_jump_left: number | null;
+    single_leg_jump_right: number | null;
+    wall_sit: number | null;
+    core_endurance: number | null;
+    bent_arm_hang: number | null;
+    training_results: {
+        standing_long_jump: number | null;
+        single_leg_jump_left: number | null;
+        single_leg_jump_right: number | null;
+        wall_sit: number | null;
+        core_endurance: number | null;
+        bent_arm_hang: number | null;
+    };
+    [key: string]: any; // Allow additional properties
+}
+
 interface FlashData {
     newAthlete?: Athlete;
     [key: string]: unknown;
@@ -70,24 +92,43 @@ export default function useAthleteForm(athletes: Athlete[], setAthletes: React.D
         }));
     };
 
-    // Format form data for submission
-    const formatFormData = () => {
-        // Create a structured object to match the expected backend format
-        const formattedData = {
+    // Format form data for submission to match Laravel controller expectations
+    const formatFormData = (): FormattedData => {
+        // Get training result values
+        const standingLongJump = form.standingLongJump === '' ? null : Number(form.standingLongJump);
+        const singleLegJumpLeft = form.singleLegJumpLeft === '' ? null : Number(form.singleLegJumpLeft);
+        const singleLegJumpRight = form.singleLegJumpRight === '' ? null : Number(form.singleLegJumpRight);
+        const wallSit = form.wallSit === '' ? null : Number(form.wallSit);
+        const coreEndurance = form.coreEndurance === '' ? null : Number(form.coreEndurance);
+        const bentArmHang = form.bentArmHang === '' ? null : Number(form.bentArmHang);
+
+        // Create the formatted data object with both flat and nested structures
+        const formData: FormattedData = {
             username: form.username,
-            parent_email: form.parentEmail, // Using snake_case for backend
+            parent_email: form.parentEmail,
             password: form.password,
+
+            // Add flat fields for validation
+            standing_long_jump: standingLongJump,
+            single_leg_jump_left: singleLegJumpLeft,
+            single_leg_jump_right: singleLegJumpRight,
+            wall_sit: wallSit,
+            core_endurance: coreEndurance,
+            bent_arm_hang: bentArmHang,
+
+            // Add nested structure for controller processing
             training_results: {
-                standing_long_jump: form.standingLongJump === '' ? null : Number(form.standingLongJump),
-                single_leg_jump_left: form.singleLegJumpLeft === '' ? null : Number(form.singleLegJumpLeft),
-                single_leg_jump_right: form.singleLegJumpRight === '' ? null : Number(form.singleLegJumpRight),
-                wall_sit: form.wallSit === '' ? null : Number(form.wallSit),
-                core_endurance: form.coreEndurance === '' ? null : Number(form.coreEndurance),
-                bent_arm_hang: form.bentArmHang === '' ? null : Number(form.bentArmHang),
+                standing_long_jump: standingLongJump,
+                single_leg_jump_left: singleLegJumpLeft,
+                single_leg_jump_right: singleLegJumpRight,
+                wall_sit: wallSit,
+                core_endurance: coreEndurance,
+                bent_arm_hang: bentArmHang,
             }
         };
 
-        return formattedData;
+        console.log('Formatted form data:', formData);
+        return formData;
     };
 
     // Using Inertia.js for form submission
@@ -95,10 +136,24 @@ export default function useAthleteForm(athletes: Athlete[], setAthletes: React.D
         e.preventDefault();
         setError(null);
 
-        router.post('/admin/athletes', formatFormData(), {
-            onStart: () => setIsSubmitting(true),
-            onFinish: () => setIsSubmitting(false),
+        // Format the data
+        const formData = formatFormData();
+
+        // DEBUG: Log the full form data
+        console.log('FULL FORM DATA:', JSON.stringify(formData, null, 2));
+
+        router.post('/admin/athletes', formData, {
+            onStart: () => {
+                console.log('Form submission starting!');
+                setIsSubmitting(true);
+            },
+            onFinish: () => {
+                console.log('Form submission finished!');
+                setIsSubmitting(false);
+            },
             onSuccess: (page: InertiaPage) => {
+                console.log('Form submission successful!', page);
+
                 // Reset form
                 setForm({
                     username: '',
@@ -117,10 +172,11 @@ export default function useAthleteForm(athletes: Athlete[], setAthletes: React.D
 
                 // If there's a new athlete in the response, update the local state
                 if (page.props.flash && page.props.flash.newAthlete) {
-                    setAthletes([...athletes, page.props.flash.newAthlete]);
+                    setAthletes((prevAthletes) => [...prevAthletes, page.props.flash!.newAthlete!]);
                 }
             },
             onError: (errors: Record<string, string>) => {
+                console.error('Form submission errors:', errors);
                 const errorMessage = Object.values(errors)[0] || 'An error occurred';
                 setError(errorMessage);
             },
