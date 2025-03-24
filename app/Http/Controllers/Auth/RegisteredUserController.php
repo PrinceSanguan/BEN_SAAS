@@ -15,7 +15,7 @@ class RegisteredUserController extends Controller
      */
     public function index()
     {
-        return Inertia::render('Auth/Register');
+        return Inertia::render('auth/Register');
     }
 
     /**
