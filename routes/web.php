@@ -55,9 +55,9 @@ Route::middleware([AdminMiddleware::class])->group(function () {
 
     Route::get('/admin/analytics', [AdminDashboardController::class, 'analytics'])->name('admin.analytics');
     Route::get('/admin/settings', [AdminDashboardController::class, 'settings'])->name('admin.settings');
-
-    Route::post('/admin/logout', [LoginController::class, 'logout'])->name('admin.logout');
 });
+
+Route::post('/admin/logout', [LoginController::class, 'logout'])->name('admin.logout');
 
 /*
 |--------------------------------------------------------------------------

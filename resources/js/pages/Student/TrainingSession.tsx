@@ -76,7 +76,7 @@ const TrainingSession: React.FC<TrainingSessionProps> = ({ session = {}, existin
         <div className="min-h-screen bg-gradient-to-b from-[#0a1e3c] to-[#0f2a4a]">
             <Head title={`Training Session ${sessionNumber}`} />
 
-            <header className="sticky top-0 z-10 bg-[#0a1e3c]/80 backdrop-blur-md border-b border-[#1e3a5f] px-4 py-4">
+            <header className="sticky top-0 z-10 border-b border-[#1e3a5f] bg-[#0a1e3c]/80 px-4 py-4 backdrop-blur-md">
                 <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-2">
                     <div>
                         <h1 className="text-2xl font-bold text-white">Session {sessionNumber}</h1>
@@ -85,19 +85,15 @@ const TrainingSession: React.FC<TrainingSessionProps> = ({ session = {}, existin
                         </p>
                     </div>
 
-                    {existingResult && (
-                        <div className="rounded-full bg-[#1e3a5f] px-3 py-1 text-sm font-medium text-[#4a90e2]">
-                            Completed
-                        </div>
-                    )}
+                    {existingResult && <div className="rounded-full bg-[#1e3a5f] px-3 py-1 text-sm font-medium text-[#4a90e2]">Completed</div>}
                 </div>
             </header>
 
             <div className="mx-auto max-w-7xl px-4 py-6 pb-24">
-                <div className="overflow-hidden rounded-xl bg-[#112845] shadow-lg border border-[#1e3a5f]">
+                <div className="overflow-hidden rounded-xl border border-[#1e3a5f] bg-[#112845] shadow-lg">
                     <form onSubmit={handleSubmit} className="space-y-6 p-6">
                         <div>
-                            <label className="mb-2 block text-sm font-medium text-[#4a90e2] uppercase tracking-wider">
+                            <label className="mb-2 block text-sm font-medium tracking-wider text-[#4a90e2] uppercase">
                                 Did you complete the warm up?
                             </label>
                             <div className="flex space-x-4">
@@ -105,9 +101,7 @@ const TrainingSession: React.FC<TrainingSessionProps> = ({ session = {}, existin
                                     type="button"
                                     onClick={() => setData('warmup_completed', 'YES')}
                                     className={`rounded-lg px-4 py-2 transition-colors ${
-                                        data.warmup_completed === 'YES'
-                                            ? 'bg-green-600 text-white'
-                                            : 'bg-[#1e3a5f] text-[#a3c0e6] hover:bg-[#2a4a70]'
+                                        data.warmup_completed === 'YES' ? 'bg-green-600 text-white' : 'bg-[#1e3a5f] text-[#a3c0e6] hover:bg-[#2a4a70]'
                                     }`}
                                 >
                                     YES
@@ -116,9 +110,7 @@ const TrainingSession: React.FC<TrainingSessionProps> = ({ session = {}, existin
                                     type="button"
                                     onClick={() => setData('warmup_completed', 'NO')}
                                     className={`rounded-lg px-4 py-2 transition-colors ${
-                                        data.warmup_completed === 'NO'
-                                            ? 'bg-red-600 text-white'
-                                            : 'bg-[#1e3a5f] text-[#a3c0e6] hover:bg-[#2a4a70]'
+                                        data.warmup_completed === 'NO' ? 'bg-red-600 text-white' : 'bg-[#1e3a5f] text-[#a3c0e6] hover:bg-[#2a4a70]'
                                     }`}
                                 >
                                     NO
@@ -128,56 +120,56 @@ const TrainingSession: React.FC<TrainingSessionProps> = ({ session = {}, existin
                         </div>
 
                         <div>
-                            <label className="mb-2 block text-sm font-medium text-[#4a90e2] uppercase tracking-wider">
+                            <label className="mb-2 block text-sm font-medium tracking-wider text-[#4a90e2] uppercase">
                                 PLYOMETRICS – What was your best score?
                             </label>
                             <input
                                 type="text"
                                 value={data.plyometrics_score}
                                 onChange={(e) => setData('plyometrics_score', e.target.value)}
-                                className="mt-1 block w-full rounded-md bg-[#0a1e3c] border-[#1e3a5f] text-white shadow-sm focus:border-[#4a90e2] focus:ring focus:ring-[#4a90e2] focus:ring-opacity-50"
+                                className="focus:ring-opacity-50 mt-1 block w-full rounded-md border-[#1e3a5f] bg-[#0a1e3c] text-white shadow-sm focus:border-[#4a90e2] focus:ring focus:ring-[#4a90e2]"
                                 placeholder="Enter your score"
                             />
                             {errors.plyometrics_score && <p className="mt-1 text-sm text-red-400">{errors.plyometrics_score}</p>}
                         </div>
 
                         <div>
-                            <label className="mb-2 block text-sm font-medium text-[#4a90e2] uppercase tracking-wider">
+                            <label className="mb-2 block text-sm font-medium tracking-wider text-[#4a90e2] uppercase">
                                 POWER – What was your best score/level?
                             </label>
                             <input
                                 type="text"
                                 value={data.power_score}
                                 onChange={(e) => setData('power_score', e.target.value)}
-                                className="mt-1 block w-full rounded-md bg-[#0a1e3c] border-[#1e3a5f] text-white shadow-sm focus:border-[#4a90e2] focus:ring focus:ring-[#4a90e2] focus:ring-opacity-50"
+                                className="focus:ring-opacity-50 mt-1 block w-full rounded-md border-[#1e3a5f] bg-[#0a1e3c] text-white shadow-sm focus:border-[#4a90e2] focus:ring focus:ring-[#4a90e2]"
                                 placeholder="Enter your score/level"
                             />
                             {errors.power_score && <p className="mt-1 text-sm text-red-400">{errors.power_score}</p>}
                         </div>
 
                         <div>
-                            <label className="mb-2 block text-sm font-medium text-[#4a90e2] uppercase tracking-wider">
+                            <label className="mb-2 block text-sm font-medium tracking-wider text-[#4a90e2] uppercase">
                                 LOWER BODY STRENGTH – What was your best score?
                             </label>
                             <input
                                 type="text"
                                 value={data.lower_body_strength_score}
                                 onChange={(e) => setData('lower_body_strength_score', e.target.value)}
-                                className="mt-1 block w-full rounded-md bg-[#0a1e3c] border-[#1e3a5f] text-white shadow-sm focus:border-[#4a90e2] focus:ring focus:ring-[#4a90e2] focus:ring-opacity-50"
+                                className="focus:ring-opacity-50 mt-1 block w-full rounded-md border-[#1e3a5f] bg-[#0a1e3c] text-white shadow-sm focus:border-[#4a90e2] focus:ring focus:ring-[#4a90e2]"
                                 placeholder="Enter your score"
                             />
                             {errors.lower_body_strength_score && <p className="mt-1 text-sm text-red-400">{errors.lower_body_strength_score}</p>}
                         </div>
 
                         <div>
-                            <label className="mb-2 block text-sm font-medium text-[#4a90e2] uppercase tracking-wider">
+                            <label className="mb-2 block text-sm font-medium tracking-wider text-[#4a90e2] uppercase">
                                 UPPER BODY/CORE STRENGTH – What was your best score?
                             </label>
                             <input
                                 type="text"
                                 value={data.upper_body_core_strength_score}
                                 onChange={(e) => setData('upper_body_core_strength_score', e.target.value)}
-                                className="mt-1 block w-full rounded-md bg-[#0a1e3c] border-[#1e3a5f] text-white shadow-sm focus:border-[#4a90e2] focus:ring focus:ring-[#4a90e2] focus:ring-opacity-50"
+                                className="focus:ring-opacity-50 mt-1 block w-full rounded-md border-[#1e3a5f] bg-[#0a1e3c] text-white shadow-sm focus:border-[#4a90e2] focus:ring focus:ring-[#4a90e2]"
                                 placeholder="Enter your score"
                             />
                             {errors.upper_body_core_strength_score && (
@@ -188,7 +180,7 @@ const TrainingSession: React.FC<TrainingSessionProps> = ({ session = {}, existin
                         <div className="flex justify-between pt-4">
                             <a
                                 href={route('student.training')}
-                                className="inline-flex items-center rounded-lg border border-[#1e3a5f] bg-transparent px-4 py-2 text-sm font-medium text-[#a3c0e6] shadow-sm hover:bg-[#1e3a5f] transition-colors"
+                                className="inline-flex items-center rounded-lg border border-[#1e3a5f] bg-transparent px-4 py-2 text-sm font-medium text-[#a3c0e6] shadow-sm transition-colors hover:bg-[#1e3a5f]"
                             >
                                 Back to Training
                             </a>
@@ -196,7 +188,7 @@ const TrainingSession: React.FC<TrainingSessionProps> = ({ session = {}, existin
                             <button
                                 type="submit"
                                 disabled={processing}
-                                className="inline-flex items-center rounded-lg bg-[#4a90e2] px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-[#3a80d2] transition-colors focus:outline-none disabled:opacity-50"
+                                className="inline-flex items-center rounded-lg bg-[#4a90e2] px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors hover:bg-[#3a80d2] focus:outline-none disabled:opacity-50"
                             >
                                 {processing ? 'Saving...' : existingResult ? 'Update Results' : 'Save Results'}
                             </button>
@@ -206,21 +198,29 @@ const TrainingSession: React.FC<TrainingSessionProps> = ({ session = {}, existin
             </div>
 
             {/* Bottom Navigation - Styled to match the blue theme */}
-            <div className="fixed right-0 bottom-0 left-0 border-t border-[#1e3a5f] bg-[#0a1e3c]/90 backdrop-blur-md shadow-lg z-20">
+            <div className="fixed right-0 bottom-0 left-0 z-20 border-t border-[#1e3a5f] bg-[#0a1e3c]/90 shadow-lg backdrop-blur-md">
                 <div className="flex justify-around">
-                    <a href={route('student.training')} className="flex flex-col items-center py-3 px-4 text-[#4a90e2] border-t-2 border-[#4a90e2]">
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 mb-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <a href={route('student.training')} className="flex flex-col items-center border-t-2 border-[#4a90e2] px-4 py-3 text-[#4a90e2]">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="mb-1 h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
                         </svg>
                         <span className="text-xs">Training</span>
                     </a>
-                    <a href={route('student.dashboard')} className="flex flex-col items-center py-3 px-4 text-[#a3c0e6] hover:text-white transition-colors">
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 mb-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                    <a
+                        href={route('student.dashboard')}
+                        className="flex flex-col items-center px-4 py-3 text-[#a3c0e6] transition-colors hover:text-white"
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg" className="mb-1 h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
+                            />
                         </svg>
                         <span className="text-xs">Home</span>
                     </a>
-                    <a href="/progress" className="flex flex-col items-center py-3 px-4 text-[#a3c0e6] hover:text-white transition-colors">
+                    {/*  <a href="/progress" className="flex flex-col items-center py-3 px-4 text-[#a3c0e6] hover:text-white transition-colors">
                         <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 mb-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                         </svg>
@@ -232,7 +232,7 @@ const TrainingSession: React.FC<TrainingSessionProps> = ({ session = {}, existin
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                         </svg>
                         <span className="text-xs">Settings</span>
-                    </a>
+                    </a> */}
                 </div>
             </div>
         </div>
