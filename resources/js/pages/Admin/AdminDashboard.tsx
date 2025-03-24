@@ -1,5 +1,5 @@
 import { Head } from '@inertiajs/react';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import AdminSidebar from '@/components/admin/AdminSidebar';
 import StatsCards from '@/components/admin/dashboard/StatsCards';
 import ViewToggle from '@/components/admin/dashboard/ViewToggle';
@@ -33,7 +33,30 @@ export default function AdminDashboard({ athletes: initialAthletes = [] }: Props
     const [athletes, setAthletes] = useState<Athlete[]>(initialAthletes);
 
     // State for view mode (table or cards)
-    const [viewMode, setViewMode] = useState<'table' | 'cards'>('table');
+    const [viewMode, setViewMode] = useState<'table' | 'cards'>('cards'); // Default to cards on mobile
+
+    // State for sidebar visibility on mobile
+    const [sidebarOpen, setSidebarOpen] = useState(false);
+
+    // Set the default view mode based on screen size
+    useEffect(() => {
+        const handleResize = () => {
+            const mobile = window.innerWidth < 768;
+
+            if (mobile) {
+                setViewMode('cards');
+            }
+        };
+
+        // Set initial state
+        handleResize();
+
+        // Add event listener
+        window.addEventListener('resize', handleResize);
+
+        // Clean up
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
 
     // Stats for the dashboard
     const numberOfUsers = athletes.length;
@@ -45,38 +68,50 @@ export default function AdminDashboard({ athletes: initialAthletes = [] }: Props
 
     return (
         <div className="flex min-h-screen bg-gradient-to-b from-[#0a1e3c] to-[#0f2a4a]">
-            {/* Sidebar */}
-            <AdminSidebar activePage="dashboard" />
+            {/* Desktop Sidebar - hidden on mobile */}
+            <div className="hidden md:block">
+                <AdminSidebar activePage="dashboard" />
+            </div>
+
+            {/* Mobile Bottom Tab Navigation */}
+            <div className="block md:hidden">
+                <AdminSidebar
+                    activePage="dashboard"
+                    isMobile={true}
+                />
+            </div>
 
             {/* Main Content */}
-            <main className="ml-64 flex-1 p-6">
+            <main className="flex-1 p-4 pt-6 pb-24 md:p-6 md:pt-6 md:pb-6 md:ml-64">
                 <Head title="Admin Dashboard" />
-                <div className="space-y-6 px-2 sm:px-4 lg:px-0">
-                    {/* Top Section: "Add Athlete" button + Stats Row */}
-                    <div className="flex flex-wrap items-center justify-between gap-4">
+                <div className="space-y-6">
+                    {/* Top Section: Title and "Add Athlete" button */}
+                    <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+                        <h1 className="text-2xl font-bold text-white">Dashboard</h1>
+
                         {/* Button to open the Add Athlete modal */}
                         <button
                             onClick={() => setShowModal(true)}
-                            className="rounded-lg bg-gradient-to-r from-blue-500 to-blue-700 px-4 py-2 text-white font-medium transition-all duration-300 hover:from-blue-600 hover:to-blue-800"
+                            className="w-full sm:w-auto rounded-lg bg-gradient-to-r from-blue-500 to-blue-700 px-4 py-2 text-white font-medium transition-all duration-300 hover:from-blue-600 hover:to-blue-800"
                         >
                             Add Athlete
                         </button>
-
-                        {/* Stats Cards */}
-                        <StatsCards
-                            numberOfUsers={numberOfUsers}
-                            numberOfActive={numberOfActive}
-                            numberOfOnline={numberOfOnline}
-                        />
                     </div>
 
-                    {/* View Mode Toggle */}
-                    <div className="flex items-center justify-between">
+                    {/* Stats Cards */}
+                    <StatsCards
+                        numberOfUsers={numberOfUsers}
+                        numberOfActive={numberOfActive}
+                        numberOfOnline={numberOfOnline}
+                    />
+
+                    {/* View Mode Toggle - Hidden on small screens */}
+                    <div className="hidden md:flex items-center justify-between">
                         <ViewToggle viewMode={viewMode} setViewMode={setViewMode} />
                     </div>
 
                     {/* Content Container with Blue Theme */}
-                    <div className="rounded-xl bg-[#112845] shadow-lg border border-[#1e3a5f] p-6">
+                    <div className="rounded-xl bg-[#112845] shadow-lg border border-[#1e3a5f] p-4 md:p-6">
                         {/* Athlete Cards View */}
                         {viewMode === 'cards' && athletes.length > 0 && (
                             <AthleteCards athletes={athletes} onAddClick={() => setShowModal(true)} />
