@@ -4,7 +4,6 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class TestResult extends Model
 {
@@ -12,8 +11,6 @@ class TestResult extends Model
 
     /**
      * The attributes that are mass assignable.
-     *
-     * @var array<int, string>
      */
     protected $fillable = [
         'user_id',
@@ -29,8 +26,6 @@ class TestResult extends Model
 
     /**
      * The attributes that should be cast.
-     *
-     * @var array<string, string>
      */
     protected $casts = [
         'standing_long_jump' => 'decimal:1',
@@ -51,7 +46,7 @@ class TestResult extends Model
     }
 
     /**
-     * Get the session associated with this test result.
+     * Get the training session associated with this test result.
      */
     public function session()
     {
@@ -59,8 +54,8 @@ class TestResult extends Model
     }
 
     /**
-     * Calculate percentage improvement from baseline for a specific metric
-     * 
+     * Calculate percentage improvement from baseline for a specific metric.
+     *
      * @param string $metric
      * @param float $baselineValue
      * @return float|null
