@@ -151,11 +151,11 @@ const Header: React.FC<HeaderProps> = ({ auth }) => {
                 >
                   Log in
                 </Link>
-                <Link href={window.route("register")} className="text-sm font-medium text-white">
+                {/* <Link href={window.route("register")} className="text-sm font-medium text-white">
                   <Button className="bg-blue-600 shadow-lg transition-all hover:bg-blue-700 hover:shadow-blue-500/20 text-xs md:text-sm px-3 md:px-4 h-9 md:h-10">
                     Get Started
                   </Button>
-                </Link>
+                </Link> */}
               </>
             )}
 

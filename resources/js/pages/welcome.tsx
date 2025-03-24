@@ -94,7 +94,7 @@ export default function Welcome() {
                     <div className="flex items-center space-x-4">
                         {auth.user ? (
                             <Link href={window.route('login')} className="text-sm font-medium text-white">
-                                <Button className="shadow-lg transition-all hover:shadow-blue-500/20">Dashboard</Button>
+                                <Button className="shadow-lg transition-all hover:shadow-blue-500/20">Login</Button>
                             </Link>
                         ) : (
                             <>
@@ -104,9 +104,9 @@ export default function Welcome() {
                                 >
                                     Log in
                                 </Link>
-                                <Link href={window.route('register')} className="text-sm font-medium text-white">
+                                {/* <Link href={window.route('register')} className="text-sm font-medium text-white">
                                     <Button className="shadow-lg transition-all hover:shadow-blue-500/20">Get Started</Button>
-                                </Link>
+                                </Link> */}
                             </>
                         )}
 
