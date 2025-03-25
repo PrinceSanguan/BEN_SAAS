@@ -11,7 +11,16 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+          // Register XP Service as a singleton
+    $this->app->singleton(\App\Services\XpService::class, function ($app) {
+        return new \App\Services\XpService();
+    });
+
+    // Register UserStat Service as a singleton
+    $this->app->singleton(\App\Services\UserStatService::class, function ($app) {
+        return new \App\Services\UserStatService($app->make(\App\Services\XpService::class));
+    });
+
     }
 
     /**

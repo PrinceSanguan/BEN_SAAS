@@ -5,13 +5,29 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\UserStat;
+use App\Services\UserStatService;
 use Inertia\Inertia;
 
 class LeaderboardController extends Controller
 {
+    protected $userStatService;
+
+    /**
+     * Create a new controller instance.
+     *
+     * @param UserStatService $userStatService
+     */
+    public function __construct(UserStatService $userStatService)
+    {
+        $this->userStatService = $userStatService;
+    }
+
     public function consistency()
     {
         $user = Auth::user();
+
+        // Update all user statistics to ensure they're current
+        $this->userStatService->updateStats();
 
         // Get users ranked by consistency score
         $leaderboardData = UserStat::join('users', 'user_stats.user_id', '=', 'users.id')
@@ -49,13 +65,25 @@ class LeaderboardController extends Controller
         });
 
         return Inertia::render('Student/ConsistencyLeaderboard', [
-            'leaderboardData' => $formattedLeaderboard
+            'leaderboardData' => $formattedLeaderboard,
+            'username' => $user->username,
+            'routes' => [
+                'student.dashboard' => route('student.dashboard'),
+                'student.training' => route('student.training'),
+                'student.progress' => route('student.progress'),
+                'student.xp' => route('student.xp'),
+                'leaderboard.consistency' => route('leaderboard.consistency'),
+                'leaderboard.strength' => route('leaderboard.strength'),
+            ]
         ]);
     }
 
     public function strength()
     {
         $user = Auth::user();
+
+        // Update all user statistics to ensure they're current
+        $this->userStatService->updateStats();
 
         // Get users ranked by strength level
         $leaderboardData = UserStat::join('users', 'user_stats.user_id', '=', 'users.id')
@@ -93,7 +121,16 @@ class LeaderboardController extends Controller
         });
 
         return Inertia::render('Student/StrengthLeaderboard', [
-            'leaderboardData' => $formattedLeaderboard
+            'leaderboardData' => $formattedLeaderboard,
+            'username' => $user->username,
+            'routes' => [
+                'student.dashboard' => route('student.dashboard'),
+                'student.training' => route('student.training'),
+                'student.progress' => route('student.progress'),
+                'student.xp' => route('student.xp'),
+                'leaderboard.consistency' => route('leaderboard.consistency'),
+                'leaderboard.strength' => route('leaderboard.strength'),
+            ]
         ]);
     }
 }

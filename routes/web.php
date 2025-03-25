@@ -68,6 +68,8 @@ Route::post('/admin/logout', [LoginController::class, 'logout'])->name('admin.lo
 use App\Http\Controllers\Student\StudentDashboardController;
 use App\Http\Controllers\Student\StudentTrainingController;
 use App\Http\Controllers\LeaderboardController;
+use App\Http\Controllers\Student\ProgressController;
+use App\Http\Controllers\Student\XpController;
 use App\Http\Middleware\StudentMiddleware;
 
 Route::middleware(StudentMiddleware::class)->group(function () {
@@ -78,4 +80,9 @@ Route::middleware(StudentMiddleware::class)->group(function () {
     // Add these routes to your Student middleware group
     Route::get('/leaderboard/consistency', [LeaderboardController::class, 'consistency'])->name('leaderboard.consistency');
     Route::get('/leaderboard/strength', [LeaderboardController::class, 'strength'])->name('leaderboard.strength');
+
+    Route::get('/progress', [ProgressController::class, 'index'])->name('student.progress');
+    Route::post('/progress/recalculate', [ProgressController::class, 'recalculateProgress'])->name('student.progress.recalculate');
+    Route::get('/student/xp', [XpController::class, 'index'])->name('student.xp');
+    Route::get('/student/xp/progress', [XpController::class, 'showLevelProgress'])->name('student.xp.progress');
 });

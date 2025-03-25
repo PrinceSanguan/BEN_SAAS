@@ -17,12 +17,12 @@ interface LeaderboardUser {
     id: number;
     rank: number;
     username: string;
-    consistency_score: number;
-    completed_sessions: number;
+    strength_level: number;
+    total_xp: number;
     isYou: boolean;
 }
 
-interface ConsistencyLeaderboardProps {
+interface StrengthLeaderboardProps {
     leaderboardData: LeaderboardUser[];
     username?: string;
     routes?: {
@@ -30,7 +30,7 @@ interface ConsistencyLeaderboardProps {
     };
 }
 
-const ConsistencyLeaderboard: React.FC<ConsistencyLeaderboardProps> = ({
+const StrengthLeaderboard: React.FC<StrengthLeaderboardProps> = ({
     leaderboardData,
     username = 'Athlete',
     routes = {}
@@ -158,6 +158,22 @@ const ConsistencyLeaderboard: React.FC<ConsistencyLeaderboardProps> = ({
         return fallbackRoutes[name] || '#';
     };
 
+    // Render star rating based on strength level
+    const renderStars = (level: number) => {
+        return Array.from({ length: 5 }).map((_, index) => (
+            <svg
+                key={index}
+                className={`h-4 w-4 ${index < level ? 'text-[#ffd700]' : 'text-[#1e3a5f]'}`}
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="currentColor"
+                stroke="none"
+            >
+                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+            </svg>
+        ));
+    };
+
     // Render leaderboard cards for mobile
     const renderMobileLeaderboard = () => {
         if (leaderboardData.length === 0) {
@@ -187,21 +203,21 @@ const ConsistencyLeaderboard: React.FC<ConsistencyLeaderboardProps> = ({
                                     {user.username} {user.isYou && <span className="text-sm font-medium text-[#4a90e2]">(You)</span>}
                                 </span>
                             </div>
-                            <span className="rounded-full bg-[#1e3a5f] px-2 py-1 text-xs text-[#a3c0e6]">
-                                {user.completed_sessions} sessions
-                            </span>
+                            <div className="rounded-full bg-[#1e3a5f] px-3 py-1 text-xs font-medium text-[#4a90e2]">
+                                {user.total_xp} XP
+                            </div>
                         </div>
                         <div className="mt-3">
-                            <div className="flex items-center">
-                                <div className="mr-3 h-2.5 w-full rounded-full bg-[#1e3a5f]">
-                                    <div
-                                        className="h-2.5 rounded-full bg-[#7c3aed]"
-                                        style={{ width: `${user.consistency_score}%` }}
-                                    ></div>
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-center">
+                                    <div className="mr-2 flex h-8 w-8 items-center justify-center rounded-full bg-[#1e3a5f]">
+                                        <Trophy className="h-4 w-4 text-[#ffd700]" />
+                                    </div>
+                                    <span className="text-lg font-bold text-white">Level {user.strength_level}</span>
                                 </div>
-                                <span className="ml-2 whitespace-nowrap text-sm font-medium text-[#7c3aed]">
-                                    {user.consistency_score}%
-                                </span>
+                                <div className="flex items-center">
+                                    {renderStars(user.strength_level)}
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -212,7 +228,7 @@ const ConsistencyLeaderboard: React.FC<ConsistencyLeaderboardProps> = ({
 
     return (
         <div ref={pageRef} className="flex min-h-screen bg-gradient-to-b from-[#0a1e3c] to-[#0f2a4a]">
-            <Head title="Consistency Leaderboard" />
+            <Head title="Strength Leaderboard" />
 
             {/* Sidebar - Desktop Only */}
             <div ref={sidebarRef} className="fixed z-30 hidden h-full border-r border-[#1e3a5f] bg-[#0a1e3c] lg:flex lg:w-64 lg:flex-col">
@@ -258,17 +274,17 @@ const ConsistencyLeaderboard: React.FC<ConsistencyLeaderboardProps> = ({
                         <h3 className="mb-2 px-4 text-xs font-semibold tracking-wider text-[#a3c0e6] uppercase">Leaderboards</h3>
                         <a
                             href={getRoute('leaderboard.strength')}
-                            className="group flex items-center rounded-md px-4 py-3 text-[#a3c0e6] transition-colors hover:bg-[#1e3a5f]/50"
+                            className="group flex items-center rounded-md bg-[#1e3a5f] px-4 py-3 text-white"
                         >
-                            <Award className="mr-3 h-5 w-5 text-[#4a90e2] group-hover:text-white" />
-                            <span className="group-hover:text-white">Strength</span>
+                            <Award className="mr-3 h-5 w-5 text-[#ffd700]" />
+                            <span>Strength</span>
                         </a>
                         <a
                             href={getRoute('leaderboard.consistency')}
-                            className="group flex items-center rounded-md bg-[#1e3a5f] px-4 py-3 text-white"
+                            className="group flex items-center rounded-md px-4 py-3 text-[#a3c0e6] transition-colors hover:bg-[#1e3a5f]/50"
                         >
-                            <BarChart2 className="mr-3 h-5 w-5 text-[#7c3aed]" />
-                            <span>Consistency</span>
+                            <BarChart2 className="mr-3 h-5 w-5 text-[#4a90e2] group-hover:text-white" />
+                            <span className="group-hover:text-white">Consistency</span>
                         </a>
                     </div>
                 </nav>
@@ -324,16 +340,16 @@ const ConsistencyLeaderboard: React.FC<ConsistencyLeaderboardProps> = ({
                         <h3 className="mb-2 px-4 text-xs font-semibold tracking-wider text-[#a3c0e6] uppercase">Leaderboards</h3>
                         <a
                             href={getRoute('leaderboard.strength')}
-                            className="flex items-center rounded-md px-4 py-3 text-[#a3c0e6] hover:bg-[#1e3a5f]/50"
+                            className="flex items-center rounded-md bg-[#1e3a5f] px-4 py-3 text-white"
                         >
-                            <Award className="mr-3 h-5 w-5 text-[#4a90e2]" />
+                            <Award className="mr-3 h-5 w-5 text-[#ffd700]" />
                             <span>Strength</span>
                         </a>
                         <a
                             href={getRoute('leaderboard.consistency')}
-                            className="flex items-center rounded-md bg-[#1e3a5f] px-4 py-3 text-white"
+                            className="flex items-center rounded-md px-4 py-3 text-[#a3c0e6] hover:bg-[#1e3a5f]/50"
                         >
-                            <BarChart2 className="mr-3 h-5 w-5 text-[#7c3aed]" />
+                            <BarChart2 className="mr-3 h-5 w-5 text-[#4a90e2]" />
                             <span>Consistency</span>
                         </a>
                     </div>
@@ -352,10 +368,10 @@ const ConsistencyLeaderboard: React.FC<ConsistencyLeaderboardProps> = ({
                             <button onClick={toggleSidebar} className="mr-4 text-[#a3c0e6] hover:text-white lg:hidden">
                                 <Menu className="h-6 w-6" />
                             </button>
-                            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-[#7c3aed] to-[#9f6aff] mr-3">
-                                <BarChart2 className="h-5 w-5 text-white" />
+                            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-[#ffd700] to-[#ffaa00] mr-3">
+                                <Award className="h-5 w-5 text-white" />
                             </div>
-                            <h1 className="text-xl font-bold text-white">Consistency Leaderboard</h1>
+                            <h1 className="text-xl font-bold text-white">Strength Leaderboard</h1>
                         </div>
                     </div>
                 </header>
@@ -376,10 +392,10 @@ const ConsistencyLeaderboard: React.FC<ConsistencyLeaderboardProps> = ({
                                                 Username
                                             </th>
                                             <th scope="col" className="px-6 py-3 text-left text-xs font-medium tracking-wider text-[#4a90e2] uppercase">
-                                                Consistency
+                                                Strength Level
                                             </th>
                                             <th scope="col" className="px-6 py-3 text-left text-xs font-medium tracking-wider text-[#4a90e2] uppercase">
-                                                Completed Sessions
+                                                Total XP
                                             </th>
                                         </tr>
                                     </thead>
@@ -398,16 +414,13 @@ const ConsistencyLeaderboard: React.FC<ConsistencyLeaderboardProps> = ({
                                                     </td>
                                                     <td className="px-6 py-4 text-sm font-medium whitespace-nowrap">
                                                         <div className="flex items-center">
-                                                            <div className="mr-2 h-2 w-24 rounded-full bg-[#1e3a5f]">
-                                                                <div
-                                                                    className="h-2 rounded-full bg-[#7c3aed]"
-                                                                    style={{ width: `${user.consistency_score}%` }}
-                                                                ></div>
+                                                            <span className="mr-2 text-white">Level {user.strength_level}</span>
+                                                            <div className="flex">
+                                                                {renderStars(user.strength_level)}
                                                             </div>
-                                                            <span className="text-[#7c3aed]">{user.consistency_score}%</span>
                                                         </div>
                                                     </td>
-                                                    <td className="px-6 py-4 text-sm whitespace-nowrap text-[#a3c0e6]">{user.completed_sessions}</td>
+                                                    <td className="px-6 py-4 text-sm whitespace-nowrap text-[#ffd700] font-medium">{user.total_xp} XP</td>
                                                 </tr>
                                             ))
                                         ) : (
@@ -453,13 +466,14 @@ const ConsistencyLeaderboard: React.FC<ConsistencyLeaderboardProps> = ({
                         <span className="text-xs">Home</span>
                     </a>
                     <a
-                        href={getRoute('leaderboard.consistency')}
-                        className="flex flex-col items-center py-3 px-4 text-[#7c3aed] border-t-2 border-[#7c3aed]"
+                        href={getRoute('leaderboard.strength')}
+                        className="flex flex-col items-center py-3 px-4 text-[#ffd700] border-t-2 border-[#ffd700]"
                     >
                         <svg className="h-6 w-6 mb-1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                            <path d="M2 20h20M5 20V13M10 20V10M15 20v-8M20 20V4"></path>
+                            <path d="M8 21v-2a4 4 0 0 1 4-4h0a4 4 0 0 1 4 4v2"></path>
+                            <circle cx="12" cy="7" r="4"></circle>
                         </svg>
-                        <span className="text-xs">Consistency</span>
+                        <span className="text-xs">Strength</span>
                     </a>
                 </div>
             </div>
@@ -500,4 +514,4 @@ const ConsistencyLeaderboard: React.FC<ConsistencyLeaderboardProps> = ({
     );
 };
 
-export default ConsistencyLeaderboard;
+export default StrengthLeaderboard;

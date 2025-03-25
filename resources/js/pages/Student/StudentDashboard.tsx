@@ -101,8 +101,8 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({
         const fallbackRoutes: Record<string, string> = {
             'student.dashboard': '/dashboard',
             'student.training': '/training',
-            //   "student.progress": "/progress",
-            //   "student.settings": "/settings",
+            'student.progress': '/progress', // Uncommented progress route
+            // 'student.settings': '/settings',
             'leaderboard.strength': '/leaderboard/strength',
             'leaderboard.consistency': '/leaderboard/consistency',
         };
@@ -479,7 +479,7 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({
                             href={getRoute('student.progress')}
                             className="flex flex-col items-center px-4 py-3 text-[#a3c0e6] transition-colors hover:text-white"
                         >
-                            <Trophy className="mb-1 h-6 w-6" />
+                            <BarChart2 className="mb-1 h-6 w-6" />
                             <span className="text-xs">Progress</span>
                         </a>
                         {/* <a
@@ -490,6 +490,66 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({
                             <span className="text-xs">Settings</span>
                         </a> */}
                     </div>
+                </div>
+
+                {/* Mobile sidebar overlay */}
+                {sidebarOpen && <div className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm lg:hidden" onClick={toggleSidebar}></div>}
+
+                {/* Mobile sidebar */}
+                <div
+                    className={`fixed inset-y-0 left-0 z-50 w-64 transform border-r border-[#1e3a5f] bg-[#0a1e3c] transition-transform duration-300 ease-in-out lg:hidden ${
+                        sidebarOpen ? 'translate-x-0' : '-translate-x-full'
+                    }`}
+                >
+                    <div className="flex h-16 items-center justify-between border-b border-[#1e3a5f] px-6">
+                        <div className="flex items-center">
+                            <div className="mr-2 flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-[#4a90e2] to-[#63b3ed]">
+                                <Trophy className="h-4 w-4 text-white" />
+                            </div>
+                            <h1 className="text-lg font-bold text-white">AthleteTrack</h1>
+                        </div>
+                        <button onClick={toggleSidebar} className="text-[#a3c0e6] hover:text-white">
+                            <X className="h-5 w-5" />
+                        </button>
+                    </div>
+
+                    {/* Mobile Navigation */}
+                    <nav className="flex-1 space-y-1 px-2 py-4">
+                        <a href={getRoute('student.dashboard')} className="flex items-center rounded-md bg-[#1e3a5f] px-4 py-3 text-white">
+                            <Home className="mr-3 h-5 w-5 text-[#4a90e2]" />
+                            <span>Dashboard</span>
+                        </a>
+                        <a href={getRoute('student.training')} className="flex items-center rounded-md px-4 py-3 text-[#a3c0e6] hover:bg-[#1e3a5f]/50">
+                            <Activity className="mr-3 h-5 w-5 text-[#4a90e2]" />
+                            <span>Training</span>
+                        </a>
+                        <a href={getRoute('student.progress')} className="flex items-center rounded-md px-4 py-3 text-[#a3c0e6] hover:bg-[#1e3a5f]/50">
+                            <BarChart2 className="mr-3 h-5 w-5 text-[#4a90e2]" />
+                            <span>Progress</span>
+                        </a>
+                        {/* <a href={getRoute('student.settings')} className="flex items-center rounded-md px-4 py-3 text-[#a3c0e6] hover:bg-[#1e3a5f]/50">
+                            <Settings className="mr-3 h-5 w-5 text-[#4a90e2]" />
+                            <span>Settings</span>
+                        </a> */}
+
+                        <div className="mt-4 border-t border-[#1e3a5f] pt-4">
+                            <h3 className="mb-2 px-4 text-xs font-semibold tracking-wider text-[#a3c0e6] uppercase">Leaderboards</h3>
+                            <a
+                                href={getRoute('leaderboard.strength')}
+                                className="flex items-center rounded-md px-4 py-3 text-[#a3c0e6] hover:bg-[#1e3a5f]/50"
+                            >
+                                <Dumbbell className="mr-3 h-5 w-5 text-[#4a90e2]" />
+                                <span>Strength</span>
+                            </a>
+                            <a
+                                href={getRoute('leaderboard.consistency')}
+                                className="flex items-center rounded-md px-4 py-3 text-[#a3c0e6] hover:bg-[#1e3a5f]/50"
+                            >
+                                <BarChart2 className="mr-3 h-5 w-5 text-[#4a90e2]" />
+                                <span>Consistency</span>
+                            </a>
+                        </div>
+                    </nav>
                 </div>
 
                 {/* Modal for block selection */}
@@ -515,8 +575,7 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({
 
                             <div className="mb-6 space-y-3">
                                 <div className="flex items-center">
-                                    <Clock className="mr-2 h-4 w-4 text-[#4a90e2]" />
-                                    <p className="text-[#a3c0e6]">
+                                    <Clock className="mr-2 h-4 w-4 text-[#4a90e2]" /><p className="text-[#a3c0e6]">
                                         {selectedBlock.duration_weeks} week{selectedBlock.duration_weeks !== 1 ? 's' : ''}
                                     </p>
                                 </div>
@@ -622,14 +681,14 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({
                         <Activity className="mr-3 h-5 w-5 text-[#4a90e2] group-hover:text-white" />
                         <span className="group-hover:text-white">Training</span>
                     </a>
-                    {/* <a
+                    <a
                         href={getRoute('student.progress')}
                         className="group flex items-center rounded-md px-4 py-3 text-[#a3c0e6] transition-colors hover:bg-[#1e3a5f]/50"
                     >
-                        <Trophy className="mr-3 h-5 w-5 text-[#4a90e2] group-hover:text-white" />
+                        <BarChart2 className="mr-3 h-5 w-5 text-[#4a90e2] group-hover:text-white" />
                         <span className="group-hover:text-white">Progress</span>
                     </a>
-                    <a
+                    {/* <a
                         href={getRoute('student.settings')}
                         className="group flex items-center rounded-md px-4 py-3 text-[#a3c0e6] transition-colors hover:bg-[#1e3a5f]/50"
                     >
@@ -702,11 +761,11 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({
                         <Activity className="mr-3 h-5 w-5 text-[#4a90e2]" />
                         <span>Training</span>
                     </a>
-                    {/* <a href={getRoute('student.progress')} className="flex items-center rounded-md px-4 py-3 text-[#a3c0e6] hover:bg-[#1e3a5f]/50">
-                        <Trophy className="mr-3 h-5 w-5 text-[#4a90e2]" />
+                    <a href={getRoute('student.progress')} className="flex items-center rounded-md px-4 py-3 text-[#a3c0e6] hover:bg-[#1e3a5f]/50">
+                        <BarChart2 className="mr-3 h-5 w-5 text-[#4a90e2]" />
                         <span>Progress</span>
                     </a>
-                    <a href={getRoute('student.settings')} className="flex items-center rounded-md px-4 py-3 text-[#a3c0e6] hover:bg-[#1e3a5f]/50">
+                    {/* <a href={getRoute('student.settings')} className="flex items-center rounded-md px-4 py-3 text-[#a3c0e6] hover:bg-[#1e3a5f]/50">
                         <Settings className="mr-3 h-5 w-5 text-[#4a90e2]" />
                         <span>Settings</span>
                     </a> */}
@@ -818,6 +877,23 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({
                                     </div>
                                 </button>
 
+                                {/* Progress Link/Button */}
+                                <Link
+                                    href={getRoute('student.progress')}
+                                    className="group block w-full rounded-xl bg-[#16a34a] p-4 text-left shadow-lg transition-all duration-300 hover:bg-[#15803d] hover:shadow-xl focus:ring-2 focus:ring-[#16a34a] focus:ring-offset-2 focus:ring-offset-[#112845] focus:outline-none"
+                                >
+                                    <div className="flex items-center">
+                                        <div className="mr-3 flex h-10 w-10 items-center justify-center rounded-full bg-white/20">
+                                            <BarChart2 className="h-5 w-5 text-white" />
+                                        </div>
+                                        <div className="flex-1">
+                                            <h3 className="text-base font-semibold text-white">Your Progress</h3>
+                                            <p className="text-sm text-white/80">Track your improvement</p>
+                                        </div>
+                                        <ChevronRight className="h-5 w-5 text-white/70 transition-transform duration-300 group-hover:translate-x-1" />
+                                    </div>
+                                </Link>
+
                                 <Link
                                     href={getRoute('leaderboard.strength')}
                                     className="group block w-full rounded-xl bg-[#2563eb] p-4 text-left shadow-lg transition-all duration-300 hover:bg-[#1d4ed8] hover:shadow-xl focus:ring-2 focus:ring-[#2563eb] focus:ring-offset-2 focus:ring-offset-[#112845] focus:outline-none"
@@ -923,106 +999,6 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({
                             )}
                         </div>
                     </div>
-
-                    {/* Stats Cards
-                    <div className="mb-8 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
-                        <div className="rounded-xl border border-[#1e3a5f] bg-[#112845] p-5 shadow-lg transition-transform duration-300 hover:scale-105 hover:transform">
-                            <div className="mb-2 flex items-center justify-between">
-                                <h3 className="text-sm font-medium text-[#a3c0e6]">Your Rank</h3>
-                                <div className="rounded-full bg-[#1e3a5f] p-2">
-                                    <Trophy className="h-5 w-5 text-[#4a90e2]" />
-                                </div>
-                            </div>
-                            <p className="text-2xl font-bold text-white">12</p>
-                            <div className="mt-2 flex items-center text-xs text-[#63b3ed]">
-                                <ChevronUp className="mr-1 h-4 w-4" />
-                                <span>Up 3 places from last week</span>
-                            </div>
-                        </div>
-
-                        <div className="rounded-xl border border-[#1e3a5f] bg-[#112845] p-5 shadow-lg transition-transform duration-300 hover:scale-105 hover:transform">
-                            <div className="mb-2 flex items-center justify-between">
-                                <h3 className="text-sm font-medium text-[#a3c0e6]">Sessions</h3>
-                                <div className="rounded-full bg-[#1e3a5f] p-2">
-                                    <Activity className="h-5 w-5 text-[#4a90e2]" />
-                                </div>
-                            </div>
-                            <p className="text-2xl font-bold text-white">24</p>
-                            <div className="mt-2 flex items-center text-xs text-[#63b3ed]">
-                                <ChevronUp className="mr-1 h-4 w-4" />
-                                <span>+2 this week</span>
-                            </div>
-                        </div>
-
-                        <div className="rounded-xl border border-[#1e3a5f] bg-[#112845] p-5 shadow-lg transition-transform duration-300 hover:scale-105 hover:transform">
-                            <div className="mb-2 flex items-center justify-between">
-                                <h3 className="text-sm font-medium text-[#a3c0e6]">Next Goal</h3>
-                                <div className="rounded-full bg-[#1e3a5f] p-2">
-                                    <Award className="h-5 w-5 text-[#4a90e2]" />
-                                </div>
-                            </div>
-                            <p className="text-2xl font-bold text-white">Top 10</p>
-                            <div className="mt-2 flex items-center text-xs text-[#63b3ed]">
-                                <span>Keep training to reach your goal!</span>
-                            </div>
-                        </div>
-
-                        <div className="rounded-xl border border-[#1e3a5f] bg-[#112845] p-5 shadow-lg transition-transform duration-300 hover:scale-105 hover:transform">
-                            <div className="mb-2 flex items-center justify-between">
-                                <h3 className="text-sm font-medium text-[#a3c0e6]">Upcoming</h3>
-                                <div className="rounded-full bg-[#1e3a5f] p-2">
-                                    <Calendar className="h-5 w-5 text-[#4a90e2]" />
-                                </div>
-                            </div>
-                            <p className="text-2xl font-bold text-white">2 Days</p>
-                            <div className="mt-2 flex items-center text-xs text-[#63b3ed]">
-                                <span>Until your next training session</span>
-                            </div>
-                        </div>
-                    </div> */}
-
-                    {/* Recent Activity */}
-                    {/* <div className="rounded-xl border border-[#1e3a5f] bg-[#112845] p-6 shadow-lg">
-                        <div className="mb-4 flex items-center justify-between">
-                            <h2 className="text-lg font-semibold text-white">Recent Activity</h2>
-                            <button className="text-sm text-[#4a90e2] transition-colors hover:text-[#63b3ed]">View all</button>
-                        </div>
-                        <div className="space-y-4">
-                            <div className="flex items-start">
-                                <div className="mt-1 mr-3 flex h-8 w-8 items-center justify-center rounded-full bg-[#1e3a5f]">
-                                    <Activity className="h-4 w-4 text-[#4a90e2]" />
-                                </div>
-                                <div>
-                                    <p className="text-white">
-                                        Completed <span className="font-medium">Strength Training Session</span>
-                                    </p>
-                                    <p className="text-sm text-[#a3c0e6]">Yesterday at 4:30 PM</p>
-                                </div>
-                            </div>
-                            <div className="flex items-start">
-                                <div className="mt-1 mr-3 flex h-8 w-8 items-center justify-center rounded-full bg-[#1e3a5f]">
-                                    <Trophy className="h-4 w-4 text-[#4a90e2]" />
-                                </div>
-                                <div>
-                                    <p className="text-white">
-                                        Achieved <span className="font-medium">New Personal Best</span> in Bench Press
-                                    </p>
-                                    <p className="text-sm text-[#a3c0e6]">2 days ago</p>
-                                </div>
-                            </div>
-                            <div className="flex items-start">
-                                <div className="mt-1 mr-3 flex h-8 w-8 items-center justify-center rounded-full bg-[#1e3a5f]">
-                                    <FileText className="h-4 w-4 text-[#4a90e2]" />
-                                </div>
-                                <div>
-                                    <p className="text-white">
-                                        Updated <span className="font-medium">Training Plan</span> for Block {currentBlock?.block_number || 1}
-                                    </p>
-                                    <p className="text-sm text-[#a3c0e6]">3 days ago</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div> */}
                 </main>
             </div>
 
@@ -1072,8 +1048,7 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({
                                 onClick={goToTraining}
                                 className="order-1 rounded-lg bg-[#4a90e2] px-4 py-2.5 text-white transition-colors hover:bg-[#3a80d2] sm:order-2"
                             >
-                                View Training
-                            </button>
+                                View Training</button>
                         </div>
                     </div>
                 </div>
