@@ -16,20 +16,20 @@ class BlockSeeder extends Seeder
     {
         Block::create([
             'block_number' => 1,
-            'start_date' => Carbon::now()->subWeeks(10),
-            'end_date' => Carbon::now()->subWeeks(6),
+            'start_date' => Carbon::now(), // Start date is today
+            'end_date' => Carbon::now()->addWeeks(4),
         ]);
 
         Block::create([
             'block_number' => 2,
-            'start_date' => Carbon::now()->subWeeks(5),
-            'end_date' => Carbon::now()->subWeeks(2),
+            'start_date' => Carbon::now()->addWeeks(4)->addDay(),
+            'end_date' => Carbon::now()->addWeeks(7),
         ]);
 
         Block::create([
             'block_number' => 3,
-            'start_date' => Carbon::now()->subDays(10),
-            'end_date' => Carbon::now()->addWeeks(3),
+            'start_date' => Carbon::now()->addWeeks(7)->addDay(),
+            'end_date' => Carbon::now()->addWeeks(10),
         ]);
     }
 }
