@@ -112,9 +112,7 @@ export default function Login({ status, errors }: LoginProps) {
                                 />
                             </div>
                             <InputError message={errors.password} />
-                            <p className="mt-1 text-xs text-gray-400">
-                                (Hint: For demo, use <strong>password</strong> for athlete login)
-                            </p>
+                            <p className="mt-1 text-xs text-gray-400"></p>
                         </div>
 
                         <div>

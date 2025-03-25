@@ -1,5 +1,5 @@
-import { useState } from 'react';
 import { router } from '@inertiajs/react';
+import { useState } from 'react';
 
 type Athlete = {
     id: number;
@@ -124,7 +124,7 @@ export default function useAthleteForm(athletes: Athlete[], setAthletes: React.D
                 wall_sit: wallSit,
                 core_endurance: coreEndurance,
                 bent_arm_hang: bentArmHang,
-            }
+            },
         };
 
         console.log('Formatted form data:', formData);
@@ -174,6 +174,15 @@ export default function useAthleteForm(athletes: Athlete[], setAthletes: React.D
                 if (page.props.flash && page.props.flash.newAthlete) {
                     setAthletes((prevAthletes) => [...prevAthletes, page.props.flash!.newAthlete!]);
                 }
+
+                // Show success alert and refresh the page when user clicks "OK"
+                setTimeout(() => {
+                    // Display alert with success message
+                    alert(`Athlete ${formData.username} has been successfully added!`);
+
+                    // Force a hard refresh of the page after alert is dismissed
+                    window.location.reload();
+                }, 300);
             },
             onError: (errors: Record<string, string>) => {
                 console.error('Form submission errors:', errors);
