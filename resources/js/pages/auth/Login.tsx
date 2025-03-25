@@ -1,13 +1,12 @@
 import { Head, useForm } from '@inertiajs/react';
-import { LoaderCircle, Lock, User, AlertCircle } from 'lucide-react';
+import { AlertCircle, LoaderCircle, Lock, User } from 'lucide-react';
 import { FormEventHandler } from 'react';
 
 import InputError from '@/components/input-error';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Alert, AlertDescription } from '@/components/ui/alert';
 
 interface LoginForm {
     username: string;
@@ -119,19 +118,6 @@ export default function Login({ status, errors }: LoginProps) {
                         </div>
 
                         <div>
-                            <div className="flex items-center space-x-2">
-                                <Checkbox
-                                    id="isAdmin"
-                                    name="isAdmin"
-                                    tabIndex={3}
-                                    checked={data.isAdmin}
-                                    onCheckedChange={(checked) => setData('isAdmin', checked === true)}
-                                    className="border-gray-500 text-blue-500"
-                                />
-                                <Label htmlFor="isAdmin" className="text-sm text-gray-300">
-                                    Login as Administrator
-                                </Label>
-                            </div>
                             <p className="mt-1 text-xs text-gray-400">
                                 (For admin, use username <strong>admin</strong> and password <strong>admin</strong>)
                             </p>
