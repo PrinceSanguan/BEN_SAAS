@@ -20,7 +20,7 @@ class DatabaseSeeder extends Seeder
             BlockSeeder::class,
 
             // // Then populate training sessions
-            // TrainingSessionSeeder::class,
+            TrainingSessionSeeder::class,
 
             // // Then create student users and their training results
             // TrainingResultsSeeder::class,
