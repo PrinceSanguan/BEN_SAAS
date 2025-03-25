@@ -1,15 +1,7 @@
-import { Head } from '@inertiajs/react';
-import React, { useState, useEffect, useRef } from 'react';
+import { Head, Link } from '@inertiajs/react';
 import gsap from 'gsap';
-import {
-    Activity,
-    Award,
-    BarChart2,
-    Home,
-    LogOut,
-    Trophy,
-    User,
-} from 'lucide-react';
+import { Activity, Award, BarChart2, Home, LogOut, Trophy, User } from 'lucide-react';
+import React, { useEffect, useRef, useState } from 'react';
 
 interface LeaderboardUser {
     id: number;
@@ -28,11 +20,7 @@ interface ConsistencyLeaderboardProps {
     };
 }
 
-const ConsistencyLeaderboard: React.FC<ConsistencyLeaderboardProps> = ({
-    leaderboardData,
-    username = 'Athlete',
-    routes = {}
-}) => {
+const ConsistencyLeaderboard: React.FC<ConsistencyLeaderboardProps> = ({ leaderboardData, username = 'Athlete', routes = {} }) => {
     // State for responsive design
     const [isMobile, setIsMobile] = useState(false);
 
@@ -153,21 +141,14 @@ const ConsistencyLeaderboard: React.FC<ConsistencyLeaderboardProps> = ({
     // Render leaderboard cards for mobile
     const renderMobileLeaderboard = () => {
         if (leaderboardData.length === 0) {
-            return (
-                <div className="py-4 text-center text-[#a3c0e6]">
-                    No data available yet
-                </div>
-            );
+            return <div className="py-4 text-center text-[#a3c0e6]">No data available yet</div>;
         }
 
         return (
             <div className="space-y-3 px-1 py-2">
                 {leaderboardData.map((user) => (
-                    <div
-                        key={user.id}
-                        className={`rounded-lg border border-[#1e3a5f] p-4 ${user.isYou ? 'bg-[#1e3a5f]/30' : 'bg-[#112845]'}`}
-                    >
-                        <div className="flex items-center justify-between mb-2">
+                    <div key={user.id} className={`rounded-lg border border-[#1e3a5f] p-4 ${user.isYou ? 'bg-[#1e3a5f]/30' : 'bg-[#112845]'}`}>
+                        <div className="mb-2 flex items-center justify-between">
                             <div className="flex items-center">
                                 <span className="mr-3 text-xl font-bold text-white">
                                     {user.rank === 1 && <span className="mr-1">🏆</span>}
@@ -179,21 +160,14 @@ const ConsistencyLeaderboard: React.FC<ConsistencyLeaderboardProps> = ({
                                     {user.username} {user.isYou && <span className="text-sm font-medium text-[#4a90e2]">(You)</span>}
                                 </span>
                             </div>
-                            <span className="rounded-full bg-[#1e3a5f] px-2 py-1 text-xs text-[#a3c0e6]">
-                                {user.completed_sessions} sessions
-                            </span>
+                            <span className="rounded-full bg-[#1e3a5f] px-2 py-1 text-xs text-[#a3c0e6]">{user.completed_sessions} sessions</span>
                         </div>
                         <div className="mt-3">
                             <div className="flex items-center">
                                 <div className="mr-3 h-2.5 w-full rounded-full bg-[#1e3a5f]">
-                                    <div
-                                        className="h-2.5 rounded-full bg-[#4a90e2]"
-                                        style={{ width: `${user.consistency_score}%` }}
-                                    ></div>
+                                    <div className="h-2.5 rounded-full bg-[#4a90e2]" style={{ width: `${user.consistency_score}%` }}></div>
                                 </div>
-                                <span className="ml-2 whitespace-nowrap text-sm font-medium text-[#4a90e2]">
-                                    {user.consistency_score}%
-                                </span>
+                                <span className="ml-2 text-sm font-medium whitespace-nowrap text-[#4a90e2]">{user.consistency_score}%</span>
                             </div>
                         </div>
                     </div>
@@ -239,10 +213,7 @@ const ConsistencyLeaderboard: React.FC<ConsistencyLeaderboardProps> = ({
                                     <td className="px-6 py-4 text-sm font-medium whitespace-nowrap">
                                         <div className="flex items-center">
                                             <div className="mr-2 h-2 w-24 rounded-full bg-[#1e3a5f]">
-                                                <div
-                                                    className="h-2 rounded-full bg-[#4a90e2]"
-                                                    style={{ width: `${user.consistency_score}%` }}
-                                                ></div>
+                                                <div className="h-2 rounded-full bg-[#4a90e2]" style={{ width: `${user.consistency_score}%` }}></div>
                                             </div>
                                             <span className="text-[#4a90e2]">{user.consistency_score}%</span>
                                         </div>
@@ -262,6 +233,10 @@ const ConsistencyLeaderboard: React.FC<ConsistencyLeaderboardProps> = ({
             </div>
         );
     };
+
+    function safeRoute(arg0: string): string | undefined {
+        throw new Error('Function not implemented.');
+    }
 
     return (
         <div ref={pageRef} className="flex min-h-screen bg-gradient-to-b from-[#0a1e3c] to-[#0f2a4a]">
@@ -346,23 +321,26 @@ const ConsistencyLeaderboard: React.FC<ConsistencyLeaderboardProps> = ({
 
                 {/* Footer */}
                 <div className="border-t border-[#1e3a5f] p-4">
-                    <a href="#" className="flex items-center px-4 py-2 text-[#a3c0e6] transition-colors hover:text-white">
-                        <LogOut className="mr-3 h-5 w-5 text-[#4a90e2]" />
-                        <span>Logout</span>
-                    </a>
+                    <Link
+                        href={getRoute('admin.logout')}
+                        method="post"
+                        as="button"
+                        className="flex w-full items-center rounded-lg px-4 py-3 text-[#a3c0e6] transition-colors hover:bg-[#112845] hover:text-white"
+                        preserveScroll
+                    >
+                        <LogOut className="mr-3 h-5 w-5" />
+                        Logout
+                    </Link>
                 </div>
             </div>
 
             {/* Main Content */}
             <div className="flex-1 lg:ml-64">
                 {/* Header */}
-                <header
-                    ref={headerRef}
-                    className="sticky top-0 z-10 border-b border-[#1e3a5f] bg-[#0a1e3c]/80 px-4 py-4 backdrop-blur-md"
-                >
+                <header ref={headerRef} className="sticky top-0 z-10 border-b border-[#1e3a5f] bg-[#0a1e3c]/80 px-4 py-4 backdrop-blur-md">
                     <div className="mx-auto flex max-w-7xl items-center justify-between">
                         <div className="flex items-center">
-                            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-[#4a90e2] to-[#63b3ed] mr-3">
+                            <div className="mr-3 flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-[#4a90e2] to-[#63b3ed]">
                                 <BarChart2 className="h-5 w-5 text-white" />
                             </div>
                             <h1 className="text-xl font-bold text-white">Consistency Leaderboard</h1>
@@ -372,37 +350,51 @@ const ConsistencyLeaderboard: React.FC<ConsistencyLeaderboardProps> = ({
 
                 {/* Main Content */}
                 <main ref={mainContentRef} className="mx-auto max-w-7xl px-4 py-6 pb-24 lg:pb-6">
-                    <div className="overflow-hidden rounded-xl bg-[#112845] shadow-lg border border-[#1e3a5f]">
+                    <div className="overflow-hidden rounded-xl border border-[#1e3a5f] bg-[#112845] shadow-lg">
                         {/* Desktop view - Table */}
-                        <div className="hidden sm:block">
-                            {renderDesktopTable()}
-                        </div>
+                        <div className="hidden sm:block">{renderDesktopTable()}</div>
 
                         {/* Mobile view - Cards */}
-                        <div className="block sm:hidden">
-                            {renderMobileLeaderboard()}
-                        </div>
+                        <div className="block sm:hidden">{renderMobileLeaderboard()}</div>
                     </div>
                 </main>
             </div>
 
             {/* Bottom Navigation - Mobile Only */}
             <div className="fixed right-0 bottom-0 left-0 z-20 border-t border-[#1e3a5f] bg-[#0a1e3c]/90 shadow-lg backdrop-blur-md lg:hidden">
-                <div className="max-w-7xl mx-auto flex justify-around">
+                <div className="mx-auto flex max-w-7xl justify-around">
                     <a
                         href={getRoute('student.training')}
-                        className="flex flex-col items-center py-3 px-4 text-[#a3c0e6] hover:text-white transition-colors"
+                        className="flex flex-col items-center px-4 py-3 text-[#a3c0e6] transition-colors hover:text-white"
                     >
-                        <svg className="h-6 w-6 mb-1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <svg
+                            className="mb-1 h-6 w-6"
+                            xmlns="http://www.w3.org/2000/svg"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                        >
                             <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"></path>
                         </svg>
                         <span className="text-xs">Training</span>
                     </a>
                     <a
                         href={getRoute('student.dashboard')}
-                        className="flex flex-col items-center py-3 px-4 text-[#a3c0e6] hover:text-white transition-colors"
+                        className="flex flex-col items-center px-4 py-3 text-[#a3c0e6] transition-colors hover:text-white"
                     >
-                        <svg className="h-6 w-6 mb-1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <svg
+                            className="mb-1 h-6 w-6"
+                            xmlns="http://www.w3.org/2000/svg"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                        >
                             <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
                             <polyline points="9 22 9 12 15 12 15 22"></polyline>
                         </svg>
@@ -410,18 +402,36 @@ const ConsistencyLeaderboard: React.FC<ConsistencyLeaderboardProps> = ({
                     </a>
                     <a
                         href={getRoute('student.progress')}
-                        className="flex flex-col items-center py-3 px-4 text-[#a3c0e6] hover:text-white transition-colors"
+                        className="flex flex-col items-center px-4 py-3 text-[#a3c0e6] transition-colors hover:text-white"
                     >
-                        <svg className="h-6 w-6 mb-1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <svg
+                            className="mb-1 h-6 w-6"
+                            xmlns="http://www.w3.org/2000/svg"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                        >
                             <path d="M22 12h-4l-3 9L9 3l-3 9H2"></path>
                         </svg>
                         <span className="text-xs">Progress</span>
                     </a>
                     <a
                         href={getRoute('leaderboard.consistency')}
-                        className="flex flex-col items-center py-3 px-4 text-[#4a90e2] border-t-2 border-[#4a90e2]"
+                        className="flex flex-col items-center border-t-2 border-[#4a90e2] px-4 py-3 text-[#4a90e2]"
                     >
-                        <svg className="h-6 w-6 mb-1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <svg
+                            className="mb-1 h-6 w-6"
+                            xmlns="http://www.w3.org/2000/svg"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                        >
                             <path d="M2 20h20M5 20V13M10 20V10M15 20v-8M20 20V4"></path>
                         </svg>
                         <span className="text-xs">Consistency</span>
