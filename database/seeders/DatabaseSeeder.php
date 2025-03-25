@@ -19,14 +19,14 @@ class DatabaseSeeder extends Seeder
             // Then create training blocks
             BlockSeeder::class,
 
-            // Then populate training sessions
-            TrainingSessionSeeder::class,
+            // // Then populate training sessions
+            // TrainingSessionSeeder::class,
 
-            // Then create student users and their training results
-            TrainingResultsSeeder::class,
+            // // Then create student users and their training results
+            // TrainingResultsSeeder::class,
 
-            // Finally calculate and update user stats
-            UserStatsSeeder::class,
+            // // Finally calculate and update user stats
+            // UserStatsSeeder::class,
         ]);
     }
 }
