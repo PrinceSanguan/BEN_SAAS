@@ -22,9 +22,6 @@ class TrainingSessionSeeder extends Seeder
             return;
         }
 
-        // A single counter for session_number (only increments for training)
-        $globalSessionCount = 1;
-
         foreach ($blocks as $block) {
             // Ensure block_id is available
             if (!$block->id) {
@@ -32,153 +29,83 @@ class TrainingSessionSeeder extends Seeder
                 continue;
             }
 
-            // -------------------------
-            // BLOCK 1
-            // Weeks 1–4 => 2 training each
-            // Week 5 => 2 training + 1 testing
-            // -------------------------
-            if ($block->block_number == 1) {
-                for ($week = 1; $week <= 5; $week++) {
-                    if ($week <= 4) {
-                        // Weeks 1–4 => 2 training
-                        for ($i = 1; $i <= 2; $i++) {
-                            TrainingSession::create([
-                                'block_id'       => $block->id,
-                                'week_number'    => $week,
-                                // training => increment the counter
-                                'session_number' => $globalSessionCount++,
-                                'session_type'   => 'training',
-                                'release_date'   => Carbon::parse($block->start_date ?: now())
-                                    ->addWeeks($week - 1)
-                                    ->addDays($i),
-                            ]);
-                        }
-                    } else {
-                        // Week 5 => 2 training + 1 testing
-                        // 2 training
-                        for ($i = 1; $i <= 2; $i++) {
-                            TrainingSession::create([
-                                'block_id'       => $block->id,
-                                'week_number'    => 5,
-                                // training => increment
-                                'session_number' => $globalSessionCount++,
-                                'session_type'   => 'training',
-                                'release_date'   => Carbon::parse($block->start_date ?: now())
-                                    ->addWeeks(4)
-                                    ->addDays($i),
-                            ]);
-                        }
+            // For each block, start with session 1
+            $sessionCount = 1;
 
-                        // Save the last session number for the testing session
-                        $lastSessionNumber = $globalSessionCount - 1;
-
-                        // 1 testing => use the last training session number (do NOT increment)
-                        TrainingSession::create([
-                            'block_id'       => $block->id,
-                            'week_number'    => 5,
-                            'session_number' => $lastSessionNumber, // Use the LAST training number, NOT current
-                            'session_type'   => 'testing',
-                            'release_date'   => Carbon::parse($block->start_date ?: now())
-                                ->addWeeks(4)
-                                ->addDays(3),
-                        ]);
-                    }
-                }
-            }
-
-            // -------------------------
-            // BLOCK 2
-            // Weeks 6–9 => 2 training each
-            // Week 10 => 2 training + 1 testing
-            // -------------------------
-            elseif ($block->block_number == 2) {
-                for ($week = 6; $week <= 10; $week++) {
-                    $offset = $week - 6;
-                    if ($week <= 9) {
-                        // Weeks 6–9 => 2 training
-                        for ($i = 1; $i <= 2; $i++) {
-                            TrainingSession::create([
-                                'block_id'       => $block->id,
-                                'week_number'    => $week,
-                                'session_number' => $globalSessionCount++, // training => increment
-                                'session_type'   => 'training',
-                                'release_date'   => Carbon::parse($block->start_date ?: now())
-                                    ->addWeeks($offset)
-                                    ->addDays($i),
-                            ]);
-                        }
-                    } else {
-                        // Week 10 => 2 training + 1 testing
-                        // 2 training
-                        for ($i = 1; $i <= 2; $i++) {
-                            TrainingSession::create([
-                                'block_id'       => $block->id,
-                                'week_number'    => 10,
-                                'session_number' => $globalSessionCount++, // training => increment
-                                'session_type'   => 'training',
-                                'release_date'   => Carbon::parse($block->start_date ?: now())
-                                    ->addWeeks(4) // (10 - 6) => 4
-                                    ->addDays($i),
-                            ]);
-                        }
-
-                        // Save the last session number for the testing session
-                        $lastSessionNumber = $globalSessionCount - 1;
-
-                        // 1 testing => use the last training session number (do NOT increment)
-                        TrainingSession::create([
-                            'block_id'       => $block->id,
-                            'week_number'    => 10,
-                            'session_number' => $lastSessionNumber, // Use the LAST training number, NOT current
-                            'session_type'   => 'testing',
-                            'release_date'   => Carbon::parse($block->start_date ?: now())
-                                ->addWeeks(4)
-                                ->addDays(3),
-                        ]);
-                    }
-                }
-            }
-
-            // -------------------------
-            // BLOCK 3
-            // Weeks 11–13 => 2 testing each
-            // Week 14 => 1 testing only
-            // -------------------------
-            elseif ($block->block_number == 3) {
-                // For Block 3, all testing sessions use the last session number from Block 2
-                $lastTrainingSessionNumber = $globalSessionCount - 1;
-
-                for ($week = 11; $week <= 14; $week++) {
-                    $offset = $week - 11;
-                    if ($week < 14) {
-                        // Weeks 11–13 => 2 testing each, use last training session number
-                        for ($i = 1; $i <= 2; $i++) {
-                            TrainingSession::create([
-                                'block_id'       => $block->id,
-                                'week_number'    => $week,
-                                'session_number' => $lastTrainingSessionNumber, // Use the last training number from Block 2
-                                'session_type'   => 'testing',
-                                'release_date'   => Carbon::parse($block->start_date ?: now())
-                                    ->addWeeks($offset)
-                                    ->addDays($i),
-                            ]);
-                        }
-                    } else {
-                        // Week 14 => 1 testing only, use last training session number
-                        TrainingSession::create([
-                            'block_id'       => $block->id,
-                            'week_number'    => 14,
-                            'session_number' => $lastTrainingSessionNumber, // Use the last training number from Block 2
-                            'session_type'   => 'testing',
-                            'release_date'   => Carbon::parse($block->start_date ?: now())
-                                ->addWeeks($offset),
-                        ]);
-                    }
-                }
-            }
+            // Generate training sessions for this block
+            $this->createSessionsForBlock($block, $sessionCount);
         }
 
         $this->command->info('Training sessions seeded successfully!');
         $this->command->info('Total training sessions created: ' . TrainingSession::count());
+    }
+
+    /**
+     * Create all sessions for a single block
+     * 
+     * @param Block $block
+     * @param int &$sessionCount Session counter (passed by reference to maintain count across blocks)
+     */
+    private function createSessionsForBlock(Block $block, &$sessionCount): void
+    {
+        // Reset session counter for each block
+        $sessionCount = 1;
+
+        // Iterate through all 14 weeks
+        for ($week = 1; $week <= 14; $week++) {
+            $weekStartDate = Carbon::parse($block->start_date ?: now())->addWeeks($week - 1);
+
+            // Week 7 is a REST week
+            if ($week == 7) {
+                // Create a special REST session with a special session number (0)
+                TrainingSession::create([
+                    'block_id'       => $block->id,
+                    'week_number'    => $week,
+                    'session_number' => 0, // Use 0 for rest sessions instead of null
+                    'session_type'   => 'rest',
+                    'release_date'   => $weekStartDate,
+                ]);
+
+                // Do not increment session count for rest week
+            }
+            // Special weeks with testing (5, 10, 14)
+            elseif (in_array($week, [5, 10, 14])) {
+                // First create the testing session with a special session number (-1)
+                TrainingSession::create([
+                    'block_id'       => $block->id,
+                    'week_number'    => $week,
+                    'session_number' => -1, // Use -1 for testing sessions instead of null
+                    'session_type'   => 'testing',
+                    'release_date'   => $weekStartDate,
+                ]);
+
+                // For weeks 5 and 10, also create 2 training sessions
+                if ($week != 14) {
+                    for ($i = 1; $i <= 2; $i++) {
+                        TrainingSession::create([
+                            'block_id'       => $block->id,
+                            'week_number'    => $week,
+                            'session_number' => $sessionCount,
+                            'session_type'   => 'training',
+                            'release_date'   => $weekStartDate->copy()->addDays($i),
+                        ]);
+                        $sessionCount++;
+                    }
+                }
+            }
+            // Regular weeks with 2 training sessions each
+            else {
+                for ($i = 0; $i <= 1; $i++) {
+                    TrainingSession::create([
+                        'block_id'       => $block->id,
+                        'week_number'    => $week,
+                        'session_number' => $sessionCount,
+                        'session_type'   => 'training',
+                        'release_date'   => $weekStartDate->copy()->addDays($i),
+                    ]);
+                    $sessionCount++;
+                }
+            }
+        }
     }
 }

@@ -57,13 +57,27 @@ class UserStatService
         // Get the user's stats record or create a new one
         $userStat = UserStat::firstOrNew(['user_id' => $userId]);
 
-        // Calculate total sessions completed
-        $completedTrainingSessions = TrainingResult::where('user_id', $userId)->count();
+        // Count completed training sessions (excluding test and rest sessions)
+        $completedTrainingSessions = TrainingResult::join('training_sessions', 'training_results.session_id', '=', 'training_sessions.id')
+            ->where('training_results.user_id', $userId)
+            ->where('training_sessions.session_type', 'training')
+            ->count();
+
+        // Count completed testing sessions (for other metrics)
         $completedTestingSessions = TestResult::where('user_id', $userId)->count();
+
+        // Calculate total sessions completed (for other metrics)
         $totalSessionsCompleted = $completedTrainingSessions + $completedTestingSessions;
 
-        // Calculate total available sessions
-        $totalAvailableSessions = TrainingSession::count();
+        // Count only available training sessions (excluding test and rest)
+        // Debug to see what's happening
+        $availableTrainingSessions = TrainingSession::where('session_type', 'training')->count();
+
+        // Optionally log this for debugging
+        \Log::info("User ID: $userId, Available training sessions: $availableTrainingSessions");
+
+        // Get total available sessions (for other metrics)
+        $totalAvailableSessions = TrainingSession::where('release_date', '<=', now())->count();
 
         // Get XP data from XP service
         $totalXp = $this->xpService->getTotalXp($userId);
@@ -73,12 +87,19 @@ class UserStatService
         $userStat->user_id = $userId;
         $userStat->total_xp = $totalXp;
         $userStat->strength_level = $strengthLevel;
-        $userStat->sessions_completed = $totalSessionsCompleted;
-        $userStat->sessions_available = $totalAvailableSessions;
+        $userStat->sessions_completed = $completedTrainingSessions; // Only count training sessions for consistency
+        $userStat->sessions_available = $availableTrainingSessions; // Only count training sessions for consistency
         $userStat->last_updated = now();
 
-        // Calculate and save consistency score
-        $userStat->updateConsistencyScore();
+        // Calculate consistency score based on training sessions only
+        if ($availableTrainingSessions > 0) {
+            $userStat->consistency_score = ($completedTrainingSessions / $availableTrainingSessions) * 100;
+        } else {
+            $userStat->consistency_score = 0;
+        }
+
+        // Save the stats
+        $userStat->save();
 
         return $userStat;
     }
