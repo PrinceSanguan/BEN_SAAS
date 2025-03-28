@@ -10,6 +10,11 @@ interface LeaderboardUser {
     strength_level: number;
     total_xp: number;
     isYou: boolean;
+    next_level_info?: {
+        xp_needed: number;
+        progress_percentage: number;
+        next_level: number;
+    };
 }
 
 interface StrengthLeaderboardProps {
@@ -25,11 +30,36 @@ const StrengthLeaderboard: React.FC<StrengthLeaderboardProps> = ({ leaderboardDa
     const [isMobile, setIsMobile] = useState(false);
     const [sidebarOpen, setSidebarOpen] = useState(false);
 
+    // Optional: Add state to track the user's entry for quick jumping in the leaderboard
+    const [userEntry, setUserEntry] = useState<LeaderboardUser | null>(null);
+
     // Refs for GSAP animations
     const pageRef = useRef<HTMLDivElement>(null);
     const headerRef = useRef<HTMLDivElement>(null);
     const sidebarRef = useRef<HTMLDivElement>(null);
     const mainContentRef = useRef<HTMLDivElement>(null);
+    const userRowRef = useRef<HTMLTableRowElement | null>(null);
+
+    // Find the current user's entry when data loads
+    useEffect(() => {
+        const currentUser = leaderboardData.find((user) => user.isYou);
+        if (currentUser) {
+            setUserEntry(currentUser);
+        }
+    }, [leaderboardData]);
+
+    // Scroll to user's position when in view
+    useEffect(() => {
+        if (userRowRef.current) {
+            // Scroll with a slight delay to ensure the DOM is ready
+            setTimeout(() => {
+                userRowRef.current?.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'center',
+                });
+            }, 500);
+        }
+    }, [userRowRef.current]);
 
     // Check if using mobile
     useEffect(() => {
@@ -139,25 +169,33 @@ const StrengthLeaderboard: React.FC<StrengthLeaderboardProps> = ({ leaderboardDa
             'leaderboard.strength': '/leaderboard/strength',
             'leaderboard.consistency': '/leaderboard/consistency',
             'student.progress': '/progress',
+            'admin.logout': '/logout',
         };
 
         return fallbackRoutes[name] || '#';
     };
 
-    // Render star rating based on strength level
-    const renderStars = (level: number) => {
-        return Array.from({ length: 5 }).map((_, index) => (
-            <svg
-                key={index}
-                className={`h-4 w-4 ${index < level ? 'text-[#ffd700]' : 'text-[#1e3a5f]'}`}
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 24 24"
-                fill="currentColor"
-                stroke="none"
-            >
-                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
-            </svg>
-        ));
+    // Function to render the level progress bar
+    const renderLevelProgress = (user: LeaderboardUser) => {
+        if (!user.next_level_info) return null;
+
+        return (
+            <div className="mt-1 w-full">
+                <div className="mb-1 flex justify-between text-xs text-[#a3c0e6]">
+                    <span>Level {user.strength_level}</span>
+                    <span>Level {user.next_level_info.next_level}</span>
+                </div>
+                <div className="h-1.5 w-full overflow-hidden rounded-full bg-[#1e3a5f]">
+                    <div
+                        className="h-1.5 rounded-full bg-gradient-to-r from-[#4a90e2] to-[#63b3ed]"
+                        style={{ width: `${user.next_level_info.progress_percentage}%` }}
+                    ></div>
+                </div>
+                <div className="mt-1 text-center text-xs text-[#a3c0e6]">
+                    <span>{user.next_level_info.xp_needed} XP to next level</span>
+                </div>
+            </div>
+        );
     };
 
     // Render leaderboard cards for mobile
@@ -192,8 +230,8 @@ const StrengthLeaderboard: React.FC<StrengthLeaderboardProps> = ({ leaderboardDa
                                     </div>
                                     <span className="text-lg font-bold text-white">Level {user.strength_level}</span>
                                 </div>
-                                <div className="flex items-center">{renderStars(user.strength_level)}</div>
                             </div>
+                            {user.isYou && user.next_level_info && renderLevelProgress(user)}
                         </div>
                     </div>
                 ))}
@@ -339,6 +377,15 @@ const StrengthLeaderboard: React.FC<StrengthLeaderboardProps> = ({ leaderboardDa
                             </div>
                             <h1 className="text-xl font-bold text-white">Strength Leaderboard</h1>
                         </div>
+                        {userEntry && (
+                            <div className="hidden items-center text-sm md:flex">
+                                <span className="mr-2 text-[#a3c0e6]">Your Rank:</span>
+                                <span className="font-bold text-white">{userEntry.rank}</span>
+                                <span className="mx-2 text-[#a3c0e6]">|</span>
+                                <span className="mr-2 text-[#a3c0e6]">Level:</span>
+                                <span className="font-bold text-white">{userEntry.strength_level}</span>
+                            </div>
+                        )}
                     </div>
                 </header>
 
@@ -380,7 +427,11 @@ const StrengthLeaderboard: React.FC<StrengthLeaderboardProps> = ({ leaderboardDa
                                     <tbody className="divide-y divide-[#1e3a5f] bg-[#112845]">
                                         {leaderboardData.length > 0 ? (
                                             leaderboardData.map((user) => (
-                                                <tr key={user.id} className={user.isYou ? 'bg-[#1e3a5f]/30' : undefined}>
+                                                <tr
+                                                    key={user.id}
+                                                    ref={user.isYou ? userRowRef : null}
+                                                    className={user.isYou ? 'bg-[#1e3a5f]/30' : undefined}
+                                                >
                                                     <td className="px-6 py-4 text-sm font-medium whitespace-nowrap text-white">
                                                         {user.rank === 1 && <span className="mr-2">🏆</span>}
                                                         {user.rank === 2 && <span className="mr-2">🥈</span>}
@@ -391,9 +442,21 @@ const StrengthLeaderboard: React.FC<StrengthLeaderboardProps> = ({ leaderboardDa
                                                         {user.username} {user.isYou && <span className="font-medium text-[#4a90e2]">(You)</span>}
                                                     </td>
                                                     <td className="px-6 py-4 text-sm font-medium whitespace-nowrap">
-                                                        <div className="flex items-center">
-                                                            <span className="mr-2 text-white">Level {user.strength_level}</span>
-                                                            <div className="flex">{renderStars(user.strength_level)}</div>
+                                                        <div className="flex flex-col">
+                                                            <span className="text-white">Level {user.strength_level}</span>
+                                                            {user.isYou && user.next_level_info && (
+                                                                <div className="mt-1 w-full">
+                                                                    <div className="h-1.5 w-32 overflow-hidden rounded-full bg-[#1e3a5f]">
+                                                                        <div
+                                                                            className="h-1.5 rounded-full bg-gradient-to-r from-[#4a90e2] to-[#63b3ed]"
+                                                                            style={{ width: `${user.next_level_info.progress_percentage}%` }}
+                                                                        ></div>
+                                                                    </div>
+                                                                    <div className="mt-1 text-xs text-[#a3c0e6]">
+                                                                        <span>{user.next_level_info.xp_needed} XP to next level</span>
+                                                                    </div>
+                                                                </div>
+                                                            )}
                                                         </div>
                                                     </td>
                                                     <td className="px-6 py-4 text-sm font-medium whitespace-nowrap text-[#ffd700]">
@@ -416,73 +479,51 @@ const StrengthLeaderboard: React.FC<StrengthLeaderboardProps> = ({ leaderboardDa
                         {/* Mobile view - Cards */}
                         <div className="block sm:hidden">{renderMobileLeaderboard()}</div>
                     </div>
+
+                    {/* Legend */}
+                    <div className="mt-4 rounded-lg border border-[#1e3a5f] bg-[#0a1e3c]/80 p-4 text-sm">
+                        <h3 className="mb-2 font-medium text-white">XP Earning Guide:</h3>
+                        <ul className="space-y-1 text-[#a3c0e6]">
+                            <li>• +1 XP: Completing a training session</li>
+                            <li>• +3 XP: BONUS for completing all sessions in a week</li>
+                            <li>• +8 XP: Completing a testing session</li>
+                            <li>• +5 XP: BONUS for completing both training and testing in a week</li>
+                            <li>• +12 XP: BONUS for completing all sessions in a 4-week period</li>
+                        </ul>
+                    </div>
                 </main>
             </div>
 
             {/* Bottom Navigation - Mobile Only */}
             <div className="fixed right-0 bottom-0 left-0 z-20 border-t border-[#1e3a5f] bg-[#0a1e3c]/90 shadow-lg backdrop-blur-md lg:hidden">
-                <div className="mx-auto flex max-w-7xl justify-around">
+                <div className="mx-auto flex justify-around">
                     <a
                         href={getRoute('student.training')}
                         className="flex flex-col items-center px-4 py-3 text-[#a3c0e6] transition-colors hover:text-white"
                     >
-                        <svg
-                            className="mb-1 h-6 w-6"
-                            xmlns="http://www.w3.org/2000/svg"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="2"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                        >
-                            <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"></path>
-                        </svg>
+                        <Activity className="mb-1 h-6 w-6" />
                         <span className="text-xs">Training</span>
                     </a>
                     <a
                         href={getRoute('student.dashboard')}
                         className="flex flex-col items-center px-4 py-3 text-[#a3c0e6] transition-colors hover:text-white"
                     >
-                        <svg
-                            className="mb-1 h-6 w-6"
-                            xmlns="http://www.w3.org/2000/svg"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="2"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                        >
-                            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
-                            <polyline points="9 22 9 12 15 12 15 22"></polyline>
-                        </svg>
+                        <Home className="mb-1 h-6 w-6" />
                         <span className="text-xs">Home</span>
                     </a>
                     <a
                         href={getRoute('leaderboard.strength')}
                         className="flex flex-col items-center border-t-2 border-[#ffd700] px-4 py-3 text-[#ffd700]"
                     >
-                        <svg
-                            className="mb-1 h-6 w-6"
-                            xmlns="http://www.w3.org/2000/svg"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="2"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                        >
-                            <path d="M8 21v-2a4 4 0 0 1 4-4h0a4 4 0 0 1 4 4v2"></path>
-                            <circle cx="12" cy="7" r="4"></circle>
-                        </svg>
+                        <Award className="mb-1 h-6 w-6" />
                         <span className="text-xs">Strength</span>
                     </a>
                 </div>
             </div>
 
-            <style>
-                {`
+            <style
+                dangerouslySetInnerHTML={{
+                    __html: `
                 @keyframes scale-in {
                     from {
                         transform: scale(0.95);
@@ -507,12 +548,14 @@ const StrengthLeaderboard: React.FC<StrengthLeaderboardProps> = ({ leaderboardDa
                     }
 
                     /* Make buttons more touch-friendly */
-                    button, a {
+                    button,
+                    a {
                         min-height: 44px;
                     }
                 }
-                `}
-            </style>
+                `,
+                }}
+            />
         </div>
     );
 };

@@ -22,11 +22,11 @@ class UserSeeder extends Seeder
         ]);
 
         // Create the student user
-        // User::create([
-        //     'username' => 'student',
-        //     'parent_email' => 'student@gmail.com',
-        //     'password' => Hash::make('student'),
-        //     'user_role' => 'student',
-        // ]);
+        User::create([
+            'username' => 'student',
+            'parent_email' => 'student@gmail.com',
+            'password' => Hash::make('student'),
+            'user_role' => 'student',
+        ]);
     }
 }

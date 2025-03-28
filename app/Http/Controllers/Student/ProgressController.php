@@ -40,6 +40,7 @@ class ProgressController extends Controller
 
         // Get pre-training test data for this user
         $preTrainingTest = PreTrainingTest::where('user_id', $user->id)->first();
+        $preTrainingDate = $preTrainingTest ? Carbon::parse($preTrainingTest->created_at) : null;
 
         // Get all test sessions in order (for all blocks 1-3)
         $testSessions = TrainingSession::where('session_type', 'testing')
@@ -95,6 +96,7 @@ class ProgressController extends Controller
                 if ($preTrainingValue > 0) {
                     $sessionData[] = [
                         'label' => 'PRE-TRAINING',
+                        'date' => $preTrainingDate ? $preTrainingDate->format('Y-m-d') : Carbon::now()->subMonths(3)->format('Y-m-d'), // Use a default date if not available
                         'value' => $preTrainingValue
                     ];
                     $values[] = $preTrainingValue;
@@ -106,19 +108,42 @@ class ProgressController extends Controller
             foreach ($testSessions as $session) {
                 $label = $this->getSessionLabel($session);
 
+                // Get session release date for chart display
+                $sessionDate = $session->release_date;
+
+                // If release_date is not available, try to calculate based on block start date
+                if (!$sessionDate && $session->block && $session->block->start_date) {
+                    $sessionDate = Carbon::parse($session->block->start_date)
+                        ->addWeeks($session->week_number - 1)
+                        ->format('Y-m-d');
+                } else if ($sessionDate) {
+                    $sessionDate = Carbon::parse($sessionDate)->format('Y-m-d');
+                } else {
+                    // Fallback if no dates are available
+                    $sessionDate = Carbon::now()->format('Y-m-d');
+                }
+
                 // Check if we have a result for this session
                 $value = null;
-                if (isset($testResults[$session->id]) &&
-                    !is_null($testResults[$session->id]->$testKey)) {
+                if (
+                    isset($testResults[$session->id]) &&
+                    !is_null($testResults[$session->id]->$testKey)
+                ) {
                     $value = (float) $testResults[$session->id]->$testKey;
                     $values[] = $value;
                     $hasAnyData = true;
+
+                    // Use the completed_at date if available (more accurate)
+                    if ($testResults[$session->id]->completed_at) {
+                        $sessionDate = Carbon::parse($testResults[$session->id]->completed_at)->format('Y-m-d');
+                    }
                 }
 
                 // Only add session data point if it has a value
                 if ($value !== null) {
                     $sessionData[] = [
                         'label' => $label,
+                        'date' => $sessionDate,
                         'value' => $value
                     ];
                 }

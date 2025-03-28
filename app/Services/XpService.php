@@ -23,13 +23,15 @@ class XpService
 
     /**
      * Level thresholds
+     * These represent the minimum XP required to reach each level
      */
     const LEVEL_THRESHOLDS = [
-        1 => 0,   // Level 1: 0-2 XP
-        2 => 3,   // Level 2: 3-5 XP
-        3 => 6,   // Level 3: 6-9 XP
-        4 => 10,  // Level 4: 10-14 XP
-        5 => 15,  // Level 5: 15+ XP
+        1 => 1,    // Level 1: 1 XP
+        2 => 3,    // Level 2: 3 XP (2 XP more than Level 1)
+        3 => 6,    // Level 3: 6 XP (3 XP more than Level 2)
+        4 => 10,   // Level 4: 10 XP (4 XP more than Level 3)
+        5 => 15,   // Level 5: 15 XP (5 XP more than Level 4)
+        // If more levels are needed, add them here following the pattern
     ];
 
     /**
@@ -128,6 +130,48 @@ class XpService
     }
 
     /**
+     * Get total XP required to reach a specific level
+     *
+     * @param int $level
+     * @return int
+     */
+    public function getTotalXpForLevel(int $level): int
+    {
+        // If level exists in thresholds, return it
+        if (isset(self::LEVEL_THRESHOLDS[$level])) {
+            return self::LEVEL_THRESHOLDS[$level];
+        }
+
+        // For levels beyond our defined thresholds, follow the pattern
+        // Each level requires N more XP than the previous level
+        // (where N is the level number)
+        $lastDefinedLevel = max(array_keys(self::LEVEL_THRESHOLDS));
+        $lastLevelXp = self::LEVEL_THRESHOLDS[$lastDefinedLevel];
+
+        $additionalXp = 0;
+        for ($i = $lastDefinedLevel + 1; $i <= $level; $i++) {
+            $additionalXp += $i;
+        }
+
+        return $lastLevelXp + $additionalXp;
+    }
+
+    /**
+     * Calculate XP needed to go from one level to the next
+     *
+     * @param int $currentLevel
+     * @return int
+     */
+    public function getXpGapBetweenLevels(int $currentLevel): int
+    {
+        $nextLevel = $currentLevel + 1;
+        $currentLevelXp = $this->getTotalXpForLevel($currentLevel);
+        $nextLevelXp = $this->getTotalXpForLevel($nextLevel);
+
+        return $nextLevelXp - $currentLevelXp;
+    }
+
+    /**
      * Get user's current strength level based on XP
      *
      * @param int $userId
@@ -137,13 +181,39 @@ class XpService
     {
         $totalXp = $this->getTotalXp($userId);
 
-        // Find the highest level threshold that is less than or equal to the user's XP
+        // If no XP, return level 1
+        if ($totalXp < self::LEVEL_THRESHOLDS[1]) {
+            return 1;
+        }
+
+        // Find the highest level that the user's XP meets or exceeds
         $level = 1;
         foreach (self::LEVEL_THRESHOLDS as $lvl => $threshold) {
             if ($totalXp >= $threshold) {
                 $level = $lvl;
             } else {
-                break;
+                break; // Stop once we find a threshold higher than user's XP
+            }
+        }
+
+        // If user's XP exceeds our defined thresholds, calculate level based on the pattern
+        if (
+            $level === max(array_keys(self::LEVEL_THRESHOLDS)) &&
+            $totalXp > self::LEVEL_THRESHOLDS[$level]
+        ) {
+
+            $remainingXp = $totalXp - self::LEVEL_THRESHOLDS[$level];
+            $nextLevel = $level + 1;
+
+            while (true) {
+                $xpForNextLevel = $nextLevel; // Each level requires N more XP
+                if ($remainingXp < $xpForNextLevel) {
+                    break;
+                }
+
+                $remainingXp -= $xpForNextLevel;
+                $level = $nextLevel;
+                $nextLevel++;
             }
         }
 
@@ -160,25 +230,29 @@ class XpService
     {
         $totalXp = $this->getTotalXp($userId);
         $currentLevel = $this->getCurrentLevel($userId);
-
-        // If at max level, return info with 0 XP needed
-        if ($currentLevel >= count(self::LEVEL_THRESHOLDS)) {
-            return [
-                'current_level' => $currentLevel,
-                'next_level' => null,
-                'xp_needed' => 0,
-                'total_xp' => $totalXp,
-            ];
-        }
-
         $nextLevel = $currentLevel + 1;
-        $xpNeeded = self::LEVEL_THRESHOLDS[$nextLevel] - $totalXp;
+
+        // Calculate XP needed for next level
+        $xpForCurrentLevel = $this->getTotalXpForLevel($currentLevel);
+        $xpForNextLevel = $this->getTotalXpForLevel($nextLevel);
+        $xpNeeded = $xpForNextLevel - $totalXp;
+
+        // Get XP gap between levels for progress calculation
+        $xpGap = $this->getXpGapBetweenLevels($currentLevel);
+
+        // Calculate progress percentage in current level
+        $xpInCurrentLevel = $totalXp - $xpForCurrentLevel;
+        $progressPercentage = min(100, round(($xpInCurrentLevel / $xpGap) * 100));
 
         return [
             'current_level' => $currentLevel,
             'next_level' => $nextLevel,
             'xp_needed' => $xpNeeded,
             'total_xp' => $totalXp,
+            'progress_percentage' => $progressPercentage,
+            'xp_for_current_level' => $xpForCurrentLevel,
+            'xp_for_next_level' => $xpForNextLevel,
+            'xp_gap' => $xpGap
         ];
     }
 
@@ -195,10 +269,10 @@ class XpService
         }
 
         return !empty($result->warmup_completed) &&
-               !empty($result->plyometrics_score) &&
-               !empty($result->power_score) &&
-               !empty($result->lower_body_strength_score) &&
-               !empty($result->upper_body_core_strength_score);
+            !empty($result->plyometrics_score) &&
+            !empty($result->power_score) &&
+            !empty($result->lower_body_strength_score) &&
+            !empty($result->upper_body_core_strength_score);
     }
 
     /**
@@ -216,10 +290,10 @@ class XpService
         // Bent Arm Hang Assessment is a bonus assessment and doesn't affect XP calculations
         // as specified in requirements, so we exclude it from the completeness check
         return !empty($result->standing_long_jump) &&
-               !empty($result->single_leg_jump_left) &&
-               !empty($result->single_leg_jump_right) &&
-               !empty($result->wall_sit_assessment) &&
-               !empty($result->high_plank_assessment);
+            !empty($result->single_leg_jump_left) &&
+            !empty($result->single_leg_jump_right) &&
+            !empty($result->wall_sit_assessment) &&
+            !empty($result->high_plank_assessment);
     }
 
     /**
@@ -338,8 +412,10 @@ class XpService
         }
 
         // If user completed both training and testing with all fields filled
-        if ($completedTrainingCount >= 2 && $completedTestingCount >= 1 &&
-            $allTrainingFieldsFilled && $allTestingFieldsFilled) {
+        if (
+            $completedTrainingCount >= 2 && $completedTestingCount >= 1 &&
+            $allTrainingFieldsFilled && $allTestingFieldsFilled
+        ) {
             // Check if this bonus was already awarded
             $existingBonus = XpTransaction::where('user_id', $userId)
                 ->where('xp_source', 'training_and_testing')
@@ -407,8 +483,10 @@ class XpService
             ->count();
 
         // If user completed all available sessions with all fields filled
-        if (count($trainingResults) == $totalTrainingSessions &&
-            count($testingResults) == $totalTestingSessions) {
+        if (
+            count($trainingResults) == $totalTrainingSessions &&
+            count($testingResults) == $totalTestingSessions
+        ) {
 
             // Check if all training sessions have all fields filled
             $allTrainingFieldsFilled = true;
@@ -486,6 +564,10 @@ class XpService
             'current_level' => $currentLevel,
             'next_level' => $nextLevelInfo['next_level'],
             'xp_needed_for_next_level' => $nextLevelInfo['xp_needed'],
+            'progress_percentage' => $nextLevelInfo['progress_percentage'],
+            'xp_for_current_level' => $nextLevelInfo['xp_for_current_level'],
+            'xp_for_next_level' => $nextLevelInfo['xp_for_next_level'],
+            'xp_gap' => $nextLevelInfo['xp_gap'],
             'recent_transactions' => $recentTransactions,
             'breakdown_by_source' => $breakdownBySource,
         ];
