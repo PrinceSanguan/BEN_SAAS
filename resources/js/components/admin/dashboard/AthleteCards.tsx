@@ -24,14 +24,7 @@ export default function AthleteCards({ athletes, onAddClick }: AthleteCardsProps
         return (
             <div className="flex flex-col items-center justify-center rounded-lg bg-gray-900/50 p-12 text-center">
                 <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-blue-500/20">
-                    <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="#3b82f6"
-                        strokeWidth="2"
-                        className="h-8 w-8"
-                    >
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" strokeWidth="2" className="h-8 w-8">
                         <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
                         <circle cx="9" cy="7" r="4"></circle>
                         <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
@@ -42,7 +35,7 @@ export default function AthleteCards({ athletes, onAddClick }: AthleteCardsProps
                 <p className="mb-6 text-gray-400">Get started by adding a new athlete to your team.</p>
                 <button
                     onClick={onAddClick}
-                    className="inline-flex items-center justify-center rounded-md bg-blue-500 px-4 py-2 text-sm font-medium text-white hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                    className="inline-flex items-center justify-center rounded-md bg-blue-500 px-4 py-2 text-sm font-medium text-white hover:bg-blue-600 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none"
                 >
                     Add Your First Athlete
                 </button>
@@ -58,14 +51,7 @@ export default function AthleteCards({ athletes, onAddClick }: AthleteCardsProps
                 className="flex h-64 cursor-pointer flex-col items-center justify-center rounded-lg border border-gray-700 bg-gray-900/50 p-6 transition-colors hover:bg-gray-800/70"
             >
                 <div className="flex h-14 w-14 items-center justify-center rounded-full bg-blue-500/20 text-blue-500">
-                    <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        strokeWidth={2}
-                        stroke="currentColor"
-                        className="h-8 w-8"
-                    >
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="h-8 w-8">
                         <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
                     </svg>
                 </div>
@@ -75,8 +61,11 @@ export default function AthleteCards({ athletes, onAddClick }: AthleteCardsProps
 
             {/* Athlete Cards */}
             {athletes.map((athlete) => (
-                <Card key={athlete.id} className="overflow-hidden rounded-lg border-gray-700 bg-gray-900/50 shadow-lg transition-all hover:shadow-blue-500/10">
-                    <CardHeader className="border-b border-gray-700 bg-gray-800/50 pb-3 pt-3">
+                <Card
+                    key={athlete.id}
+                    className="overflow-hidden rounded-lg border-gray-700 bg-gray-900/50 shadow-lg transition-all hover:shadow-blue-500/10"
+                >
+                    <CardHeader className="border-b border-gray-700 bg-gray-800/50 pt-3 pb-3">
                         <CardTitle className="text-white">{athlete.username}</CardTitle>
                         <p className="text-sm text-gray-400">{athlete.email}</p>
                     </CardHeader>

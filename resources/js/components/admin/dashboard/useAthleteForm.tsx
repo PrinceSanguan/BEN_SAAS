@@ -13,6 +13,7 @@ type Athlete = {
         core_endurance: number | null;
         bent_arm_hang: number | null;
     };
+    bent_arm_enabled?: boolean;
 };
 
 interface AthleteFormData {
@@ -25,6 +26,7 @@ interface AthleteFormData {
     wallSit: string;
     coreEndurance: string;
     bentArmHang: string;
+    bentArmHangEnabled: boolean;
     [key: string]: string | number | boolean | undefined;
 }
 
@@ -39,6 +41,7 @@ interface FormattedData {
     wall_sit: number | null;
     core_endurance: number | null;
     bent_arm_hang: number | null;
+    bent_arm_enabled: boolean;
     training_results: {
         standing_long_jump: number | null;
         single_leg_jump_left: number | null;
@@ -74,6 +77,7 @@ export default function useAthleteForm(athletes: Athlete[], setAthletes: React.D
         wallSit: '',
         coreEndurance: '',
         bentArmHang: '',
+        bentArmHangEnabled: false,
     });
 
     // Modal state
@@ -92,6 +96,20 @@ export default function useAthleteForm(athletes: Athlete[], setAthletes: React.D
         }));
     };
 
+    // Handle checkbox changes
+    const handleCheckboxChange = (field: string, checked: boolean) => {
+        setForm((prev) => {
+            const updated = { ...prev, [field]: checked };
+
+            // If bentArmHangEnabled is being turned off, clear the bentArmHang value
+            if (field === 'bentArmHangEnabled' && !checked) {
+                updated.bentArmHang = '';
+            }
+
+            return updated;
+        });
+    };
+
     // Format form data for submission to match Laravel controller expectations
     const formatFormData = (): FormattedData => {
         // Get training result values
@@ -100,13 +118,16 @@ export default function useAthleteForm(athletes: Athlete[], setAthletes: React.D
         const singleLegJumpRight = form.singleLegJumpRight === '' ? null : Number(form.singleLegJumpRight);
         const wallSit = form.wallSit === '' ? null : Number(form.wallSit);
         const coreEndurance = form.coreEndurance === '' ? null : Number(form.coreEndurance);
-        const bentArmHang = form.bentArmHang === '' ? null : Number(form.bentArmHang);
+
+        // Only use bentArmHang value if enabled
+        const bentArmHang = form.bentArmHangEnabled && form.bentArmHang !== '' ? Number(form.bentArmHang) : null;
 
         // Create the formatted data object with both flat and nested structures
         const formData: FormattedData = {
             username: form.username,
             parent_email: form.parentEmail,
             password: form.password,
+            bent_arm_enabled: form.bentArmHangEnabled,
 
             // Add flat fields for validation
             standing_long_jump: standingLongJump,
@@ -165,6 +186,7 @@ export default function useAthleteForm(athletes: Athlete[], setAthletes: React.D
                     wallSit: '',
                     coreEndurance: '',
                     bentArmHang: '',
+                    bentArmHangEnabled: false,
                 });
 
                 // Close modal
@@ -194,9 +216,11 @@ export default function useAthleteForm(athletes: Athlete[], setAthletes: React.D
 
     return {
         form,
+        setForm,
         showModal,
         setShowModal,
         handleChange,
+        handleCheckboxChange,
         handleSubmit,
         isSubmitting,
         error,
