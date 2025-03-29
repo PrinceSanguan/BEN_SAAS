@@ -1,3 +1,4 @@
+import { Checkbox } from '@/components/ui/checkbox';
 import React from 'react';
 
 interface AthleteFormData {
@@ -7,9 +8,11 @@ interface AthleteFormData {
     standingLongJump: string;
     singleLegJumpLeft: string;
     singleLegJumpRight: string;
-    wallSit: string;
+    singleLegWallSitLeft: string;
+    singleLegWallSitRight: string;
     coreEndurance: string;
     bentArmHang: string;
+    bentArmHangEnabled: boolean;
     [key: string]: string | number | boolean | undefined;
 }
 
@@ -21,6 +24,7 @@ interface AddAthleteModalProps {
     onClose: () => void;
     handleChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
     handleSubmit: (e: React.FormEvent<HTMLFormElement>) => void;
+    handleCheckboxChange?: (field: string, checked: boolean) => void;
 }
 
 export default function AddAthleteModal({
@@ -30,7 +34,8 @@ export default function AddAthleteModal({
     isSubmitting,
     onClose,
     handleChange,
-    handleSubmit
+    handleSubmit,
+    handleCheckboxChange = (field, checked) => {},
 }: AddAthleteModalProps) {
     if (!showModal) return null;
 
@@ -43,19 +48,15 @@ export default function AddAthleteModal({
 
     return (
         <div
-            className="fixed inset-0 z-50 flex items-start justify-center bg-black/70 backdrop-blur-sm p-4 pt-16 md:items-center md:pt-4"
+            className="fixed inset-0 z-50 flex items-start justify-center bg-black/70 p-4 pt-16 backdrop-blur-sm md:items-center md:pt-4"
             onClick={handleBackdropClick}
         >
             {/* Modal Content */}
-            <div className="w-full max-w-2xl rounded-xl bg-[#112845] shadow-lg border border-[#1e3a5f] max-h-[90vh] flex flex-col overflow-hidden">
+            <div className="flex max-h-[90vh] w-full max-w-2xl flex-col overflow-hidden rounded-xl border border-[#1e3a5f] bg-[#112845] shadow-lg">
                 {/* Modal Header - Fixed */}
-                <div className="p-4 md:p-6 border-b border-[#1e3a5f] flex items-center justify-between sticky top-0 bg-[#112845] z-10">
+                <div className="sticky top-0 z-10 flex items-center justify-between border-b border-[#1e3a5f] bg-[#112845] p-4 md:p-6">
                     <h2 className="text-xl font-bold text-white">Add New Athlete</h2>
-                    <button
-                        onClick={onClose}
-                        className="rounded-full p-1 text-[#a3c0e6] hover:bg-[#1e3a5f] transition-colors"
-                        aria-label="Close"
-                    >
+                    <button onClick={onClose} className="rounded-full p-1 text-[#a3c0e6] transition-colors hover:bg-[#1e3a5f]" aria-label="Close">
                         <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                         </svg>
@@ -63,47 +64,47 @@ export default function AddAthleteModal({
                 </div>
 
                 {/* Scrollable Content */}
-                <div className="overflow-y-auto p-4 md:p-6 flex-1">
-                    {error && <div className="mb-4 rounded-lg bg-[#3a1c1c] border border-[#ff5555] p-4 text-[#ff9999]">{error}</div>}
+                <div className="flex-1 overflow-y-auto p-4 md:p-6">
+                    {error && <div className="mb-4 rounded-lg border border-[#ff5555] bg-[#3a1c1c] p-4 text-[#ff9999]">{error}</div>}
 
                     <form onSubmit={handleSubmit} className="space-y-6">
                         {/* Basic fields */}
                         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                             <div>
-                                <label className="block text-sm font-medium text-[#4a90e2] uppercase tracking-wider">Athlete Username</label>
+                                <label className="block text-sm font-medium tracking-wider text-[#4a90e2] uppercase">Athlete Username</label>
                                 <input
                                     name="username"
                                     type="text"
                                     value={form.username}
                                     onChange={handleChange}
                                     required
-                                    className="mt-1 w-full rounded-lg bg-[#0a1e3c] border border-[#1e3a5f] p-3 text-white placeholder-[#a3c0e6]/50 focus:outline-none focus:ring-2 focus:ring-[#4a90e2]"
+                                    className="mt-1 w-full rounded-lg border border-[#1e3a5f] bg-[#0a1e3c] p-3 text-white placeholder-[#a3c0e6]/50 focus:ring-2 focus:ring-[#4a90e2] focus:outline-none"
                                     placeholder="Athlete Username"
                                 />
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium text-[#4a90e2] uppercase tracking-wider">Parent Email</label>
+                                <label className="block text-sm font-medium tracking-wider text-[#4a90e2] uppercase">Parent Email</label>
                                 <input
                                     name="parentEmail"
                                     type="email"
                                     value={form.parentEmail}
                                     onChange={handleChange}
                                     required
-                                    className="mt-1 w-full rounded-lg bg-[#0a1e3c] border border-[#1e3a5f] p-3 text-white placeholder-[#a3c0e6]/50 focus:outline-none focus:ring-2 focus:ring-[#4a90e2]"
+                                    className="mt-1 w-full rounded-lg border border-[#1e3a5f] bg-[#0a1e3c] p-3 text-white placeholder-[#a3c0e6]/50 focus:ring-2 focus:ring-[#4a90e2] focus:outline-none"
                                     placeholder="Parent Email"
                                 />
                             </div>
 
                             <div className="sm:col-span-2">
-                                <label className="block text-sm font-medium text-[#4a90e2] uppercase tracking-wider">Password</label>
+                                <label className="block text-sm font-medium tracking-wider text-[#4a90e2] uppercase">Password</label>
                                 <input
                                     name="password"
                                     type="password"
                                     value={form.password}
                                     onChange={handleChange}
                                     required
-                                    className="mt-1 w-full rounded-lg bg-[#0a1e3c] border border-[#1e3a5f] p-3 text-white placeholder-[#a3c0e6]/50 focus:outline-none focus:ring-2 focus:ring-[#4a90e2]"
+                                    className="mt-1 w-full rounded-lg border border-[#1e3a5f] bg-[#0a1e3c] p-3 text-white placeholder-[#a3c0e6]/50 focus:ring-2 focus:ring-[#4a90e2] focus:outline-none"
                                     placeholder="Password"
                                 />
                             </div>
@@ -111,7 +112,7 @@ export default function AddAthleteModal({
 
                         {/* Pre-Training Testing Results */}
                         <div>
-                            <p className="text-sm font-medium text-[#4a90e2] uppercase tracking-wider mb-3">Pre-Training Testing Results</p>
+                            <p className="mb-3 text-sm font-medium tracking-wider text-[#4a90e2] uppercase">Pre-Training Testing Results</p>
                             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                                 <div>
                                     <label className="block text-xs font-medium text-[#a3c0e6]">Standing Long Jump (cm)</label>
@@ -120,44 +121,51 @@ export default function AddAthleteModal({
                                         type="number"
                                         value={form.standingLongJump}
                                         onChange={handleChange}
-                                        className="mt-1 w-full rounded-lg bg-[#0a1e3c] border border-[#1e3a5f] p-3 text-white placeholder-[#a3c0e6]/50 focus:outline-none focus:ring-2 focus:ring-[#4a90e2]"
+                                        className="mt-1 w-full rounded-lg border border-[#1e3a5f] bg-[#0a1e3c] p-3 text-white placeholder-[#a3c0e6]/50 focus:ring-2 focus:ring-[#4a90e2] focus:outline-none"
                                         placeholder="e.g. 150"
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-xs font-medium text-[#a3c0e6]">
-                                        Single Leg Jump (Left) (cm)
-                                    </label>
+                                    <label className="block text-xs font-medium text-[#a3c0e6]">Single Leg Jump (Left) (cm)</label>
                                     <input
                                         name="singleLegJumpLeft"
                                         type="number"
                                         value={form.singleLegJumpLeft}
                                         onChange={handleChange}
-                                        className="mt-1 w-full rounded-lg bg-[#0a1e3c] border border-[#1e3a5f] p-3 text-white placeholder-[#a3c0e6]/50 focus:outline-none focus:ring-2 focus:ring-[#4a90e2]"
+                                        className="mt-1 w-full rounded-lg border border-[#1e3a5f] bg-[#0a1e3c] p-3 text-white placeholder-[#a3c0e6]/50 focus:ring-2 focus:ring-[#4a90e2] focus:outline-none"
                                         placeholder="e.g. 130"
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-xs font-medium text-[#a3c0e6]">
-                                        Single Leg Jump (Right) (cm)
-                                    </label>
+                                    <label className="block text-xs font-medium text-[#a3c0e6]">Single Leg Jump (Right) (cm)</label>
                                     <input
                                         name="singleLegJumpRight"
                                         type="number"
                                         value={form.singleLegJumpRight}
                                         onChange={handleChange}
-                                        className="mt-1 w-full rounded-lg bg-[#0a1e3c] border border-[#1e3a5f] p-3 text-white placeholder-[#a3c0e6]/50 focus:outline-none focus:ring-2 focus:ring-[#4a90e2]"
+                                        className="mt-1 w-full rounded-lg border border-[#1e3a5f] bg-[#0a1e3c] p-3 text-white placeholder-[#a3c0e6]/50 focus:ring-2 focus:ring-[#4a90e2] focus:outline-none"
                                         placeholder="e.g. 135"
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-xs font-medium text-[#a3c0e6]">Wall Sit (seconds)</label>
+                                    <label className="block text-xs font-medium text-[#a3c0e6]">Single Leg Wall Sit (Left) (seconds)</label>
                                     <input
-                                        name="wallSit"
+                                        name="singleLegWallSitLeft"
                                         type="number"
-                                        value={form.wallSit}
+                                        value={form.singleLegWallSitLeft}
                                         onChange={handleChange}
-                                        className="mt-1 w-full rounded-lg bg-[#0a1e3c] border border-[#1e3a5f] p-3 text-white placeholder-[#a3c0e6]/50 focus:outline-none focus:ring-2 focus:ring-[#4a90e2]"
+                                        className="mt-1 w-full rounded-lg border border-[#1e3a5f] bg-[#0a1e3c] p-3 text-white placeholder-[#a3c0e6]/50 focus:ring-2 focus:ring-[#4a90e2] focus:outline-none"
+                                        placeholder="e.g. 60"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-medium text-[#a3c0e6]">Single Leg Wall Sit (Right) (seconds)</label>
+                                    <input
+                                        name="singleLegWallSitRight"
+                                        type="number"
+                                        value={form.singleLegWallSitRight}
+                                        onChange={handleChange}
+                                        className="mt-1 w-full rounded-lg border border-[#1e3a5f] bg-[#0a1e3c] p-3 text-white placeholder-[#a3c0e6]/50 focus:ring-2 focus:ring-[#4a90e2] focus:outline-none"
                                         placeholder="e.g. 60"
                                     />
                                 </div>
@@ -168,18 +176,31 @@ export default function AddAthleteModal({
                                         type="number"
                                         value={form.coreEndurance}
                                         onChange={handleChange}
-                                        className="mt-1 w-full rounded-lg bg-[#0a1e3c] border border-[#1e3a5f] p-3 text-white placeholder-[#a3c0e6]/50 focus:outline-none focus:ring-2 focus:ring-[#4a90e2]"
+                                        className="mt-1 w-full rounded-lg border border-[#1e3a5f] bg-[#0a1e3c] p-3 text-white placeholder-[#a3c0e6]/50 focus:ring-2 focus:ring-[#4a90e2] focus:outline-none"
                                         placeholder="e.g. 90"
                                     />
                                 </div>
-                                <div>
-                                    <label className="block text-xs font-medium text-[#a3c0e6]">Bent Arm Hang (seconds)</label>
+                                <div className="sm:col-span-2">
+                                    <div className="mb-2 flex items-center justify-between">
+                                        <label className="text-xs font-medium text-[#a3c0e6]">Bent Arm Hang (seconds)</label>
+                                        <div className="flex items-center space-x-2">
+                                            <Checkbox
+                                                id="bentArmHangEnabled"
+                                                checked={form.bentArmHangEnabled || false}
+                                                onCheckedChange={(checked) => handleCheckboxChange('bentArmHangEnabled', checked as boolean)}
+                                            />
+                                            <label htmlFor="bentArmHangEnabled" className="cursor-pointer text-xs text-[#a3c0e6]">
+                                                Enable
+                                            </label>
+                                        </div>
+                                    </div>
                                     <input
                                         name="bentArmHang"
                                         type="number"
                                         value={form.bentArmHang}
                                         onChange={handleChange}
-                                        className="mt-1 w-full rounded-lg bg-[#0a1e3c] border border-[#1e3a5f] p-3 text-white placeholder-[#a3c0e6]/50 focus:outline-none focus:ring-2 focus:ring-[#4a90e2]"
+                                        disabled={!form.bentArmHangEnabled}
+                                        className={`mt-1 w-full rounded-lg border border-[#1e3a5f] bg-[#0a1e3c] p-3 text-white placeholder-[#a3c0e6]/50 focus:ring-2 focus:ring-[#4a90e2] focus:outline-none ${!form.bentArmHangEnabled ? 'cursor-not-allowed opacity-50' : ''}`}
                                         placeholder="e.g. 20"
                                     />
                                 </div>
@@ -189,11 +210,11 @@ export default function AddAthleteModal({
                 </div>
 
                 {/* Modal Footer - Fixed */}
-                <div className="p-4 md:p-6 border-t border-[#1e3a5f] flex flex-col sm:flex-row sm:justify-end gap-3 sticky bottom-0 bg-[#112845] z-10">
+                <div className="sticky bottom-0 z-10 flex flex-col gap-3 border-t border-[#1e3a5f] bg-[#112845] p-4 sm:flex-row sm:justify-end md:p-6">
                     <button
                         type="button"
                         onClick={onClose}
-                        className="rounded-lg border border-[#1e3a5f] bg-transparent px-4 py-3 text-[#a3c0e6] transition-colors hover:bg-[#1e3a5f] disabled:opacity-50 w-full sm:w-auto order-2 sm:order-1"
+                        className="order-2 w-full rounded-lg border border-[#1e3a5f] bg-transparent px-4 py-3 text-[#a3c0e6] transition-colors hover:bg-[#1e3a5f] disabled:opacity-50 sm:order-1 sm:w-auto"
                         disabled={isSubmitting}
                     >
                         Cancel
@@ -208,7 +229,7 @@ export default function AddAthleteModal({
                             }
                         }}
                         disabled={isSubmitting}
-                        className="rounded-lg bg-gradient-to-r from-[#4a90e2] to-[#63b3ed] px-4 py-3 font-medium text-white shadow-lg hover:from-[#3a80d2] hover:to-[#53a3dd] transition-all duration-300 disabled:opacity-50 w-full sm:w-auto order-1 sm:order-2"
+                        className="order-1 w-full rounded-lg bg-gradient-to-r from-[#4a90e2] to-[#63b3ed] px-4 py-3 font-medium text-white shadow-lg transition-all duration-300 hover:from-[#3a80d2] hover:to-[#53a3dd] disabled:opacity-50 sm:order-2 sm:w-auto"
                     >
                         {isSubmitting ? 'Creating...' : 'Create Athlete'}
                     </button>

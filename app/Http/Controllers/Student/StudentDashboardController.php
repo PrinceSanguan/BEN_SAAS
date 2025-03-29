@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Student;
 
 use App\Http\Controllers\Controller;
 use App\Models\Block;
+use App\Models\UserStat;
 use App\Services\XpService;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
@@ -38,6 +39,9 @@ class StudentDashboardController extends Controller
         // Calculate user's consistency score (0-100)
         $consistencyScore = $this->calculateConsistencyScore($user->id);
 
+        // Calculate user's rank based on strength level
+        $userRank = $this->calculateUserRank($user->id, $xpSummary['current_level'], $xpSummary['total_xp']);
+
         // Get all blocks
         $blocks = Block::orderBy('block_number')
             ->get()
@@ -60,6 +64,7 @@ class StudentDashboardController extends Controller
             'username' => $user->username,
             'strengthLevel' => $xpSummary['current_level'],
             'consistencyScore' => $consistencyScore,
+            'currentRank' => $userRank, // Pass rank to the frontend
             'blocks' => $blocks,
             'xpInfo' => [
                 'total_xp' => $xpSummary['total_xp'],
@@ -106,5 +111,60 @@ class StudentDashboardController extends Controller
             : 0;
 
         return $consistencyScore;
+    }
+
+    /**
+     * Calculate user's rank based on strength level
+     * 
+     * @param int $userId
+     * @param int $currentLevel
+     * @param int $totalXp
+     * @return int
+     */
+    private function calculateUserRank(int $userId, int $currentLevel, int $totalXp): int
+    {
+        // If user has no XP, they are unranked
+        if ($totalXp <= 0) {
+            return 0;
+        }
+
+        // Make sure we have a UserStat entry for this user
+        $userStat = UserStat::firstOrCreate(
+            ['user_id' => $userId],
+            [
+                'strength_level' => $currentLevel,
+                'total_xp' => $totalXp,
+                'consistency_score' => 0,
+                'sessions_completed' => 0,
+                'sessions_available' => 0,
+                'last_updated' => now()
+            ]
+        );
+
+        // Since you're the only student, your rank should be 1
+        // We'll add this direct check
+        $studentCount = UserStat::join('users', 'user_stats.user_id', '=', 'users.id')
+            ->where('users.user_role', 'student')
+            ->count();
+
+        if ($studentCount <= 1) {
+            return 1;
+        }
+
+        // Count how many users have higher strength level
+        // Or the same level but higher XP
+        $higherRankedUsers = UserStat::join('users', 'user_stats.user_id', '=', 'users.id')
+            ->where('users.user_role', 'student')
+            ->where(function ($query) use ($currentLevel, $totalXp) {
+                $query->where('user_stats.strength_level', '>', $currentLevel)
+                    ->orWhere(function ($query) use ($currentLevel, $totalXp) {
+                        $query->where('user_stats.strength_level', '=', $currentLevel)
+                            ->where('user_stats.total_xp', '>', $totalXp);
+                    });
+            })
+            ->count();
+
+        // Rank is position (1-based index)
+        return $higherRankedUsers + 1;
     }
 }
