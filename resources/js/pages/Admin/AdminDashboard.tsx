@@ -18,7 +18,8 @@ type Athlete = {
         standing_long_jump: number | null;
         single_leg_jump_left: number | null;
         single_leg_jump_right: number | null;
-        wall_sit: number | null;
+        single_leg_wall_sit_left: number | null;
+        single_leg_wall_sit_right: number | null;
         core_endurance: number | null;
         bent_arm_hang: number | null;
     };
@@ -118,7 +119,9 @@ export default function AdminDashboard({ athletes: initialAthletes = [] }: Props
                         {viewMode === 'cards' && athletes.length > 0 && <AthleteCards athletes={athletes} onAddClick={() => setShowModal(true)} />}
 
                         {/* Table of Athletes */}
-                        {viewMode === 'table' && athletes.length > 0 && <AthleteTable athletes={athletes} onAddClick={() => setShowModal(true)} />}
+                        {viewMode === 'table' && athletes.length > 0 && (
+                            <AthleteTable athletes={athletes as any} onAddClick={() => setShowModal(true)} />
+                        )}
                         {/* "No Athletes" message when there are no athletes */}
                         {athletes.length === 0 && <NoAthletes onAddClick={() => setShowModal(true)} />}
                     </div>

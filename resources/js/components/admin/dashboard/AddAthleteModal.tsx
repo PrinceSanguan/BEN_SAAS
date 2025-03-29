@@ -8,7 +8,8 @@ interface AthleteFormData {
     standingLongJump: string;
     singleLegJumpLeft: string;
     singleLegJumpRight: string;
-    wallSit: string;
+    singleLegWallSitLeft: string;
+    singleLegWallSitRight: string;
     coreEndurance: string;
     bentArmHang: string;
     bentArmHangEnabled: boolean;
@@ -147,11 +148,22 @@ export default function AddAthleteModal({
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-xs font-medium text-[#a3c0e6]">Wall Sit (seconds)</label>
+                                    <label className="block text-xs font-medium text-[#a3c0e6]">Single Leg Wall Sit (Left) (seconds)</label>
                                     <input
-                                        name="wallSit"
+                                        name="singleLegWallSitLeft"
                                         type="number"
-                                        value={form.wallSit}
+                                        value={form.singleLegWallSitLeft}
+                                        onChange={handleChange}
+                                        className="mt-1 w-full rounded-lg border border-[#1e3a5f] bg-[#0a1e3c] p-3 text-white placeholder-[#a3c0e6]/50 focus:ring-2 focus:ring-[#4a90e2] focus:outline-none"
+                                        placeholder="e.g. 60"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-medium text-[#a3c0e6]">Single Leg Wall Sit (Right) (seconds)</label>
+                                    <input
+                                        name="singleLegWallSitRight"
+                                        type="number"
+                                        value={form.singleLegWallSitRight}
                                         onChange={handleChange}
                                         className="mt-1 w-full rounded-lg border border-[#1e3a5f] bg-[#0a1e3c] p-3 text-white placeholder-[#a3c0e6]/50 focus:ring-2 focus:ring-[#4a90e2] focus:outline-none"
                                         placeholder="e.g. 60"

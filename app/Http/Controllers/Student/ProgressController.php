@@ -67,9 +67,13 @@ class ProgressController extends Controller
                 'name' => 'Single Leg Jump (RIGHT)',
                 'pre_training_field' => 'single_leg_jump_right'
             ],
-            'wall_sit_assessment' => [
-                'name' => 'Wall Sit Assessment',
-                'pre_training_field' => 'wall_sit'
+            'single_leg_wall_sit_left' => [
+                'name' => 'Single Leg Wall Sit (LEFT)',
+                'pre_training_field' => 'single_leg_wall_sit_left'
+            ],
+            'single_leg_wall_sit_right' => [
+                'name' => 'Single Leg Wall Sit (RIGHT)',
+                'pre_training_field' => 'single_leg_wall_sit_right'
             ],
             'high_plank_assessment' => [
                 'name' => 'High Plank Assessment',

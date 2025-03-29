@@ -56,7 +56,8 @@ class AdminDashboardController extends Controller
                 'standing_long_jump' => ['nullable', 'numeric'],
                 'single_leg_jump_left' => ['nullable', 'numeric'],
                 'single_leg_jump_right' => ['nullable', 'numeric'],
-                'wall_sit' => ['nullable', 'numeric'],
+                'single_leg_wall_sit_left' => ['nullable', 'numeric'],
+                'single_leg_wall_sit_right' => ['nullable', 'numeric'],
                 'core_endurance' => ['nullable', 'numeric'],
                 'bent_arm_hang' => ['nullable', 'numeric'],
             ], [
@@ -87,7 +88,8 @@ class AdminDashboardController extends Controller
                 'standing_long_jump' => $trainingResults['standing_long_jump'] ?? null,
                 'single_leg_jump_left' => $trainingResults['single_leg_jump_left'] ?? null,
                 'single_leg_jump_right' => $trainingResults['single_leg_jump_right'] ?? null,
-                'wall_sit' => $trainingResults['wall_sit'] ?? null,
+                'single_leg_wall_sit_left' => $trainingResults['single_leg_wall_sit_left'] ?? null,
+                'single_leg_wall_sit_right' => $trainingResults['single_leg_wall_sit_right'] ?? null,
                 'core_endurance' => $trainingResults['core_endurance'] ?? null,
                 'bent_arm_hang' => $trainingResults['bent_arm_hang'] ?? null,
                 'tested_at' => now()
@@ -107,14 +109,14 @@ class AdminDashboardController extends Controller
                     'standing_long_jump' => $preTrainingTest->standing_long_jump,
                     'single_leg_jump_left' => $preTrainingTest->single_leg_jump_left,
                     'single_leg_jump_right' => $preTrainingTest->single_leg_jump_right,
-                    'wall_sit' => $preTrainingTest->wall_sit,
+                    'single_leg_wall_sit_left' => $preTrainingTest->single_leg_wall_sit_left,
+                    'single_leg_wall_sit_right' => $preTrainingTest->single_leg_wall_sit_right,
                     'core_endurance' => $preTrainingTest->core_endurance,
                     'bent_arm_hang' => $preTrainingTest->bent_arm_hang,
                 ]
             ];
 
             return redirect()->back()->with('success', 'Athlete created successfully!')->with('newAthlete', $athleteData);
-
         } catch (\Illuminate\Validation\ValidationException $e) {
             Log::error('Validation error:', $e->errors());
             return redirect()->back()->withErrors($e->errors())->withInput();
@@ -179,7 +181,8 @@ class AdminDashboardController extends Controller
                         'standing_long_jump' => $user->preTrainingTest->standing_long_jump,
                         'single_leg_jump_left' => $user->preTrainingTest->single_leg_jump_left,
                         'single_leg_jump_right' => $user->preTrainingTest->single_leg_jump_right,
-                        'wall_sit' => $user->preTrainingTest->wall_sit,
+                        'single_leg_wall_sit_left' => $user->preTrainingTest->single_leg_wall_sit_left,
+                        'single_leg_wall_sit_right' => $user->preTrainingTest->single_leg_wall_sit_right,
                         'core_endurance' => $user->preTrainingTest->core_endurance,
                         'bent_arm_hang' => $user->preTrainingTest->bent_arm_hang,
                     ] : null,

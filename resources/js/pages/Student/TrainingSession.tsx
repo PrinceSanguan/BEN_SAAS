@@ -1,18 +1,7 @@
 import { Head, useForm } from '@inertiajs/react';
-import React, { useState, useEffect, useRef } from 'react';
 import gsap from 'gsap';
-import {
-    Activity,
-    Award,
-    BarChart2,
-    Home,
-    LogOut,
-    Menu,
-    Trophy,
-    User,
-    X,
-    ArrowLeft
-} from 'lucide-react';
+import { Activity, ArrowLeft, Award, BarChart2, Home, LogOut, Menu, Trophy, User, X } from 'lucide-react';
+import React, { useEffect, useRef, useState } from 'react';
 
 interface SessionData {
     session_number?: string | number;
@@ -31,12 +20,7 @@ interface TrainingSessionProps {
     };
 }
 
-const TrainingSession: React.FC<TrainingSessionProps> = ({
-    session = {},
-    existingResult = null,
-    username = 'Athlete',
-    routes = {}
-}) => {
+const TrainingSession: React.FC<TrainingSessionProps> = ({ session = {}, existingResult = null, username = 'Athlete', routes = {} }) => {
     // Try to get session ID from URL if not in props
     const url = window.location.pathname;
     const urlSessionId = url.split('/').pop();
@@ -100,7 +84,7 @@ const TrainingSession: React.FC<TrainingSessionProps> = ({
                         duration: 0.4,
                         ease: 'back.out(1.7)',
                     },
-                    '-=0.2'
+                    '-=0.2',
                 );
             }
             if (sidebarRef.current) {
@@ -112,7 +96,7 @@ const TrainingSession: React.FC<TrainingSessionProps> = ({
                         duration: 0.4,
                         ease: 'power2.out',
                     },
-                    '-=0.2'
+                    '-=0.2',
                 );
             }
             if (mainContentRef.current) {
@@ -124,7 +108,7 @@ const TrainingSession: React.FC<TrainingSessionProps> = ({
                         duration: 0.4,
                         ease: 'power2.out',
                     },
-                    '-=0.2'
+                    '-=0.2',
                 );
             }
         }, 100);
@@ -138,7 +122,8 @@ const TrainingSession: React.FC<TrainingSessionProps> = ({
                   standing_long_jump: existingResult ? existingResult.standing_long_jump : '',
                   single_leg_jump_left: existingResult ? existingResult.single_leg_jump_left : '',
                   single_leg_jump_right: existingResult ? existingResult.single_leg_jump_right : '',
-                  wall_sit_assessment: existingResult ? existingResult.wall_sit_assessment : '',
+                  single_leg_wall_sit_left: existingResult ? existingResult.single_leg_wall_sit_left : '',
+                  single_leg_wall_sit_right: existingResult ? existingResult.single_leg_wall_sit_right : '',
                   high_plank_assessment: existingResult ? existingResult.high_plank_assessment : '',
                   bent_arm_hang_assessment: existingResult ? existingResult.bent_arm_hang_assessment : '',
               }
@@ -148,7 +133,7 @@ const TrainingSession: React.FC<TrainingSessionProps> = ({
                   power_score: existingResult ? existingResult.power_score : '',
                   lower_body_strength_score: existingResult ? existingResult.lower_body_strength_score : '',
                   upper_body_core_strength_score: existingResult ? existingResult.upper_body_core_strength_score : '',
-              }
+              },
     );
 
     const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
@@ -221,7 +206,10 @@ const TrainingSession: React.FC<TrainingSessionProps> = ({
                     </div>
                 </div>
                 <nav className="flex-1 space-y-1 px-2 py-4">
-                    <a href={getRoute('student.dashboard')} className="group flex items-center rounded-md px-4 py-3 text-[#a3c0e6] transition-colors hover:bg-[#1e3a5f]/50">
+                    <a
+                        href={getRoute('student.dashboard')}
+                        className="group flex items-center rounded-md px-4 py-3 text-[#a3c0e6] transition-colors hover:bg-[#1e3a5f]/50"
+                    >
                         <Home className="mr-3 h-5 w-5 text-[#4a90e2] group-hover:text-white" />
                         <span className="group-hover:text-white">Dashboard</span>
                     </a>
@@ -230,14 +218,18 @@ const TrainingSession: React.FC<TrainingSessionProps> = ({
                         <span>Training</span>
                     </a>
                     <div className="mt-4 border-t border-[#1e3a5f] pt-4">
-                        <h3 className="mb-2 px-4 text-xs font-semibold tracking-wider text-[#a3c0e6] uppercase">
-                            Leaderboards
-                        </h3>
-                        <a href={getRoute('leaderboard.strength')} className="group flex items-center rounded-md px-4 py-3 text-[#a3c0e6] transition-colors hover:bg-[#1e3a5f]/50">
+                        <h3 className="mb-2 px-4 text-xs font-semibold tracking-wider text-[#a3c0e6] uppercase">Leaderboards</h3>
+                        <a
+                            href={getRoute('leaderboard.strength')}
+                            className="group flex items-center rounded-md px-4 py-3 text-[#a3c0e6] transition-colors hover:bg-[#1e3a5f]/50"
+                        >
                             <Award className="mr-3 h-5 w-5 text-[#4a90e2] group-hover:text-white" />
                             <span className="group-hover:text-white">Strength</span>
                         </a>
-                        <a href={getRoute('leaderboard.consistency')} className="group flex items-center rounded-md px-4 py-3 text-[#a3c0e6] transition-colors hover:bg-[#1e3a5f]/50">
+                        <a
+                            href={getRoute('leaderboard.consistency')}
+                            className="group flex items-center rounded-md px-4 py-3 text-[#a3c0e6] transition-colors hover:bg-[#1e3a5f]/50"
+                        >
                             <BarChart2 className="mr-3 h-5 w-5 text-[#4a90e2] group-hover:text-white" />
                             <span className="group-hover:text-white">Consistency</span>
                         </a>
@@ -279,14 +271,18 @@ const TrainingSession: React.FC<TrainingSessionProps> = ({
                         <span>Training</span>
                     </a>
                     <div className="mt-4 border-t border-[#1e3a5f] pt-4">
-                        <h3 className="mb-2 px-4 text-xs font-semibold tracking-wider text-[#a3c0e6] uppercase">
-                            Leaderboards
-                        </h3>
-                        <a href={getRoute('leaderboard.strength')} className="flex items-center rounded-md px-4 py-3 text-[#a3c0e6] hover:bg-[#1e3a5f]/50">
+                        <h3 className="mb-2 px-4 text-xs font-semibold tracking-wider text-[#a3c0e6] uppercase">Leaderboards</h3>
+                        <a
+                            href={getRoute('leaderboard.strength')}
+                            className="flex items-center rounded-md px-4 py-3 text-[#a3c0e6] hover:bg-[#1e3a5f]/50"
+                        >
                             <Award className="mr-3 h-5 w-5 text-[#4a90e2]" />
                             <span>Strength</span>
                         </a>
-                        <a href={getRoute('leaderboard.consistency')} className="flex items-center rounded-md px-4 py-3 text-[#a3c0e6] hover:bg-[#1e3a5f]/50">
+                        <a
+                            href={getRoute('leaderboard.consistency')}
+                            className="flex items-center rounded-md px-4 py-3 text-[#a3c0e6] hover:bg-[#1e3a5f]/50"
+                        >
                             <BarChart2 className="mr-3 h-5 w-5 text-[#4a90e2]" />
                             <span>Consistency</span>
                         </a>
@@ -308,11 +304,7 @@ const TrainingSession: React.FC<TrainingSessionProps> = ({
                                 </p>
                             </div>
                         </div>
-                        {existingResult && (
-                            <div className="rounded-full bg-[#1e3a5f] px-3 py-1 text-sm font-medium text-[#4a90e2]">
-                                Completed
-                            </div>
-                        )}
+                        {existingResult && <div className="rounded-full bg-[#1e3a5f] px-3 py-1 text-sm font-medium text-[#4a90e2]">Completed</div>}
                     </div>
                 </header>
 
@@ -332,9 +324,7 @@ const TrainingSession: React.FC<TrainingSessionProps> = ({
                                             className="focus:ring-opacity-50 mt-1 block w-full rounded-md border-[#1e3a5f] bg-[#0a1e3c] text-white shadow-sm focus:border-[#4a90e2] focus:ring focus:ring-[#4a90e2]"
                                             placeholder="Enter your score"
                                         />
-                                        {errors.standing_long_jump && (
-                                            <p className="mt-1 text-sm text-red-400">{errors.standing_long_jump}</p>
-                                        )}
+                                        {errors.standing_long_jump && <p className="mt-1 text-sm text-red-400">{errors.standing_long_jump}</p>}
                                     </div>
                                     <div>
                                         <label className="mb-2 block text-sm font-medium tracking-wider text-[#4a90e2] uppercase">
@@ -347,9 +337,7 @@ const TrainingSession: React.FC<TrainingSessionProps> = ({
                                             className="focus:ring-opacity-50 mt-1 block w-full rounded-md border-[#1e3a5f] bg-[#0a1e3c] text-white shadow-sm focus:border-[#4a90e2] focus:ring focus:ring-[#4a90e2]"
                                             placeholder="Enter your score"
                                         />
-                                        {errors.single_leg_jump_left && (
-                                            <p className="mt-1 text-sm text-red-400">{errors.single_leg_jump_left}</p>
-                                        )}
+                                        {errors.single_leg_jump_left && <p className="mt-1 text-sm text-red-400">{errors.single_leg_jump_left}</p>}
                                     </div>
                                     <div>
                                         <label className="mb-2 block text-sm font-medium tracking-wider text-[#4a90e2] uppercase">
@@ -362,23 +350,21 @@ const TrainingSession: React.FC<TrainingSessionProps> = ({
                                             className="focus:ring-opacity-50 mt-1 block w-full rounded-md border-[#1e3a5f] bg-[#0a1e3c] text-white shadow-sm focus:border-[#4a90e2] focus:ring focus:ring-[#4a90e2]"
                                             placeholder="Enter your score"
                                         />
-                                        {errors.single_leg_jump_right && (
-                                            <p className="mt-1 text-sm text-red-400">{errors.single_leg_jump_right}</p>
-                                        )}
+                                        {errors.single_leg_jump_right && <p className="mt-1 text-sm text-red-400">{errors.single_leg_jump_right}</p>}
                                     </div>
                                     <div>
                                         <label className="mb-2 block text-sm font-medium tracking-wider text-[#4a90e2] uppercase">
-                                            WALL SIT ASSESSMENT – What was your best score?
+                                            SINGLE LEG WALL SIT (LEFT) – What was your best score?
                                         </label>
                                         <input
                                             type="text"
-                                            value={data.wall_sit_assessment}
-                                            onChange={(e) => setData('wall_sit_assessment', e.target.value)}
+                                            value={data.single_leg_wall_sit_left}
+                                            onChange={(e) => setData('single_leg_wall_sit_left', e.target.value)}
                                             className="focus:ring-opacity-50 mt-1 block w-full rounded-md border-[#1e3a5f] bg-[#0a1e3c] text-white shadow-sm focus:border-[#4a90e2] focus:ring focus:ring-[#4a90e2]"
                                             placeholder="Enter your score"
                                         />
-                                        {errors.wall_sit_assessment && (
-                                            <p className="mt-1 text-sm text-red-400">{errors.wall_sit_assessment}</p>
+                                        {errors.single_leg_wall_sit_left && (
+                                            <p className="mt-1 text-sm text-red-400">{errors.single_leg_wall_sit_left}</p>
                                         )}
                                     </div>
                                     <div>
@@ -392,9 +378,7 @@ const TrainingSession: React.FC<TrainingSessionProps> = ({
                                             className="focus:ring-opacity-50 mt-1 block w-full rounded-md border-[#1e3a5f] bg-[#0a1e3c] text-white shadow-sm focus:border-[#4a90e2] focus:ring focus:ring-[#4a90e2]"
                                             placeholder="Enter your score"
                                         />
-                                        {errors.high_plank_assessment && (
-                                            <p className="mt-1 text-sm text-red-400">{errors.high_plank_assessment}</p>
-                                        )}
+                                        {errors.high_plank_assessment && <p className="mt-1 text-sm text-red-400">{errors.high_plank_assessment}</p>}
                                     </div>
                                     <div>
                                         <label className="mb-2 block text-sm font-medium tracking-wider text-[#4a90e2] uppercase">
@@ -442,9 +426,7 @@ const TrainingSession: React.FC<TrainingSessionProps> = ({
                                                 NO
                                             </button>
                                         </div>
-                                        {errors.warmup_completed && (
-                                            <p className="mt-1 text-sm text-red-400">{errors.warmup_completed}</p>
-                                        )}
+                                        {errors.warmup_completed && <p className="mt-1 text-sm text-red-400">{errors.warmup_completed}</p>}
                                     </div>
                                     <div>
                                         <label className="mb-2 block text-sm font-medium tracking-wider text-[#4a90e2] uppercase">
@@ -457,9 +439,7 @@ const TrainingSession: React.FC<TrainingSessionProps> = ({
                                             className="focus:ring-opacity-50 mt-1 block w-full rounded-md border-[#1e3a5f] bg-[#0a1e3c] text-white shadow-sm focus:border-[#4a90e2] focus:ring focus:ring-[#4a90e2]"
                                             placeholder="Enter your score"
                                         />
-                                        {errors.plyometrics_score && (
-                                            <p className="mt-1 text-sm text-red-400">{errors.plyometrics_score}</p>
-                                        )}
+                                        {errors.plyometrics_score && <p className="mt-1 text-sm text-red-400">{errors.plyometrics_score}</p>}
                                     </div>
                                     <div>
                                         <label className="mb-2 block text-sm font-medium tracking-wider text-[#4a90e2] uppercase">
@@ -472,9 +452,7 @@ const TrainingSession: React.FC<TrainingSessionProps> = ({
                                             className="focus:ring-opacity-50 mt-1 block w-full rounded-md border-[#1e3a5f] bg-[#0a1e3c] text-white shadow-sm focus:border-[#4a90e2] focus:ring focus:ring-[#4a90e2]"
                                             placeholder="Enter your score/level"
                                         />
-                                        {errors.power_score && (
-                                            <p className="mt-1 text-sm text-red-400">{errors.power_score}</p>
-                                        )}
+                                        {errors.power_score && <p className="mt-1 text-sm text-red-400">{errors.power_score}</p>}
                                     </div>
                                     <div>
                                         <label className="mb-2 block text-sm font-medium tracking-wider text-[#4a90e2] uppercase">
@@ -536,13 +514,7 @@ const TrainingSession: React.FC<TrainingSessionProps> = ({
                         href={getRoute('student.training')}
                         className="flex flex-col items-center border-t-2 border-[#4a90e2] px-4 py-3 text-[#4a90e2]"
                     >
-                        <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            className="mb-1 h-6 w-6"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                        >
+                        <svg xmlns="http://www.w3.org/2000/svg" className="mb-1 h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
                         </svg>
                         <span className="text-xs">Training</span>
@@ -551,13 +523,7 @@ const TrainingSession: React.FC<TrainingSessionProps> = ({
                         href={getRoute('student.dashboard')}
                         className="flex flex-col items-center px-4 py-3 text-[#a3c0e6] transition-colors hover:text-white"
                     >
-                        <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            className="mb-1 h-6 w-6"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                        >
+                        <svg xmlns="http://www.w3.org/2000/svg" className="mb-1 h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path
                                 strokeLinecap="round"
                                 strokeLinejoin="round"

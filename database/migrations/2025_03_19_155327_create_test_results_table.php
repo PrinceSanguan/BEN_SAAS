@@ -18,7 +18,8 @@ return new class extends Migration
             $table->decimal('standing_long_jump', 5, 1)->nullable();
             $table->decimal('single_leg_jump_left', 5, 1)->nullable();
             $table->decimal('single_leg_jump_right', 5, 1)->nullable();
-            $table->decimal('wall_sit_assessment', 5, 1)->nullable();
+            $table->decimal('single_leg_wall_sit_left', 5, 1)->nullable();
+            $table->decimal('single_leg_wall_sit_right', 5, 1)->nullable();
             $table->decimal('high_plank_assessment', 5, 1)->nullable();
             $table->decimal('bent_arm_hang_assessment', 5, 1)->nullable();
             $table->timestamp('completed_at')->useCurrent();

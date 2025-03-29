@@ -175,9 +175,27 @@ const StrengthLeaderboard: React.FC<StrengthLeaderboardProps> = ({ leaderboardDa
         return fallbackRoutes[name] || '#';
     };
 
+    // Function to calculate actual progress percentage based on XP
+    const calculateXpProgress = (user: LeaderboardUser) => {
+        if (!user.next_level_info || user.total_xp === 0) return 0;
+
+        // Calculate how much XP the user has earned toward the next level
+        const currentLevelXp = user.total_xp - (user.next_level_info.xp_needed || 0);
+        const xpForCurrentLevel = user.next_level_info.xp_needed || 1; // Prevent division by zero
+
+        // If the next level requires 50 XP, and the user has earned 25 XP toward it,
+        // they are 50% of the way there
+        const progressPercentage = Math.max(0, Math.min(100, (currentLevelXp / xpForCurrentLevel) * 100));
+
+        return progressPercentage;
+    };
+
     // Function to render the level progress bar
     const renderLevelProgress = (user: LeaderboardUser) => {
         if (!user.next_level_info) return null;
+
+        // Get progress percentage based on XP
+        const progressPercentage = user.total_xp > 0 ? user.next_level_info.progress_percentage : 0;
 
         return (
             <div className="mt-1 w-full">
@@ -188,7 +206,7 @@ const StrengthLeaderboard: React.FC<StrengthLeaderboardProps> = ({ leaderboardDa
                 <div className="h-1.5 w-full overflow-hidden rounded-full bg-[#1e3a5f]">
                     <div
                         className="h-1.5 rounded-full bg-gradient-to-r from-[#4a90e2] to-[#63b3ed]"
-                        style={{ width: `${user.next_level_info.progress_percentage}%` }}
+                        style={{ width: `${progressPercentage}%` }}
                     ></div>
                 </div>
                 <div className="mt-1 text-center text-xs text-[#a3c0e6]">
@@ -449,7 +467,12 @@ const StrengthLeaderboard: React.FC<StrengthLeaderboardProps> = ({ leaderboardDa
                                                                     <div className="h-1.5 w-32 overflow-hidden rounded-full bg-[#1e3a5f]">
                                                                         <div
                                                                             className="h-1.5 rounded-full bg-gradient-to-r from-[#4a90e2] to-[#63b3ed]"
-                                                                            style={{ width: `${user.next_level_info.progress_percentage}%` }}
+                                                                            style={{
+                                                                                width:
+                                                                                    user.total_xp > 0
+                                                                                        ? `${user.next_level_info.progress_percentage}%`
+                                                                                        : '0%',
+                                                                            }}
                                                                         ></div>
                                                                     </div>
                                                                     <div className="mt-1 text-xs text-[#a3c0e6]">

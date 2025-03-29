@@ -9,6 +9,7 @@ interface StudentDashboardProps {
     username: string;
     strengthLevel: number;
     consistencyScore: number;
+    currentRank?: number;
     blocks: Array<{
         id: number;
         block_number: number;
@@ -32,7 +33,7 @@ interface StudentDashboardProps {
     };
 }
 
-// Circular Progress component for strength level
+// Circular Progress component for strength level with unranked support
 const CircularProgress: React.FC<{
     value: number;
     max?: number;
@@ -42,7 +43,10 @@ const CircularProgress: React.FC<{
 }> = ({ value, max, size = 120, strokeWidth = 8, xpInfo }) => {
     const radius = (size - strokeWidth) / 2;
     const circumference = radius * 2 * Math.PI;
-    const progressPercentage = xpInfo ? xpInfo.progress_percentage / 100 : max ? value / max : 1;
+
+    // Check if player has any XP
+    const hasXp = xpInfo && xpInfo.total_xp > 0;
+    const progressPercentage = hasXp ? xpInfo.progress_percentage / 100 : 0;
     const dashoffset = circumference * (1 - progressPercentage);
 
     return (
@@ -60,10 +64,10 @@ const CircularProgress: React.FC<{
                 />
             </svg>
 
-            {/* Progress circle */}
+            {/* Progress circle - changed to green for no XP */}
             <svg className="absolute -rotate-90" width={size} height={size}>
                 <circle
-                    className="text-[#4a90e2]"
+                    className={hasXp ? 'text-[#4a90e2]' : 'text-[#2ecc71]'}
                     strokeWidth={strokeWidth}
                     strokeDasharray={circumference}
                     strokeDashoffset={dashoffset}
@@ -87,7 +91,7 @@ const CircularProgress: React.FC<{
     );
 };
 
-// Mobile-only Circular Avatar component for the wireframe design
+// Mobile-only Circular Avatar component with unranked support
 const CircularAvatar: React.FC<{ value: number; size?: number; strokeWidth?: number; xpInfo?: any }> = ({
     value,
     size = 120,
@@ -96,7 +100,10 @@ const CircularAvatar: React.FC<{ value: number; size?: number; strokeWidth?: num
 }) => {
     const radius = (size - strokeWidth) / 2;
     const circumference = radius * 2 * Math.PI;
-    const progressPercentage = xpInfo ? xpInfo.progress_percentage / 100 : 0;
+
+    // Show no progress if XP is 0
+    const hasXp = xpInfo && xpInfo.total_xp > 0;
+    const progressPercentage = hasXp ? xpInfo.progress_percentage / 100 : 0;
     const dashoffset = circumference * (1 - progressPercentage);
 
     return (
@@ -114,10 +121,10 @@ const CircularAvatar: React.FC<{ value: number; size?: number; strokeWidth?: num
                 />
             </svg>
 
-            {/* Progress circle */}
+            {/* Progress circle - now green when XP is 0 */}
             <svg className="absolute -rotate-90" width={size} height={size}>
                 <circle
-                    className="text-[#4a90e2]"
+                    className={hasXp ? 'text-[#4a90e2]' : 'text-[#2ecc71]'}
                     strokeWidth={strokeWidth}
                     strokeDasharray={circumference}
                     strokeDashoffset={dashoffset}
@@ -142,6 +149,7 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({
     username,
     strengthLevel,
     consistencyScore,
+    currentRank = 0,
     blocks = [], // Provide default empty array to prevent issues
     routes = {}, // Default to empty object if routes is not provided
     xpInfo, // Add xpInfo to the destructured props
@@ -157,7 +165,6 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({
     } | null>(null);
     const [isMobile, setIsMobile] = useState(false);
     const [sidebarOpen, setSidebarOpen] = useState(false);
-    const [currentRank, setCurrentRank] = useState(0);
 
     // Debug routes in development
     useEffect(() => {
@@ -179,12 +186,6 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({
             window.removeEventListener('resize', checkIfMobile);
         };
     }, []);
-
-    // Simulate rank calculation based on strength level
-    useEffect(() => {
-        // This is a placeholder - in a real app, you'd get this from the API
-        setCurrentRank(Math.floor(strengthLevel * 5));
-    }, [strengthLevel]);
 
     // Use hardcoded fallback routes if not provided in props
     const getRoute = (name: string): string => {
@@ -327,10 +328,11 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({
                 );
             }
 
-            // Circular progress animation
+            // Circular progress animation with XP check
             if (strengthRef.current) {
                 const radius = strengthRef.current.r.baseVal.value;
                 const circumference = radius * 2 * Math.PI;
+                const hasXp = xpInfo && xpInfo.total_xp > 0;
 
                 gsap.fromTo(
                     strengthRef.current,
@@ -338,7 +340,7 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({
                         strokeDashoffset: circumference,
                     },
                     {
-                        strokeDashoffset: circumference * (1 - (xpInfo ? xpInfo.progress_percentage / 100 : strengthLevel / 5)),
+                        strokeDashoffset: hasXp ? circumference * (1 - xpInfo.progress_percentage / 100) : circumference,
                         duration: 1.5,
                         ease: 'power2.inOut',
                     },
@@ -402,6 +404,9 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({
         setSidebarOpen(!sidebarOpen);
     };
 
+    // Check if player has XP
+    const hasXp = xpInfo && xpInfo.total_xp > 0;
+
     // Render mobile layout based on wireframe
     if (isMobile) {
         return (
@@ -433,7 +438,7 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({
                             </div>
                             <div className="text-center">
                                 <p className="text-sm text-[#a3c0e6]">Rank:</p>
-                                <p className="font-medium text-white">#{currentRank}</p>
+                                <p className="font-medium text-white">{hasXp ? `#${currentRank}` : 'Unranked'}</p>
                             </div>
                         </div>
                     </div>
@@ -478,7 +483,7 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({
         );
     }
 
-    // Desktop Layout - Keep the original layout
+    // Desktop Layout - Keep the original layout but modify for unranked players
     return (
         <div ref={pageRef} className="flex min-h-screen bg-gradient-to-b from-[#0a1e3c] to-[#0f2a4a]">
             {/* Sidebar (Desktop) */}
@@ -589,8 +594,8 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({
                                     </div>
                                     <div className="mt-1 h-2 w-full overflow-hidden rounded-full bg-[#1e3a5f]">
                                         <div
-                                            className="h-2 rounded-full bg-gradient-to-r from-[#4a90e2] to-[#63b3ed]"
-                                            style={{ width: `${xpInfo.progress_percentage}%` }}
+                                            className={`h-2 rounded-full ${hasXp ? 'bg-gradient-to-r from-[#4a90e2] to-[#63b3ed]' : 'bg-[#2ecc71]'}`}
+                                            style={{ width: hasXp ? `${xpInfo.progress_percentage}%` : '0%' }}
                                         ></div>
                                     </div>
                                     <div className="mt-1 flex justify-between text-xs">
@@ -704,8 +709,8 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({
                                         </div>
                                         <div className="h-2 w-full overflow-hidden rounded-full bg-[#1e3a5f]">
                                             <div
-                                                className="h-2 rounded-full bg-gradient-to-r from-[#4a90e2] to-[#63b3ed]"
-                                                style={{ width: `${xpInfo ? xpInfo.progress_percentage : 0}%` }}
+                                                className={`h-2 rounded-full ${hasXp ? 'bg-gradient-to-r from-[#4a90e2] to-[#63b3ed]' : 'bg-[#2ecc71]'}`}
+                                                style={{ width: hasXp ? `${xpInfo ? xpInfo.progress_percentage : 0}%` : '0%' }}
                                             ></div>
                                         </div>
                                     </div>
@@ -719,6 +724,12 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({
                                                 className="h-2 rounded-full bg-gradient-to-r from-[#4a90e2] to-[#63b3ed]"
                                                 style={{ width: `${consistencyScore}%` }}
                                             ></div>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <div className="mb-1 flex items-center justify-between">
+                                            <span className="text-sm text-[#a3c0e6]">Rank</span>
+                                            <span className="text-sm font-medium text-white">{hasXp ? `#${currentRank}` : 'Unranked'}</span>
                                         </div>
                                     </div>
                                 </div>

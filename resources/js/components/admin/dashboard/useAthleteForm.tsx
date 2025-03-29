@@ -9,7 +9,8 @@ type Athlete = {
         standing_long_jump: number | null;
         single_leg_jump_left: number | null;
         single_leg_jump_right: number | null;
-        wall_sit: number | null;
+        single_leg_wall_sit_left: number | null;
+        single_leg_wall_sit_right: number | null;
         core_endurance: number | null;
         bent_arm_hang: number | null;
     };
@@ -23,7 +24,8 @@ interface AthleteFormData {
     standingLongJump: string;
     singleLegJumpLeft: string;
     singleLegJumpRight: string;
-    wallSit: string;
+    singleLegWallSitLeft: string;
+    singleLegWallSitRight: string;
     coreEndurance: string;
     bentArmHang: string;
     bentArmHangEnabled: boolean;
@@ -38,7 +40,8 @@ interface FormattedData {
     standing_long_jump: number | null;
     single_leg_jump_left: number | null;
     single_leg_jump_right: number | null;
-    wall_sit: number | null;
+    single_leg_wall_sit_left: number | null;
+    single_leg_wall_sit_right: number | null;
     core_endurance: number | null;
     bent_arm_hang: number | null;
     bent_arm_enabled: boolean;
@@ -46,7 +49,8 @@ interface FormattedData {
         standing_long_jump: number | null;
         single_leg_jump_left: number | null;
         single_leg_jump_right: number | null;
-        wall_sit: number | null;
+        single_leg_wall_sit_left: number | null;
+        single_leg_wall_sit_right: number | null;
         core_endurance: number | null;
         bent_arm_hang: number | null;
     };
@@ -74,7 +78,8 @@ export default function useAthleteForm(athletes: Athlete[], setAthletes: React.D
         standingLongJump: '',
         singleLegJumpLeft: '',
         singleLegJumpRight: '',
-        wallSit: '',
+        singleLegWallSitLeft: '',
+        singleLegWallSitRight: '',
         coreEndurance: '',
         bentArmHang: '',
         bentArmHangEnabled: false,
@@ -116,7 +121,8 @@ export default function useAthleteForm(athletes: Athlete[], setAthletes: React.D
         const standingLongJump = form.standingLongJump === '' ? null : Number(form.standingLongJump);
         const singleLegJumpLeft = form.singleLegJumpLeft === '' ? null : Number(form.singleLegJumpLeft);
         const singleLegJumpRight = form.singleLegJumpRight === '' ? null : Number(form.singleLegJumpRight);
-        const wallSit = form.wallSit === '' ? null : Number(form.wallSit);
+        const singleLegWallSitLeft = form.singleLegWallSitLeft === '' ? null : Number(form.singleLegWallSitLeft);
+        const singleLegWallSitRight = form.singleLegWallSitRight === '' ? null : Number(form.singleLegWallSitRight);
         const coreEndurance = form.coreEndurance === '' ? null : Number(form.coreEndurance);
 
         // Only use bentArmHang value if enabled
@@ -133,7 +139,8 @@ export default function useAthleteForm(athletes: Athlete[], setAthletes: React.D
             standing_long_jump: standingLongJump,
             single_leg_jump_left: singleLegJumpLeft,
             single_leg_jump_right: singleLegJumpRight,
-            wall_sit: wallSit,
+            single_leg_wall_sit_left: singleLegWallSitLeft,
+            single_leg_wall_sit_right: singleLegWallSitRight,
             core_endurance: coreEndurance,
             bent_arm_hang: bentArmHang,
 
@@ -142,7 +149,8 @@ export default function useAthleteForm(athletes: Athlete[], setAthletes: React.D
                 standing_long_jump: standingLongJump,
                 single_leg_jump_left: singleLegJumpLeft,
                 single_leg_jump_right: singleLegJumpRight,
-                wall_sit: wallSit,
+                single_leg_wall_sit_left: singleLegWallSitLeft,
+                single_leg_wall_sit_right: singleLegWallSitRight,
                 core_endurance: coreEndurance,
                 bent_arm_hang: bentArmHang,
             },
@@ -183,7 +191,8 @@ export default function useAthleteForm(athletes: Athlete[], setAthletes: React.D
                     standingLongJump: '',
                     singleLegJumpLeft: '',
                     singleLegJumpRight: '',
-                    wallSit: '',
+                    singleLegWallSitLeft: '',
+                    singleLegWallSitRight: '',
                     coreEndurance: '',
                     bentArmHang: '',
                     bentArmHangEnabled: false,

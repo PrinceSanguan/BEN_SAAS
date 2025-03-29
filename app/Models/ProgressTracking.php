@@ -91,7 +91,8 @@ class ProgressTracking extends Model
             'standing_long_jump',
             'single_leg_jump_left',
             'single_leg_jump_right',
-            'wall_sit_assessment',
+            'single_leg_wall_sit_left',
+            'single_leg_wall_sit_right',
             'high_plank_assessment',
             'bent_arm_hang_assessment'
         ];

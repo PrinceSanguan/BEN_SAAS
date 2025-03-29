@@ -8,7 +8,8 @@ type Athlete = {
         standing_long_jump: number | null;
         single_leg_jump_left: number | null;
         single_leg_jump_right: number | null;
-        wall_sit: number | null;
+        single_leg_wall_sit_left: number | null;
+        single_leg_wall_sit_right: number | null;
         core_endurance: number | null;
         bent_arm_hang: number | null;
     };
@@ -85,8 +86,12 @@ export default function AthleteCards({ athletes, onAddClick }: AthleteCardsProps
                                 <p className="text-white">{athlete.training_results?.single_leg_jump_right || '-'} cm</p>
                             </div>
                             <div className="rounded-md bg-gray-800/50 p-2">
-                                <p className="font-medium text-gray-400">Wall Sit:</p>
-                                <p className="text-white">{athlete.training_results?.wall_sit || '-'} sec</p>
+                                <p className="font-medium text-gray-400">Single Leg Wall Sit (L):</p>
+                                <p className="text-white">{athlete.training_results?.single_leg_wall_sit_left || '-'} sec</p>
+                            </div>
+                            <div className="rounded-md bg-gray-800/50 p-2">
+                                <p className="font-medium text-gray-400">Single Leg Wall Sit (R):</p>
+                                <p className="text-white">{athlete.training_results?.single_leg_wall_sit_right || '-'} sec</p>
                             </div>
                             <div className="rounded-md bg-gray-800/50 p-2">
                                 <p className="font-medium text-gray-400">Core Endurance:</p>
