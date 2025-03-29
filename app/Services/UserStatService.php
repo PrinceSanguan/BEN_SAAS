@@ -73,8 +73,6 @@ class UserStatService
         // Debug to see what's happening
         $availableTrainingSessions = TrainingSession::where('session_type', 'training')->count();
 
-        // Optionally log this for debugging
-        \Log::info("User ID: $userId, Available training sessions: $availableTrainingSessions");
 
         // Get total available sessions (for other metrics)
         $totalAvailableSessions = TrainingSession::where('release_date', '<=', now())->count();

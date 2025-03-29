@@ -1,13 +1,13 @@
-import { Head } from '@inertiajs/react';
-import React, { useState, useEffect } from 'react';
 import AdminSidebar from '@/components/admin/AdminSidebar';
-import StatsCards from '@/components/admin/dashboard/StatsCards';
-import ViewToggle from '@/components/admin/dashboard/ViewToggle';
+import AddAthleteModal from '@/components/admin/dashboard/AddAthleteModal';
 import AthleteCards from '@/components/admin/dashboard/AthleteCards';
 import AthleteTable from '@/components/admin/dashboard/AthleteTable';
 import NoAthletes from '@/components/admin/dashboard/NoAthletes';
-import AddAthleteModal from '@/components/admin/dashboard/AddAthleteModal';
+import StatsCards from '@/components/admin/dashboard/StatsCards';
 import useAthleteForm from '@/components/admin/dashboard/useAthleteForm';
+import ViewToggle from '@/components/admin/dashboard/ViewToggle';
+import { Head } from '@inertiajs/react';
+import { useEffect, useState } from 'react';
 
 /** Athlete Type */
 type Athlete = {
@@ -18,10 +18,12 @@ type Athlete = {
         standing_long_jump: number | null;
         single_leg_jump_left: number | null;
         single_leg_jump_right: number | null;
-        wall_sit: number | null;
+        single_leg_wall_sit_left: number | null;
+        single_leg_wall_sit_right: number | null;
         core_endurance: number | null;
         bent_arm_hang: number | null;
     };
+    bent_arm_enabled?: boolean;
 };
 
 type Props = {
@@ -64,7 +66,15 @@ export default function AdminDashboard({ athletes: initialAthletes = [] }: Props
     const numberOfOnline = Math.min(numberOfUsers, 1); // Placeholder
 
     // Form state using the useAthleteForm hook
-    const { form, showModal, setShowModal, handleChange, handleSubmit, isSubmitting, error } = useAthleteForm(athletes, setAthletes);
+    const { form, setForm, showModal, setShowModal, handleChange, handleCheckboxChange, handleSubmit, isSubmitting, error } = useAthleteForm(
+        athletes,
+        setAthletes,
+    );
+
+    // Handle athlete updates for the cards view
+    const handleUpdateAthlete = (athleteId: number, updatedData: Partial<Athlete>) => {
+        setAthletes((prevAthletes) => prevAthletes.map((athlete) => (athlete.id === athleteId ? { ...athlete, ...updatedData } : athlete)));
+    };
 
     return (
         <div className="flex min-h-screen bg-gradient-to-b from-[#0a1e3c] to-[#0f2a4a]">
@@ -75,57 +85,45 @@ export default function AdminDashboard({ athletes: initialAthletes = [] }: Props
 
             {/* Mobile Bottom Tab Navigation */}
             <div className="block md:hidden">
-                <AdminSidebar
-                    activePage="dashboard"
-                    isMobile={true}
-                />
+                <AdminSidebar activePage="dashboard" isMobile={true} />
             </div>
 
             {/* Main Content */}
-            <main className="flex-1 p-4 pt-6 pb-24 md:p-6 md:pt-6 md:pb-6 md:ml-64">
+            <main className="flex-1 p-4 pt-6 pb-24 md:ml-64 md:p-6 md:pt-6 md:pb-6">
                 <Head title="Admin Dashboard" />
                 <div className="space-y-6">
                     {/* Top Section: Title and "Add Athlete" button */}
-                    <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+                    <div className="flex flex-col items-center justify-between gap-4 sm:flex-row">
                         <h1 className="text-2xl font-bold text-white">Dashboard</h1>
 
                         {/* Button to open the Add Athlete modal */}
                         <button
                             onClick={() => setShowModal(true)}
-                            className="w-full sm:w-auto rounded-lg bg-gradient-to-r from-blue-500 to-blue-700 px-4 py-2 text-white font-medium transition-all duration-300 hover:from-blue-600 hover:to-blue-800"
+                            className="w-full rounded-lg bg-gradient-to-r from-blue-500 to-blue-700 px-4 py-2 font-medium text-white transition-all duration-300 hover:from-blue-600 hover:to-blue-800 sm:w-auto"
                         >
                             Add Athlete
                         </button>
                     </div>
 
                     {/* Stats Cards */}
-                    <StatsCards
-                        numberOfUsers={numberOfUsers}
-                        numberOfActive={numberOfActive}
-                        numberOfOnline={numberOfOnline}
-                    />
+                    <StatsCards numberOfUsers={numberOfUsers} numberOfActive={numberOfActive} numberOfOnline={numberOfOnline} />
 
                     {/* View Mode Toggle - Hidden on small screens */}
-                    <div className="hidden md:flex items-center justify-between">
+                    <div className="hidden items-center justify-between md:flex">
                         <ViewToggle viewMode={viewMode} setViewMode={setViewMode} />
                     </div>
 
                     {/* Content Container with Blue Theme */}
-                    <div className="rounded-xl bg-[#112845] shadow-lg border border-[#1e3a5f] p-4 md:p-6">
+                    <div className="rounded-xl border border-[#1e3a5f] bg-[#112845] p-4 shadow-lg md:p-6">
                         {/* Athlete Cards View */}
-                        {viewMode === 'cards' && athletes.length > 0 && (
-                            <AthleteCards athletes={athletes} onAddClick={() => setShowModal(true)} />
-                        )}
+                        {viewMode === 'cards' && athletes.length > 0 && <AthleteCards athletes={athletes} onAddClick={() => setShowModal(true)} />}
 
                         {/* Table of Athletes */}
                         {viewMode === 'table' && athletes.length > 0 && (
-                            <AthleteTable athletes={athletes} onAddClick={() => setShowModal(true)} />
+                            <AthleteTable athletes={athletes as any} onAddClick={() => setShowModal(true)} />
                         )}
-
                         {/* "No Athletes" message when there are no athletes */}
-                        {athletes.length === 0 && (
-                            <NoAthletes onAddClick={() => setShowModal(true)} />
-                        )}
+                        {athletes.length === 0 && <NoAthletes onAddClick={() => setShowModal(true)} />}
                     </div>
                 </div>
 
@@ -138,6 +136,7 @@ export default function AdminDashboard({ athletes: initialAthletes = [] }: Props
                     onClose={() => setShowModal(false)}
                     handleChange={handleChange}
                     handleSubmit={handleSubmit}
+                    handleCheckboxChange={handleCheckboxChange}
                 />
             </main>
         </div>

@@ -8,8 +8,8 @@ const testColors: Record<string, string> = {
     standing_long_jump: '#1f77b4',
     single_leg_jump_left: '#ff7f0e',
     single_leg_jump_right: '#2ca02c',
-    wall_sit_assessment: '#d62728',
-    high_plank_assessment: '#9467bd',
+    single_leg_wall_sit_left: '#d62728',
+    single_leg_wall_sit_right: '#9467bd',
     bent_arm_hang_assessment: '#8c564b',
 };
 
