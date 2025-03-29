@@ -64,10 +64,10 @@ const CircularProgress: React.FC<{
                 />
             </svg>
 
-            {/* Progress circle - changed to green for no XP */}
+            {/* Progress circle - CHANGED TO GREEN */}
             <svg className="absolute -rotate-90" width={size} height={size}>
                 <circle
-                    className={hasXp ? 'text-[#4a90e2]' : 'text-[#2ecc71]'}
+                    className="text-[#2ecc71]"
                     strokeWidth={strokeWidth}
                     strokeDasharray={circumference}
                     strokeDashoffset={dashoffset}
@@ -121,10 +121,10 @@ const CircularAvatar: React.FC<{ value: number; size?: number; strokeWidth?: num
                 />
             </svg>
 
-            {/* Progress circle - now green when XP is 0 */}
+            {/* Progress circle - CHANGED TO GREEN */}
             <svg className="absolute -rotate-90" width={size} height={size}>
                 <circle
-                    className={hasXp ? 'text-[#4a90e2]' : 'text-[#2ecc71]'}
+                    className="text-[#2ecc71]"
                     strokeWidth={strokeWidth}
                     strokeDasharray={circumference}
                     strokeDashoffset={dashoffset}
@@ -594,7 +594,7 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({
                                     </div>
                                     <div className="mt-1 h-2 w-full overflow-hidden rounded-full bg-[#1e3a5f]">
                                         <div
-                                            className={`h-2 rounded-full ${hasXp ? 'bg-gradient-to-r from-[#4a90e2] to-[#63b3ed]' : 'bg-[#2ecc71]'}`}
+                                            className="h-2 rounded-full bg-[#2ecc71]"
                                             style={{ width: hasXp ? `${xpInfo.progress_percentage}%` : '0%' }}
                                         ></div>
                                     </div>
@@ -618,11 +618,7 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({
                                 <span className="ml-2 text-sm text-[#a3c0e6]">/ 100</span>
                             </div>
                             <div className="h-4 w-full overflow-hidden rounded-full bg-[#1e3a5f]">
-                                <div
-                                    ref={consistencyRef}
-                                    className="h-4 rounded-full bg-gradient-to-r from-[#4a90e2] to-[#63b3ed]"
-                                    style={{ width: `${consistencyScore}%` }}
-                                ></div>
+                                <div ref={consistencyRef} className="h-4 rounded-full bg-[#2ecc71]" style={{ width: `${consistencyScore}%` }}></div>
                             </div>
                         </div>
 
@@ -709,7 +705,7 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({
                                         </div>
                                         <div className="h-2 w-full overflow-hidden rounded-full bg-[#1e3a5f]">
                                             <div
-                                                className={`h-2 rounded-full ${hasXp ? 'bg-gradient-to-r from-[#4a90e2] to-[#63b3ed]' : 'bg-[#2ecc71]'}`}
+                                                className="h-2 rounded-full bg-[#2ecc71]"
                                                 style={{ width: hasXp ? `${xpInfo ? xpInfo.progress_percentage : 0}%` : '0%' }}
                                             ></div>
                                         </div>
@@ -720,10 +716,7 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({
                                             <span className="text-sm font-medium text-white">{consistencyScore}%</span>
                                         </div>
                                         <div className="h-2 w-full overflow-hidden rounded-full bg-[#1e3a5f]">
-                                            <div
-                                                className="h-2 rounded-full bg-gradient-to-r from-[#4a90e2] to-[#63b3ed]"
-                                                style={{ width: `${consistencyScore}%` }}
-                                            ></div>
+                                            <div className="h-2 rounded-full bg-[#2ecc71]" style={{ width: `${consistencyScore}%` }}></div>
                                         </div>
                                     </div>
                                     <div>
@@ -756,7 +749,7 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({
                             >
                                 Cancel
                             </button>
-                            <button onClick={goToTraining} className="flex-1 rounded-lg bg-[#4a90e2] px-4 py-2 text-white hover:bg-[#3a80d2]">
+                            <button onClick={goToTraining} className="flex-1 rounded-lg bg-[#2ecc71] px-4 py-2 text-white hover:bg-[#27ae60]">
                                 View Training
                             </button>
                         </div>
