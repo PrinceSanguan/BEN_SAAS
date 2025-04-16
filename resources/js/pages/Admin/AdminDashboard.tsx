@@ -6,7 +6,7 @@ import NoAthletes from '@/components/admin/dashboard/NoAthletes';
 import StatsCards from '@/components/admin/dashboard/StatsCards';
 import useAthleteForm from '@/components/admin/dashboard/useAthleteForm';
 import ViewToggle from '@/components/admin/dashboard/ViewToggle';
-import { Head } from '@inertiajs/react';
+import { Head, usePage } from '@inertiajs/react';
 import { useEffect, useState } from 'react';
 
 /** Athlete Type */
@@ -30,7 +30,13 @@ type Props = {
     athletes?: Athlete[];
 };
 
+// Import the Notification component
+import Notification from '@/components/admin/dashboard/Notification';
+
 export default function AdminDashboard({ athletes: initialAthletes = [] }: Props) {
+    // Get flash messages from the session
+    const { flash } = usePage().props as any;
+
     // State for athletes (initialized from props)
     const [athletes, setAthletes] = useState<Athlete[]>(initialAthletes);
 
@@ -39,6 +45,25 @@ export default function AdminDashboard({ athletes: initialAthletes = [] }: Props
 
     // State for sidebar visibility on mobile
     const [sidebarOpen, setSidebarOpen] = useState(false);
+
+    // State for notification
+    const [notification, setNotification] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
+
+    // Effect to handle flash messages from server
+    useEffect(() => {
+        if (flash?.success) {
+            setNotification({ message: flash.success, type: 'success' });
+        } else if (flash?.error) {
+            setNotification({ message: flash.error, type: 'error' });
+        }
+    }, [flash]);
+
+    // Effect to add new athlete to the list if returned from the backend
+    useEffect(() => {
+        if (flash?.newAthlete) {
+            setAthletes((prevAthletes) => [...prevAthletes, flash.newAthlete]);
+        }
+    }, [flash?.newAthlete]);
 
     // Set the default view mode based on screen size
     useEffect(() => {
@@ -66,14 +91,32 @@ export default function AdminDashboard({ athletes: initialAthletes = [] }: Props
     const numberOfOnline = Math.min(numberOfUsers, 1); // Placeholder
 
     // Form state using the useAthleteForm hook
-    const { form, setForm, showModal, setShowModal, handleChange, handleCheckboxChange, handleSubmit, isSubmitting, error } = useAthleteForm(
-        athletes,
-        setAthletes,
-    );
+    const {
+        form,
+        setForm,
+        showModal,
+        setShowModal,
+        showConfirmation,
+        setShowConfirmation,
+        handleChange,
+        handleCheckboxChange,
+        handleSubmit,
+        confirmSubmit,
+        cancelSubmit,
+        isSubmitting,
+        error,
+        formattedData,
+    } = useAthleteForm(athletes, setAthletes);
 
     // Handle athlete updates for the cards view
     const handleUpdateAthlete = (athleteId: number, updatedData: Partial<Athlete>) => {
         setAthletes((prevAthletes) => prevAthletes.map((athlete) => (athlete.id === athleteId ? { ...athlete, ...updatedData } : athlete)));
+    };
+
+    // Handle athlete deletion from the UI (the actual deletion happens in AthleteCards)
+    const handleAthleteDeleted = (deletedId: number) => {
+        setAthletes((prevAthletes) => prevAthletes.filter((athlete) => athlete.id !== deletedId));
+        setNotification({ message: 'Athlete deleted successfully!', type: 'success' });
     };
 
     return (
@@ -87,6 +130,9 @@ export default function AdminDashboard({ athletes: initialAthletes = [] }: Props
             <div className="block md:hidden">
                 <AdminSidebar activePage="dashboard" isMobile={true} />
             </div>
+
+            {/* Notification */}
+            {notification && <Notification message={notification.message} type={notification.type} onClose={() => setNotification(null)} />}
 
             {/* Main Content */}
             <main className="flex-1 p-4 pt-6 pb-24 md:ml-64 md:p-6 md:pt-6 md:pb-6">
@@ -130,13 +176,17 @@ export default function AdminDashboard({ athletes: initialAthletes = [] }: Props
                 {/* MODAL for Adding a New Athlete */}
                 <AddAthleteModal
                     showModal={showModal}
+                    showConfirmation={showConfirmation}
                     form={form}
                     error={error}
                     isSubmitting={isSubmitting}
+                    formattedData={formattedData}
                     onClose={() => setShowModal(false)}
                     handleChange={handleChange}
                     handleSubmit={handleSubmit}
                     handleCheckboxChange={handleCheckboxChange}
+                    confirmSubmit={confirmSubmit}
+                    cancelSubmit={cancelSubmit}
                 />
             </main>
         </div>

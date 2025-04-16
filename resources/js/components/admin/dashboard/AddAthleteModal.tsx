@@ -1,240 +1,371 @@
-import { Checkbox } from '@/components/ui/checkbox';
 import React from 'react';
-
-interface AthleteFormData {
-    username: string;
-    parentEmail: string;
-    password: string;
-    standingLongJump: string;
-    singleLegJumpLeft: string;
-    singleLegJumpRight: string;
-    singleLegWallSitLeft: string;
-    singleLegWallSitRight: string;
-    coreEndurance: string;
-    bentArmHang: string;
-    bentArmHangEnabled: boolean;
-    [key: string]: string | number | boolean | undefined;
-}
 
 interface AddAthleteModalProps {
     showModal: boolean;
-    form: AthleteFormData;
+    showConfirmation: boolean;
+    form: any;
     error: string | null;
     isSubmitting: boolean;
+    formattedData: any;
     onClose: () => void;
     handleChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
     handleSubmit: (e: React.FormEvent<HTMLFormElement>) => void;
-    handleCheckboxChange?: (field: string, checked: boolean) => void;
+    handleCheckboxChange: (field: string, checked: boolean) => void;
+    confirmSubmit: () => void;
+    cancelSubmit: () => void;
 }
 
 export default function AddAthleteModal({
     showModal,
+    showConfirmation,
     form,
     error,
     isSubmitting,
+    formattedData,
     onClose,
     handleChange,
     handleSubmit,
-    handleCheckboxChange = (field, checked) => {},
+    handleCheckboxChange,
+    confirmSubmit,
+    cancelSubmit,
 }: AddAthleteModalProps) {
     if (!showModal) return null;
 
-    // Handle click outside modal to close
-    const handleBackdropClick = (e: React.MouseEvent<HTMLDivElement>) => {
-        if (e.target === e.currentTarget) {
-            onClose();
-        }
-    };
-
     return (
-        <div
-            className="fixed inset-0 z-50 flex items-start justify-center bg-black/70 p-4 pt-16 backdrop-blur-sm md:items-center md:pt-4"
-            onClick={handleBackdropClick}
-        >
-            {/* Modal Content */}
-            <div className="flex max-h-[90vh] w-full max-w-2xl flex-col overflow-hidden rounded-xl border border-[#1e3a5f] bg-[#112845] shadow-lg">
-                {/* Modal Header - Fixed */}
-                <div className="sticky top-0 z-10 flex items-center justify-between border-b border-[#1e3a5f] bg-[#112845] p-4 md:p-6">
-                    <h2 className="text-xl font-bold text-white">Add New Athlete</h2>
-                    <button onClick={onClose} className="rounded-full p-1 text-[#a3c0e6] transition-colors hover:bg-[#1e3a5f]" aria-label="Close">
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                        </svg>
-                    </button>
-                </div>
-
-                {/* Scrollable Content */}
-                <div className="flex-1 overflow-y-auto p-4 md:p-6">
-                    {error && <div className="mb-4 rounded-lg border border-[#ff5555] bg-[#3a1c1c] p-4 text-[#ff9999]">{error}</div>}
-
-                    <form onSubmit={handleSubmit} className="space-y-6">
-                        {/* Basic fields */}
-                        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                            <div>
-                                <label className="block text-sm font-medium tracking-wider text-[#4a90e2] uppercase">Athlete Username</label>
-                                <input
-                                    name="username"
-                                    type="text"
-                                    value={form.username}
-                                    onChange={handleChange}
-                                    required
-                                    className="mt-1 w-full rounded-lg border border-[#1e3a5f] bg-[#0a1e3c] p-3 text-white placeholder-[#a3c0e6]/50 focus:ring-2 focus:ring-[#4a90e2] focus:outline-none"
-                                    placeholder="Athlete Username"
-                                />
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-medium tracking-wider text-[#4a90e2] uppercase">Parent Email</label>
-                                <input
-                                    name="parentEmail"
-                                    type="email"
-                                    value={form.parentEmail}
-                                    onChange={handleChange}
-                                    required
-                                    className="mt-1 w-full rounded-lg border border-[#1e3a5f] bg-[#0a1e3c] p-3 text-white placeholder-[#a3c0e6]/50 focus:ring-2 focus:ring-[#4a90e2] focus:outline-none"
-                                    placeholder="Parent Email"
-                                />
-                            </div>
-
-                            <div className="sm:col-span-2">
-                                <label className="block text-sm font-medium tracking-wider text-[#4a90e2] uppercase">Password</label>
-                                <input
-                                    name="password"
-                                    type="password"
-                                    value={form.password}
-                                    onChange={handleChange}
-                                    required
-                                    className="mt-1 w-full rounded-lg border border-[#1e3a5f] bg-[#0a1e3c] p-3 text-white placeholder-[#a3c0e6]/50 focus:ring-2 focus:ring-[#4a90e2] focus:outline-none"
-                                    placeholder="Password"
-                                />
-                            </div>
+        <>
+            {/* Main Modal */}
+            <div className="bg-opacity-50 fixed inset-0 z-50 flex items-center justify-center overflow-x-hidden overflow-y-auto bg-black">
+                <div className="relative max-h-full w-full max-w-md p-4">
+                    <div className="relative rounded-lg bg-gradient-to-b from-[#112845] to-[#0a1e3c] shadow">
+                        {/* Modal header */}
+                        <div className="flex items-center justify-between rounded-t border-b border-gray-600 p-4 md:p-5">
+                            <h3 className="text-xl font-semibold text-white">Add New Athlete</h3>
+                            <button
+                                onClick={onClose}
+                                className="ms-auto inline-flex h-8 w-8 items-center justify-center rounded-lg bg-transparent text-sm text-gray-400 hover:bg-gray-700 hover:text-white"
+                            >
+                                <svg className="h-3 w-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
+                                    <path
+                                        stroke="currentColor"
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        strokeWidth="2"
+                                        d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"
+                                    />
+                                </svg>
+                                <span className="sr-only">Close modal</span>
+                            </button>
                         </div>
 
-                        {/* Pre-Training Testing Results */}
-                        <div>
-                            <p className="mb-3 text-sm font-medium tracking-wider text-[#4a90e2] uppercase">Pre-Training Testing Results</p>
-                            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                                <div>
-                                    <label className="block text-xs font-medium text-[#a3c0e6]">Standing Long Jump (cm)</label>
+                        {/* Error alert */}
+                        {error && (
+                            <div className="mx-4 mt-4 flex items-center rounded-lg border border-red-800 bg-red-900/30 p-3 text-sm text-red-400">
+                                <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    strokeWidth="2"
+                                    className="mr-2 h-5 w-5"
+                                >
+                                    <path
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z"
+                                    />
+                                </svg>
+                                {error}
+                            </div>
+                        )}
+
+                        {/* Modal body */}
+                        <form onSubmit={handleSubmit} className="space-y-4 p-4 md:p-5">
+                            <div className="grid grid-cols-2 gap-4">
+                                {/* Username */}
+                                <div className="col-span-2">
+                                    <label htmlFor="username" className="mb-2 block text-sm font-medium text-white">
+                                        Username
+                                    </label>
                                     <input
-                                        name="standingLongJump"
+                                        type="text"
+                                        name="username"
+                                        id="username"
+                                        value={form.username}
+                                        onChange={handleChange}
+                                        className="block w-full rounded-lg border border-gray-600 bg-gray-700 p-2.5 text-white placeholder-gray-400 focus:border-blue-500 focus:ring-blue-500"
+                                        placeholder="johndoe123"
+                                        required
+                                    />
+                                </div>
+
+                                {/* Parent Email */}
+                                <div className="col-span-2">
+                                    <label htmlFor="parentEmail" className="mb-2 block text-sm font-medium text-white">
+                                        Parent Email
+                                    </label>
+                                    <input
+                                        type="email"
+                                        name="parentEmail"
+                                        id="parentEmail"
+                                        value={form.parentEmail}
+                                        onChange={handleChange}
+                                        className="block w-full rounded-lg border border-gray-600 bg-gray-700 p-2.5 text-white placeholder-gray-400 focus:border-blue-500 focus:ring-blue-500"
+                                        placeholder="parent@example.com"
+                                        required
+                                    />
+                                </div>
+
+                                {/* Password */}
+                                <div className="col-span-2">
+                                    <label htmlFor="password" className="mb-2 block text-sm font-medium text-white">
+                                        Password
+                                    </label>
+                                    <input
+                                        type="password"
+                                        name="password"
+                                        id="password"
+                                        value={form.password}
+                                        onChange={handleChange}
+                                        className="block w-full rounded-lg border border-gray-600 bg-gray-700 p-2.5 text-white placeholder-gray-400 focus:border-blue-500 focus:ring-blue-500"
+                                        placeholder="••••••••"
+                                        required
+                                    />
+                                </div>
+
+                                {/* Standing Long Jump */}
+                                <div className="col-span-2 sm:col-span-1">
+                                    <label htmlFor="standingLongJump" className="mb-2 block text-sm font-medium text-white">
+                                        Standing Long Jump (cm)
+                                    </label>
+                                    <input
                                         type="number"
+                                        name="standingLongJump"
+                                        id="standingLongJump"
                                         value={form.standingLongJump}
                                         onChange={handleChange}
-                                        className="mt-1 w-full rounded-lg border border-[#1e3a5f] bg-[#0a1e3c] p-3 text-white placeholder-[#a3c0e6]/50 focus:ring-2 focus:ring-[#4a90e2] focus:outline-none"
-                                        placeholder="e.g. 150"
+                                        className="block w-full rounded-lg border border-gray-600 bg-gray-700 p-2.5 text-white placeholder-gray-400 focus:border-blue-500 focus:ring-blue-500"
+                                        placeholder="175"
                                     />
                                 </div>
-                                <div>
-                                    <label className="block text-xs font-medium text-[#a3c0e6]">Single Leg Jump (Left) (cm)</label>
+
+                                {/* Single Leg Jump Left */}
+                                <div className="col-span-2 sm:col-span-1">
+                                    <label htmlFor="singleLegJumpLeft" className="mb-2 block text-sm font-medium text-white">
+                                        Single Leg Jump Left (cm)
+                                    </label>
                                     <input
-                                        name="singleLegJumpLeft"
                                         type="number"
+                                        name="singleLegJumpLeft"
+                                        id="singleLegJumpLeft"
                                         value={form.singleLegJumpLeft}
                                         onChange={handleChange}
-                                        className="mt-1 w-full rounded-lg border border-[#1e3a5f] bg-[#0a1e3c] p-3 text-white placeholder-[#a3c0e6]/50 focus:ring-2 focus:ring-[#4a90e2] focus:outline-none"
-                                        placeholder="e.g. 130"
+                                        className="block w-full rounded-lg border border-gray-600 bg-gray-700 p-2.5 text-white placeholder-gray-400 focus:border-blue-500 focus:ring-blue-500"
+                                        placeholder="90"
                                     />
                                 </div>
-                                <div>
-                                    <label className="block text-xs font-medium text-[#a3c0e6]">Single Leg Jump (Right) (cm)</label>
+
+                                {/* Single Leg Jump Right */}
+                                <div className="col-span-2 sm:col-span-1">
+                                    <label htmlFor="singleLegJumpRight" className="mb-2 block text-sm font-medium text-white">
+                                        Single Leg Jump Right (cm)
+                                    </label>
                                     <input
-                                        name="singleLegJumpRight"
                                         type="number"
+                                        name="singleLegJumpRight"
+                                        id="singleLegJumpRight"
                                         value={form.singleLegJumpRight}
                                         onChange={handleChange}
-                                        className="mt-1 w-full rounded-lg border border-[#1e3a5f] bg-[#0a1e3c] p-3 text-white placeholder-[#a3c0e6]/50 focus:ring-2 focus:ring-[#4a90e2] focus:outline-none"
-                                        placeholder="e.g. 135"
+                                        className="block w-full rounded-lg border border-gray-600 bg-gray-700 p-2.5 text-white placeholder-gray-400 focus:border-blue-500 focus:ring-blue-500"
+                                        placeholder="95"
                                     />
                                 </div>
-                                <div>
-                                    <label className="block text-xs font-medium text-[#a3c0e6]">Single Leg Wall Sit (Left) (seconds)</label>
+
+                                {/* Single Leg Wall Sit Left */}
+                                <div className="col-span-2 sm:col-span-1">
+                                    <label htmlFor="singleLegWallSitLeft" className="mb-2 block text-sm font-medium text-white">
+                                        Single Leg Wall Sit Left (sec)
+                                    </label>
                                     <input
-                                        name="singleLegWallSitLeft"
                                         type="number"
+                                        name="singleLegWallSitLeft"
+                                        id="singleLegWallSitLeft"
                                         value={form.singleLegWallSitLeft}
                                         onChange={handleChange}
-                                        className="mt-1 w-full rounded-lg border border-[#1e3a5f] bg-[#0a1e3c] p-3 text-white placeholder-[#a3c0e6]/50 focus:ring-2 focus:ring-[#4a90e2] focus:outline-none"
-                                        placeholder="e.g. 60"
+                                        className="block w-full rounded-lg border border-gray-600 bg-gray-700 p-2.5 text-white placeholder-gray-400 focus:border-blue-500 focus:ring-blue-500"
+                                        placeholder="30"
                                     />
                                 </div>
-                                <div>
-                                    <label className="block text-xs font-medium text-[#a3c0e6]">Single Leg Wall Sit (Right) (seconds)</label>
+
+                                {/* Single Leg Wall Sit Right */}
+                                <div className="col-span-2 sm:col-span-1">
+                                    <label htmlFor="singleLegWallSitRight" className="mb-2 block text-sm font-medium text-white">
+                                        Single Leg Wall Sit Right (sec)
+                                    </label>
                                     <input
-                                        name="singleLegWallSitRight"
                                         type="number"
+                                        name="singleLegWallSitRight"
+                                        id="singleLegWallSitRight"
                                         value={form.singleLegWallSitRight}
                                         onChange={handleChange}
-                                        className="mt-1 w-full rounded-lg border border-[#1e3a5f] bg-[#0a1e3c] p-3 text-white placeholder-[#a3c0e6]/50 focus:ring-2 focus:ring-[#4a90e2] focus:outline-none"
-                                        placeholder="e.g. 60"
+                                        className="block w-full rounded-lg border border-gray-600 bg-gray-700 p-2.5 text-white placeholder-gray-400 focus:border-blue-500 focus:ring-blue-500"
+                                        placeholder="32"
                                     />
                                 </div>
-                                <div>
-                                    <label className="block text-xs font-medium text-[#a3c0e6]">Core Endurance (seconds)</label>
+
+                                {/* Core Endurance */}
+                                <div className="col-span-2 sm:col-span-1">
+                                    <label htmlFor="coreEndurance" className="mb-2 block text-sm font-medium text-white">
+                                        Core Endurance (sec)
+                                    </label>
                                     <input
-                                        name="coreEndurance"
                                         type="number"
+                                        name="coreEndurance"
+                                        id="coreEndurance"
                                         value={form.coreEndurance}
                                         onChange={handleChange}
-                                        className="mt-1 w-full rounded-lg border border-[#1e3a5f] bg-[#0a1e3c] p-3 text-white placeholder-[#a3c0e6]/50 focus:ring-2 focus:ring-[#4a90e2] focus:outline-none"
-                                        placeholder="e.g. 90"
+                                        className="block w-full rounded-lg border border-gray-600 bg-gray-700 p-2.5 text-white placeholder-gray-400 focus:border-blue-500 focus:ring-blue-500"
+                                        placeholder="60"
                                     />
                                 </div>
-                                <div className="sm:col-span-2">
-                                    <div className="mb-2 flex items-center justify-between">
-                                        <label className="text-xs font-medium text-[#a3c0e6]">Bent Arm Hang (seconds)</label>
-                                        <div className="flex items-center space-x-2">
-                                            <Checkbox
-                                                id="bentArmHangEnabled"
-                                                checked={form.bentArmHangEnabled || false}
-                                                onCheckedChange={(checked) => handleCheckboxChange('bentArmHangEnabled', checked as boolean)}
+
+                                {/* Bent Arm Hang Checkbox */}
+                                <div className="col-span-2 sm:col-span-1">
+                                    <div className="flex items-center">
+                                        <input
+                                            type="checkbox"
+                                            id="bentArmHangEnabled"
+                                            checked={form.bentArmHangEnabled}
+                                            onChange={(e) => handleCheckboxChange('bentArmHangEnabled', e.target.checked)}
+                                            className="h-5 w-5 rounded border-gray-600 bg-gray-700 text-blue-500 focus:ring-blue-500"
+                                        />
+                                        <label htmlFor="bentArmHangEnabled" className="ms-2 text-sm font-medium text-white">
+                                            Bent Arm Hang Enabled
+                                        </label>
+                                    </div>
+                                </div>
+
+                                {/* Bent Arm Hang (only shown if enabled) */}
+                                {form.bentArmHangEnabled && (
+                                    <div className="col-span-2 sm:col-span-1">
+                                        <label htmlFor="bentArmHang" className="mb-2 block text-sm font-medium text-white">
+                                            Bent Arm Hang (sec)
+                                        </label>
+                                        <input
+                                            type="number"
+                                            name="bentArmHang"
+                                            id="bentArmHang"
+                                            value={form.bentArmHang}
+                                            onChange={handleChange}
+                                            className="block w-full rounded-lg border border-gray-600 bg-gray-700 p-2.5 text-white placeholder-gray-400 focus:border-blue-500 focus:ring-blue-500"
+                                            placeholder="25"
+                                        />
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Submit Button */}
+                            <div className="flex items-center justify-end space-x-2">
+                                <button
+                                    type="button"
+                                    onClick={onClose}
+                                    className="rounded-lg border border-gray-600 bg-gray-700 px-5 py-2.5 text-center text-sm font-medium text-white hover:bg-gray-600 focus:outline-none"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    type="submit"
+                                    className="rounded-lg bg-blue-600 px-5 py-2.5 text-center text-sm font-medium text-white hover:bg-blue-700 focus:outline-none disabled:opacity-50"
+                                    disabled={isSubmitting}
+                                >
+                                    {isSubmitting ? 'Adding...' : 'Add Athlete'}
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            {/* Confirmation Modal */}
+            {showConfirmation && formattedData && (
+                <div className="bg-opacity-70 fixed inset-0 z-[60] flex items-center justify-center overflow-x-hidden overflow-y-auto bg-black">
+                    <div className="relative max-h-full w-full max-w-md p-4">
+                        <div className="animate-fade-in-down relative rounded-lg bg-gradient-to-b from-[#112845] to-[#0a1e3c] shadow">
+                            {/* Modal header */}
+                            <div className="flex items-center justify-between rounded-t border-b border-gray-600 p-4 md:p-5">
+                                <h3 className="text-xl font-semibold text-white">Confirm Addition</h3>
+                            </div>
+
+                            {/* Modal body */}
+                            <div className="p-4 md:p-5">
+                                <div className="mb-4 text-center">
+                                    <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-blue-100 text-blue-600">
+                                        <svg
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            fill="none"
+                                            viewBox="0 0 24 24"
+                                            strokeWidth={1.5}
+                                            stroke="currentColor"
+                                            className="h-6 w-6"
+                                        >
+                                            <path
+                                                strokeLinecap="round"
+                                                strokeLinejoin="round"
+                                                d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9 5.25h.008v.008H12v-.008z"
                                             />
-                                            <label htmlFor="bentArmHangEnabled" className="cursor-pointer text-xs text-[#a3c0e6]">
-                                                Enable
-                                            </label>
+                                        </svg>
+                                    </div>
+                                    <h3 className="mb-2 text-lg font-semibold text-white">Are you sure you want to add this athlete?</h3>
+                                    <p className="text-gray-400">
+                                        You are about to add <span className="font-semibold text-white">{formattedData.username}</span> with the email{' '}
+                                        <span className="font-semibold text-white">{formattedData.parent_email}</span>.
+                                    </p>
+                                </div>
+
+                                <div className="mb-4 rounded-lg bg-gray-800/50 p-3">
+                                    <h4 className="mb-2 text-sm font-medium text-blue-400">Pre-Training Results:</h4>
+                                    <div className="grid grid-cols-2 gap-2 text-xs">
+                                        <div className="rounded bg-gray-700/50 p-2">
+                                            <p className="font-medium text-gray-400">Standing Long Jump:</p>
+                                            <p className="text-white">{formattedData.training_results.standing_long_jump || '-'} cm</p>
+                                        </div>
+                                        <div className="rounded bg-gray-700/50 p-2">
+                                            <p className="font-medium text-gray-400">Single Leg Jump (L):</p>
+                                            <p className="text-white">{formattedData.training_results.single_leg_jump_left || '-'} cm</p>
+                                        </div>
+                                        <div className="rounded bg-gray-700/50 p-2">
+                                            <p className="font-medium text-gray-400">Single Leg Jump (R):</p>
+                                            <p className="text-white">{formattedData.training_results.single_leg_jump_right || '-'} cm</p>
+                                        </div>
+                                        <div className="rounded bg-gray-700/50 p-2">
+                                            <p className="font-medium text-gray-400">Bent Arm Hang:</p>
+                                            <p className="text-white">{formattedData.training_results.bent_arm_hang || '-'} sec</p>
                                         </div>
                                     </div>
-                                    <input
-                                        name="bentArmHang"
-                                        type="number"
-                                        value={form.bentArmHang}
-                                        onChange={handleChange}
-                                        disabled={!form.bentArmHangEnabled}
-                                        className={`mt-1 w-full rounded-lg border border-[#1e3a5f] bg-[#0a1e3c] p-3 text-white placeholder-[#a3c0e6]/50 focus:ring-2 focus:ring-[#4a90e2] focus:outline-none ${!form.bentArmHangEnabled ? 'cursor-not-allowed opacity-50' : ''}`}
-                                        placeholder="e.g. 20"
-                                    />
+                                </div>
+
+                                <div className="flex items-center justify-end space-x-3 pt-2">
+                                    <button
+                                        onClick={cancelSubmit}
+                                        type="button"
+                                        className="rounded-lg border border-gray-600 bg-gray-800 px-4 py-2 text-sm font-medium text-white hover:bg-gray-700"
+                                        disabled={isSubmitting}
+                                    >
+                                        Cancel
+                                    </button>
+                                    <button
+                                        onClick={confirmSubmit}
+                                        type="button"
+                                        className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 focus:outline-none disabled:opacity-50"
+                                        disabled={isSubmitting}
+                                    >
+                                        {isSubmitting ? 'Processing...' : 'Confirm'}
+                                    </button>
                                 </div>
                             </div>
                         </div>
-                    </form>
+                    </div>
                 </div>
-
-                {/* Modal Footer - Fixed */}
-                <div className="sticky bottom-0 z-10 flex flex-col gap-3 border-t border-[#1e3a5f] bg-[#112845] p-4 sm:flex-row sm:justify-end md:p-6">
-                    <button
-                        type="button"
-                        onClick={onClose}
-                        className="order-2 w-full rounded-lg border border-[#1e3a5f] bg-transparent px-4 py-3 text-[#a3c0e6] transition-colors hover:bg-[#1e3a5f] disabled:opacity-50 sm:order-1 sm:w-auto"
-                        disabled={isSubmitting}
-                    >
-                        Cancel
-                    </button>
-                    <button
-                        onClick={(e) => {
-                            e.preventDefault();
-                            const form = document.querySelector('form');
-                            if (form) {
-                                const formEvent = new Event('submit', { bubbles: true, cancelable: true });
-                                form.dispatchEvent(formEvent);
-                            }
-                        }}
-                        disabled={isSubmitting}
-                        className="order-1 w-full rounded-lg bg-gradient-to-r from-[#4a90e2] to-[#63b3ed] px-4 py-3 font-medium text-white shadow-lg transition-all duration-300 hover:from-[#3a80d2] hover:to-[#53a3dd] disabled:opacity-50 sm:order-2 sm:w-auto"
-                    >
-                        {isSubmitting ? 'Creating...' : 'Create Athlete'}
-                    </button>
-                </div>
-            </div>
-        </div>
+            )}
+        </>
     );
 }

@@ -85,8 +85,10 @@ export default function useAthleteForm(athletes: Athlete[], setAthletes: React.D
         bentArmHangEnabled: false,
     });
 
-    // Modal state
+    // Modal states
     const [showModal, setShowModal] = useState(false);
+    const [showConfirmation, setShowConfirmation] = useState(false);
+    const [formattedData, setFormattedData] = useState<FormattedData | null>(null);
 
     // Loading and error states
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -160,18 +162,28 @@ export default function useAthleteForm(athletes: Athlete[], setAthletes: React.D
         return formData;
     };
 
-    // Using Inertia.js for form submission
-    const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    // Step 1: Show confirmation dialog
+    const handleFormSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         setError(null);
 
-        // Format the data
-        const formData = formatFormData();
+        // Format the data and store it for later use
+        const data = formatFormData();
+        setFormattedData(data);
 
-        // DEBUG: Log the full form data
-        console.log('FULL FORM DATA:', JSON.stringify(formData, null, 2));
+        // Show confirmation dialog
+        setShowConfirmation(true);
+    };
 
-        router.post('/admin/athletes', formData, {
+    // Step 2: Actual form submission after confirmation
+    const confirmSubmit = () => {
+        if (!formattedData) return;
+
+        setIsSubmitting(true);
+
+        console.log('FULL FORM DATA:', JSON.stringify(formattedData, null, 2));
+
+        router.post('/admin/athletes', formattedData, {
             onStart: () => {
                 console.log('Form submission starting!');
                 setIsSubmitting(true);
@@ -179,6 +191,7 @@ export default function useAthleteForm(athletes: Athlete[], setAthletes: React.D
             onFinish: () => {
                 console.log('Form submission finished!');
                 setIsSubmitting(false);
+                setShowConfirmation(false);
             },
             onSuccess: (page: InertiaPage) => {
                 console.log('Form submission successful!', page);
@@ -198,29 +211,32 @@ export default function useAthleteForm(athletes: Athlete[], setAthletes: React.D
                     bentArmHangEnabled: false,
                 });
 
-                // Close modal
+                // Close modals
                 setShowModal(false);
+                setShowConfirmation(false);
 
-                // If there's a new athlete in the response, update the local state
+                // Update local state
                 if (page.props.flash && page.props.flash.newAthlete) {
                     setAthletes((prevAthletes) => [...prevAthletes, page.props.flash!.newAthlete!]);
                 }
 
-                // Show success alert and refresh the page when user clicks "OK"
-                setTimeout(() => {
-                    // Display alert with success message
-                    alert(`Athlete ${formData.username} has been successfully added!`);
-
-                    // Force a hard refresh of the page after alert is dismissed
-                    window.location.reload();
-                }, 300);
+                // ✅ Show success alert and reload page
+                alert('Athlete successfully added!');
+                window.location.reload();
             },
             onError: (errors: Record<string, string>) => {
                 console.error('Form submission errors:', errors);
                 const errorMessage = Object.values(errors)[0] || 'An error occurred';
                 setError(errorMessage);
+                setShowConfirmation(false);
             },
         });
+    };
+
+    // Cancel confirmation
+    const cancelSubmit = () => {
+        setShowConfirmation(false);
+        setFormattedData(null);
     };
 
     return {
@@ -228,10 +244,15 @@ export default function useAthleteForm(athletes: Athlete[], setAthletes: React.D
         setForm,
         showModal,
         setShowModal,
+        showConfirmation,
+        setShowConfirmation,
         handleChange,
         handleCheckboxChange,
-        handleSubmit,
+        handleSubmit: handleFormSubmit,
+        confirmSubmit,
+        cancelSubmit,
         isSubmitting,
         error,
+        formattedData,
     };
 }
