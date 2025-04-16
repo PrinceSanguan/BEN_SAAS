@@ -49,12 +49,23 @@ Route::middleware([AdminMiddleware::class])->group(function () {
 
     // Athletes routes
     Route::get('/admin/athletes', [AdminDashboardController::class, 'athletes'])->name('admin.athletes');
-
     Route::post('/admin/athletes', [AdminDashboardController::class, 'createAthlete'])->name('admin.athletes.store');
     Route::post('/admin/create-athlete', [AdminDashboardController::class, 'createAthlete'])->name('admin.createAthlete');
+    Route::delete('/admin/athletes/{id}', [AdminDashboardController::class, 'deleteAthlete'])->name('admin.athletes.delete');
+
+    // NEW: Get athlete details
+    Route::get('/admin/athletes/{id}', [AdminDashboardController::class, 'getAthlete'])->name('admin.athletes.show');
+
+    // NEW: Update athlete
+    Route::put('/admin/athletes/{id}', [AdminDashboardController::class, 'updateAthlete'])->name('admin.athletes.update');
+
+    // NEW: View athlete dashboard as admin
+    Route::get('/admin/athletes/{id}/dashboard', [AdminDashboardController::class, 'viewAthleteDashboard'])->name('admin.athletes.dashboard');
 
     Route::get('/admin/analytics', [AdminDashboardController::class, 'analytics'])->name('admin.analytics');
     Route::get('/admin/settings', [AdminDashboardController::class, 'settings'])->name('admin.settings');
+
+    Route::get('/admin/switch-back', [AdminDashboardController::class, 'switchBackToAdmin'])->name('admin.switch.back');
 });
 
 Route::post('/admin/logout', [LoginController::class, 'logout'])->name('admin.logout');

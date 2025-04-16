@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rules\Password;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Auth;
 
 class AdminDashboardController extends Controller
 {
@@ -204,5 +205,205 @@ class AdminDashboardController extends Controller
                     'email' => $user->parent_email,
                 ];
             });
+    }
+
+    /**
+     * Delete an athlete
+     */
+    public function deleteAthlete(Request $request, $id)
+    {
+        try {
+            DB::beginTransaction();
+
+            // Find the user
+            $user = User::findOrFail($id);
+
+            // Delete associated pre-training test first to avoid foreign key constraint issues
+            if ($user->preTrainingTest) {
+                $user->preTrainingTest->delete();
+            }
+
+            // Delete the user
+            $user->delete();
+
+            DB::commit();
+
+            return redirect()->back()->with('success', 'Athlete deleted successfully!');
+        } catch (ModelNotFoundException $e) {
+            DB::rollBack();
+            return redirect()->back()->with('error', 'Athlete not found.');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Error deleting athlete: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Failed to delete athlete.');
+        }
+    }
+
+    /**
+     * Get a specific athlete's data
+     */
+    public function getAthlete($id)
+    {
+        try {
+            $athlete = User::with('preTrainingTest')->findOrFail($id);
+
+            if ($athlete->user_role !== 'student') {
+                return redirect()->back()->with('error', 'User is not an athlete.');
+            }
+
+            $athleteData = [
+                'id' => $athlete->id,
+                'username' => $athlete->username,
+                'email' => $athlete->parent_email,
+                'created_at' => $athlete->created_at,
+                'training_results' => $athlete->preTrainingTest ? [
+                    'standing_long_jump' => $athlete->preTrainingTest->standing_long_jump,
+                    'single_leg_jump_left' => $athlete->preTrainingTest->single_leg_jump_left,
+                    'single_leg_jump_right' => $athlete->preTrainingTest->single_leg_jump_right,
+                    'single_leg_wall_sit_left' => $athlete->preTrainingTest->single_leg_wall_sit_left,
+                    'single_leg_wall_sit_right' => $athlete->preTrainingTest->single_leg_wall_sit_right,
+                    'core_endurance' => $athlete->preTrainingTest->core_endurance,
+                    'bent_arm_hang' => $athlete->preTrainingTest->bent_arm_hang,
+                ] : null,
+            ];
+
+            return Inertia::render('Admin/AthleteDetail', [
+                'athlete' => $athleteData,
+                'activePage' => 'dashboard'
+            ]);
+        } catch (ModelNotFoundException $e) {
+            return redirect()->back()->with('error', 'Athlete not found.');
+        }
+    }
+
+    /**
+     * Update an athlete's information
+     */
+    public function updateAthlete(Request $request, $id)
+    {
+        try {
+            // Validate the request
+            $validated = $request->validate([
+                'username' => ['required', 'string', 'max:255'],
+                'parent_email' => ['required', 'string', 'email', 'max:255'],
+                'password' => ['nullable', Password::defaults()],
+                'standing_long_jump' => ['nullable', 'numeric'],
+                'single_leg_jump_left' => ['nullable', 'numeric'],
+                'single_leg_jump_right' => ['nullable', 'numeric'],
+                'single_leg_wall_sit_left' => ['nullable', 'numeric'],
+                'single_leg_wall_sit_right' => ['nullable', 'numeric'],
+                'core_endurance' => ['nullable', 'numeric'],
+                'bent_arm_hang' => ['nullable', 'numeric'],
+            ]);
+
+            DB::beginTransaction();
+
+            // Find the user
+            $user = User::findOrFail($id);
+
+            // Check if another user already has this username (excluding the current user)
+            $existingUsername = User::where('username', $validated['username'])
+                ->where('id', '!=', $id)
+                ->first();
+            if ($existingUsername) {
+                return redirect()->back()->withErrors(['username' => 'This username is already taken.']);
+            }
+
+            // Check if another user already has this parent email (excluding the current user)
+            $existingEmail = User::where('parent_email', $validated['parent_email'])
+                ->where('id', '!=', $id)
+                ->first();
+            if ($existingEmail) {
+                return redirect()->back()->withErrors(['parent_email' => 'This email is already associated with another user.']);
+            }
+
+            // Update the user
+            $user->username = $validated['username'];
+            $user->parent_email = $validated['parent_email'];
+
+            // Update password if provided
+            if (!empty($validated['password'])) {
+                $user->password = Hash::make($validated['password']);
+            }
+
+            $user->save();
+
+            // Update or create pre-training test results
+            $preTrainingTest = PreTrainingTest::firstOrNew(['user_id' => $user->id]);
+            $preTrainingTest->standing_long_jump = $request->input('training_results.standing_long_jump');
+            $preTrainingTest->single_leg_jump_left = $request->input('training_results.single_leg_jump_left');
+            $preTrainingTest->single_leg_jump_right = $request->input('training_results.single_leg_jump_right');
+            $preTrainingTest->single_leg_wall_sit_left = $request->input('training_results.single_leg_wall_sit_left');
+            $preTrainingTest->single_leg_wall_sit_right = $request->input('training_results.single_leg_wall_sit_right');
+            $preTrainingTest->core_endurance = $request->input('training_results.core_endurance');
+            $preTrainingTest->bent_arm_hang = $request->input('training_results.bent_arm_hang');
+
+            // If test is new, set tested_at
+            if (!$preTrainingTest->exists) {
+                $preTrainingTest->tested_at = now();
+            }
+
+            $preTrainingTest->save();
+
+            DB::commit();
+
+            return redirect()->back()->with('success', 'Athlete updated successfully!');
+        } catch (ModelNotFoundException $e) {
+            DB::rollBack();
+            return redirect()->back()->with('error', 'Athlete not found.');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Error updating athlete: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Failed to update athlete: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * View athlete dashboard as admin by redirecting to student dashboard
+     */
+    public function viewAthleteDashboard($id)
+    {
+        try {
+            $athlete = User::findOrFail($id);
+
+            if ($athlete->user_role !== 'student') {
+                return redirect()->back()->with('error', 'User is not an athlete.');
+            }
+
+            // Store admin ID in session to allow navigation back
+            session(['admin_viewing_as_student' => auth()->id()]);
+
+            // Store the student ID being viewed
+            session(['viewing_student_id' => $athlete->id]);
+            // Log in as the student temporarily
+            Auth::login($athlete);
+            auth()->login($athlete);
+
+            // Redirect to student dashboard
+            return redirect()->route('student.dashboard');
+        } catch (ModelNotFoundException $e) {
+            return redirect()->back()->with('error', 'Athlete not found.');
+        }
+    }
+
+    /**
+     * Switch back to admin after viewing student dashboard
+     */
+    public function switchBackToAdmin()
+    {
+        if (session()->has('admin_viewing_as_student')) {
+            $adminId = session('admin_viewing_as_student');
+            $admin = User::findOrFail($adminId);
+
+            // Clear the session variables
+            session()->forget(['admin_viewing_as_student', 'viewing_student_id']);
+
+            // Log back in as admin
+            auth()->login($admin);
+
+            return redirect()->route('admin.dashboard')->with('success', 'Switched back to admin account.');
+        }
+
+        return redirect()->route('login');
     }
 }
