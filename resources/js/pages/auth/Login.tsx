@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 
 interface LoginForm {
-    username: string;
+    login: string; // Changed from username to login to accept both username and email
     password: string;
     isAdmin: boolean;
     [key: string]: string | boolean;
@@ -19,14 +19,14 @@ interface LoginProps {
     status?: string;
     errors: {
         credentials?: string;
-        username?: string;
+        login?: string; // Changed from username to login
         password?: string;
     };
 }
 
 export default function Login({ status, errors }: LoginProps) {
     const { data, setData, post, processing, reset } = useForm<LoginForm>({
-        username: '',
+        login: '', // Changed from username to login
         password: '',
         isAdmin: false,
     });
@@ -68,27 +68,27 @@ export default function Login({ status, errors }: LoginProps) {
 
                     <form onSubmit={submit} className="space-y-6">
                         <div>
-                            <Label htmlFor="username" className="mb-1 text-sm font-medium">
-                                Username
+                            <Label htmlFor="login" className="mb-1 text-sm font-medium">
+                                Username or Email
                             </Label>
                             <div className="relative">
                                 <div className="pointer-events-none absolute inset-y-0 left-3 flex items-center">
                                     <User className="h-4 w-4 text-gray-400" />
                                 </div>
                                 <Input
-                                    id="username"
+                                    id="login"
                                     type="text"
                                     required
                                     autoFocus
                                     tabIndex={1}
-                                    autoComplete="username"
-                                    value={data.username}
-                                    onChange={(e) => setData('username', e.target.value)}
-                                    placeholder="admin@gmail.com"
+                                    autoComplete="username email"
+                                    value={data.login}
+                                    onChange={(e) => setData('login', e.target.value)}
+                                    placeholder="username or email@example.com"
                                     className="border-gray-600 bg-gray-800 pl-10 text-white placeholder-gray-400"
                                 />
                             </div>
-                            <InputError message={errors.username} />
+                            <InputError message={errors.login} />
                         </div>
 
                         <div>
@@ -116,9 +116,7 @@ export default function Login({ status, errors }: LoginProps) {
                         </div>
 
                         <div>
-                            <p className="mt-1 text-xs text-gray-400">
-                                (For admin, use username <strong>admin</strong> and password <strong>admin</strong>)
-                            </p>
+                            <p className="mt-1 text-xs text-gray-400"></p>
                         </div>
 
                         <Button

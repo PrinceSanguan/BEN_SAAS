@@ -1,6 +1,6 @@
 import { Head, Link } from '@inertiajs/react';
 import gsap from 'gsap';
-import { Activity, Award, BarChart2, Calendar, ChevronDown, ChevronUp, Home, Lock, LogOut, Menu, Trophy, User, X } from 'lucide-react';
+import { Activity, Award, BarChart2, Calendar, ChevronDown, ChevronUp, Clock, Home, Lock, LogOut, Menu, Trophy, User, X } from 'lucide-react';
 import React, { useEffect, useRef, useState } from 'react';
 
 interface Session {
@@ -8,13 +8,14 @@ interface Session {
     session_number: number | null;
     session_type: 'training' | 'testing' | 'rest';
     is_completed: boolean;
-    is_locked: boolean; // New property to track locked state
-    label: string; // Added custom display label from backend
+    is_locked: boolean;
+    label: string;
+    release_date: string; // Added release date
+    raw_release_date: string | null; // For date comparison
 }
 
 interface Week {
     week_number: number;
-    // Preformatted week label (e.g., "Session 1 & Session 2" or "TESTING, Session 9 & Session 10")
     label: string;
     sessions: Session[];
 }
@@ -22,6 +23,7 @@ interface Week {
 interface Block {
     id: number;
     block_number: number;
+    block_label: string;
     weeks: Week[];
 }
 
@@ -29,9 +31,10 @@ interface StudentTrainingProps {
     blocks: Block[];
     username?: string;
     routes?: { [key: string]: string };
+    currentDate: string; // Added current date
 }
 
-const StudentTraining: React.FC<StudentTrainingProps> = ({ blocks, username = 'Athlete', routes = {} }) => {
+const StudentTraining: React.FC<StudentTrainingProps> = ({ blocks, username = 'Athlete', routes = {}, currentDate }) => {
     const [expandedBlock, setExpandedBlock] = useState<number | null>(null);
     const [expandedWeeks, setExpandedWeeks] = useState<{ [blockId: number]: number[] }>({});
     const [isMobile, setIsMobile] = useState(false);
@@ -97,6 +100,25 @@ const StudentTraining: React.FC<StudentTrainingProps> = ({ blocks, username = 'A
         });
     };
 
+    // Helper to check if a date is today
+    const isToday = (dateStr: string): boolean => {
+        if (!dateStr || dateStr === 'Not scheduled') return false;
+        return dateStr === currentDate;
+    };
+
+    // Helper to check if a date is upcoming
+    const isUpcoming = (rawDate: string | null): boolean => {
+        if (!rawDate) return false;
+        const sessionDate = new Date(rawDate);
+        const today = new Date();
+
+        // Reset time components for comparison
+        today.setHours(0, 0, 0, 0);
+        sessionDate.setHours(0, 0, 0, 0);
+
+        return sessionDate > today;
+    };
+
     // Helper to generate route URLs
     const getRoute = (name: string, params?: Record<string, string | number>): string => {
         if (routes && routes[name]) return routes[name];
@@ -158,35 +180,57 @@ const StudentTraining: React.FC<StudentTrainingProps> = ({ blocks, username = 'A
         return 'not-started';
     };
 
-    // Function to render the locked session indicator
+    // Function to render the session content with release date information
     const renderSessionContent = (session: Session) => {
         if (session.is_locked) {
             return (
-                <div className="flex items-center justify-between text-gray-400">
-                    <span>{getSessionDisplayLabel(session)}</span>
-                    <Lock className="h-4 w-4" />
+                <div className="flex flex-col space-y-2">
+                    <div className="flex items-center justify-between text-gray-400">
+                        <span>{getSessionDisplayLabel(session)}</span>
+                        <Lock className="h-4 w-4" />
+                    </div>
+                    <div className="flex items-center text-xs text-gray-400">
+                        <Clock className="mr-1 h-3 w-3" />
+                        <span>Available: {session.release_date}</span>
+                    </div>
                 </div>
             );
         }
 
         if (session.session_type !== 'rest') {
             return (
-                <a href={getRoute('training.session.show', { sessionId: session.id })} className="flex items-center justify-between">
-                    <span className="font-medium text-white">{getSessionDisplayLabel(session)}</span>
-                    {session.is_completed && (
-                        <span className="inline-flex items-center rounded-full bg-green-200 px-2 py-1 text-xs font-medium text-green-700">
-                            Completed
-                        </span>
-                    )}
+                <a href={getRoute('training.session.show', { sessionId: session.id })} className="flex flex-col space-y-2">
+                    <div className="flex items-center justify-between">
+                        <span className="font-medium text-white">{getSessionDisplayLabel(session)}</span>
+                        {session.is_completed ? (
+                            <span className="inline-flex items-center rounded-full bg-green-200 px-2 py-1 text-xs font-medium text-green-700">
+                                Completed
+                            </span>
+                        ) : isToday(session.release_date) ? (
+                            <span className="inline-flex items-center rounded-full bg-blue-200 px-2 py-1 text-xs font-medium text-blue-700">
+                                Today
+                            </span>
+                        ) : null}
+                    </div>
+                    <div className="flex items-center text-xs text-[#a3c0e6]">
+                        <Calendar className="mr-1 h-3 w-3" />
+                        <span>Released: {session.release_date}</span>
+                    </div>
                 </a>
             );
         } else {
             return (
-                <div className="flex items-center justify-between">
-                    <span className="font-medium text-white">{getSessionDisplayLabel(session)}</span>
-                    <span className="inline-flex items-center rounded-full bg-green-200/70 px-2 py-1 text-xs font-medium text-green-700">
-                        Recovery
-                    </span>
+                <div className="flex flex-col space-y-2">
+                    <div className="flex items-center justify-between">
+                        <span className="font-medium text-white">{getSessionDisplayLabel(session)}</span>
+                        <span className="inline-flex items-center rounded-full bg-green-200/70 px-2 py-1 text-xs font-medium text-green-700">
+                            Recovery
+                        </span>
+                    </div>
+                    <div className="flex items-center text-xs text-[#a3c0e6]">
+                        <Calendar className="mr-1 h-3 w-3" />
+                        <span>Released: {session.release_date}</span>
+                    </div>
                 </div>
             );
         }
@@ -339,7 +383,10 @@ const StudentTraining: React.FC<StudentTrainingProps> = ({ blocks, username = 'A
                             </button>
                             <h1 className="text-xl font-bold text-white">Your Training</h1>
                         </div>
-                        <div className="text-xs text-[#a3c0e6] md:text-sm">Current progress: Block {blocks[0]?.block_number || 1}</div>
+                        <div className="flex items-center text-xs text-[#a3c0e6] md:text-sm">
+                            <Calendar className="mr-2 h-4 w-4" />
+                            <span>Today: {currentDate}</span>
+                        </div>
                     </div>
                 </header>
                 <main ref={mainContentRef} className="mx-auto max-w-5xl px-4 py-6 pb-24 lg:pb-6">
@@ -359,7 +406,7 @@ const StudentTraining: React.FC<StudentTrainingProps> = ({ blocks, username = 'A
                                             <div className="mr-3 flex h-10 w-10 items-center justify-center rounded-full bg-[#1e3a5f]">
                                                 <Calendar className="h-5 w-5 text-[#4a90e2]" />
                                             </div>
-                                            <h2 className="text-2xl font-bold text-white">Block {block.block_number}</h2>
+                                            <h2 className="text-2xl font-bold text-white">{block.block_label}</h2>
                                         </div>
                                         {expandedBlock === block.id ? (
                                             <ChevronUp className="h-6 w-6 text-[#a3c0e6]" />
@@ -458,7 +505,11 @@ const StudentTraining: React.FC<StudentTrainingProps> = ({ blocks, username = 'A
                     </div>
                     <div className="flex items-center">
                         <Lock className="mr-2 h-3 w-3 text-gray-400" />
-                        <span className="text-[#a3c0e6]">Locked (complete previous sessions)</span>
+                        <span className="text-[#a3c0e6]">Locked (not yet released)</span>
+                    </div>
+                    <div className="flex items-center">
+                        <Calendar className="mr-2 h-3 w-3 text-blue-400" />
+                        <span className="text-[#a3c0e6]">Today's session</span>
                     </div>
                 </div>
             </div>

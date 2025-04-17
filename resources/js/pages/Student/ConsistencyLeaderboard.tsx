@@ -202,7 +202,7 @@ const ConsistencyLeaderboard: React.FC<ConsistencyLeaderboardProps> = ({ leaderb
                                 <span className="ml-2 text-sm font-medium whitespace-nowrap text-[#4a90e2]">{user.consistency_score}%</span>
                             </div>
                             <div className="mt-2 text-center text-xs text-[#a3c0e6]">
-                                {user.completed_sessions} of {user.available_sessions} sessions completed
+                                {user.completed_sessions} of {user.available_sessions} available sessions completed
                             </div>
                         </div>
                     </div>
@@ -228,7 +228,7 @@ const ConsistencyLeaderboard: React.FC<ConsistencyLeaderboardProps> = ({ leaderb
                                 Consistency
                             </th>
                             <th scope="col" className="px-6 py-3 text-left text-xs font-medium tracking-wider text-[#4a90e2] uppercase">
-                                Sessions Completed
+                                Available Sessions Completed
                             </th>
                         </tr>
                     </thead>
@@ -456,8 +456,8 @@ const ConsistencyLeaderboard: React.FC<ConsistencyLeaderboardProps> = ({ leaderb
                     <div className="mt-4 rounded-lg border border-[#1e3a5f] bg-[#0a1e3c]/80 p-4 text-sm">
                         <h3 className="mb-2 font-medium text-white">How Consistency Works:</h3>
                         <p className="text-[#a3c0e6]">
-                            Consistency score is the percentage of available sessions you've completed. Complete all your available sessions to
-                            achieve 100% consistency!
+                            Consistency score is the percentage of available training sessions you've completed. Complete all your available sessions
+                            to achieve 100% consistency!
                         </p>
                     </div>
                 </main>

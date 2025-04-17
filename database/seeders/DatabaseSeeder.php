@@ -16,11 +16,11 @@ class DatabaseSeeder extends Seeder
             // First create users
             UserSeeder::class,
 
-            // Then create training blocks
-            BlockSeeder::class,
+            // // Then create training blocks
+            // BlockSeeder::class,
 
-            // // Then populate training sessions
-            TrainingSessionSeeder::class,
+            // // // Then populate training sessions
+            // TrainingSessionSeeder::class,
 
             // // Then create student users and their training results
             // TrainingResultsSeeder::class,
