@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 use App\Models\TrainingSession;
 use Illuminate\Http\Request;
+use Carbon\Carbon;
 
 class StudentTrainingController extends Controller
 {
@@ -36,6 +37,7 @@ class StudentTrainingController extends Controller
     public function index()
     {
         $user = Auth::user();
+        $currentDate = Carbon::now();
 
         // 1) Get all blocks + sessions, sorted by week_number, session_number.
         $blocks = Block::with(['sessions' => function ($query) {
@@ -54,39 +56,13 @@ class StudentTrainingController extends Controller
 
         $completedSessions = array_merge($completedSessions, $completedTestSessions);
 
-        // Find the current active block
-        $currentBlockIndex = -1;
-        for ($i = 0; $i < count($blocks); $i++) {
-            $block = $blocks[$i];
-            $isBlockCompleted = $this->isBlockCompleted($block->id, $user->id);
-
-            if (!$isBlockCompleted) {
-                $currentBlockIndex = $i;
-                break;
-            }
-        }
-
-        // 3) Format blocks with modified week-based unlocking logic
-        $formattedBlocks = $blocks->map(function ($block, $index) use ($completedSessions, $user, $currentBlockIndex) {
-            // Check if this block should be locked (it comes after the current incomplete block)
-            $isBlockLocked = $currentBlockIndex !== -1 && $index > $currentBlockIndex;
-
+        // 3) Format blocks with date-based unlocking logic
+        $formattedBlocks = $blocks->map(function ($block) use ($completedSessions, $user, $currentDate) {
             // Group sessions by week
             $sessionsByWeek = collect($block->sessions)->groupBy('week_number');
 
-            // Determine the highest completed week
-            $highestCompletedWeek = $this->getHighestCompletedWeek($block->id, $user->id);
-
-            // Current unlocked week is either week 1 or one week after the highest completed week
-            $currentUnlockedWeek = $highestCompletedWeek + 1;
-
-            // If no weeks are completed yet, start with week 1
-            if ($highestCompletedWeek == 0) {
-                $currentUnlockedWeek = 1;
-            }
-
             // For each week, figure out how many training vs. testing sessions exist, then build a label
-            $weeks = $sessionsByWeek->map(function ($sessions, $weekNumber) use ($block, $completedSessions, $currentUnlockedWeek, $isBlockLocked) {
+            $weeks = $sessionsByWeek->map(function ($sessions, $weekNumber) use ($completedSessions, $currentDate) {
                 // We'll separate training vs. testing sessions
                 $training = $sessions->where('session_type', 'training');
                 $testing  = $sessions->where('session_type', 'testing');
@@ -115,7 +91,7 @@ class StudentTrainingController extends Controller
                 }
 
                 // Map each session's details so the front-end can see them.
-                $mappedSessions = $sessions->map(function ($session) use ($completedSessions, $currentUnlockedWeek, $isBlockLocked) {
+                $mappedSessions = $sessions->map(function ($session) use ($completedSessions, $currentDate) {
                     // For display label in frontend: don't include session number for testing sessions
                     $displayLabel = '';
                     if ($session->session_type === 'testing') {
@@ -126,21 +102,25 @@ class StudentTrainingController extends Controller
                         $displayLabel = "Session {$session->session_number}";
                     }
 
-                    // Determine if this session is locked based on week or block
-                    // It's unlocked if:
-                    // 1. It's already completed
-                    // 2. The block is not locked AND it's in the current unlocked week or earlier
-                    // 3. It's a rest session (always accessible)
+                    // Determine if this session is locked based on release date
+                    $releaseDate = $session->release_date ? Carbon::parse($session->release_date) : null;
                     $isCompleted = in_array($session->id, $completedSessions);
-                    $isLocked = $isBlockLocked || (!$isCompleted && $session->week_number > $currentUnlockedWeek && $session->session_type !== 'rest');
+
+                    // Session is locked if the release date is in the future or null (not yet set)
+                    $isLocked = $releaseDate ? $currentDate->lt($releaseDate) : true;
+
+                    // Format release date for frontend display
+                    $formattedReleaseDate = $releaseDate ? $releaseDate->format('F j, Y') : 'Not scheduled';
 
                     return [
                         'id'             => $session->id,
                         'session_number' => $session->session_number,
                         'session_type'   => $session->session_type,
                         'is_completed'   => $isCompleted,
-                        'is_locked'      => $isLocked, // Updated to consider block locking
-                        'label'          => $displayLabel, // Add custom display label
+                        'is_locked'      => $isLocked,
+                        'label'          => $displayLabel,
+                        'release_date'   => $formattedReleaseDate,
+                        'raw_release_date' => $session->release_date,
                     ];
                 })->values();
 
@@ -155,7 +135,6 @@ class StudentTrainingController extends Controller
                 'id'           => $block->id,
                 'block_number' => $block->block_number,
                 'block_label'  => "Block {$block->block_number}",
-                'is_locked'    => $isBlockLocked, // Add this to indicate if the entire block is locked
                 'weeks'        => $weeks,
             ];
         });
@@ -172,95 +151,23 @@ class StudentTrainingController extends Controller
                 'nextLevel' => $xpSummary['next_level'],
                 'xpNeeded' => $xpSummary['xp_needed_for_next_level'],
             ],
+            'currentDate' => $currentDate->format('F j, Y'),
         ]);
-    }
-
-
-    /**
-     * Get the highest week number that the user has fully completed
-     *
-     * @param int $blockId
-     * @param int $userId
-     * @return int
-     */
-    protected function getHighestCompletedWeek(int $blockId, int $userId): int
-    {
-        // Get all sessions for this block, grouped by week
-        $sessionsByWeek = TrainingSession::where('block_id', $blockId)
-            ->where('session_type', 'training') // Only consider training sessions
-            ->get()
-            ->groupBy('week_number');
-
-        // Get all completed session IDs for this user
-        $completedSessions = TrainingResult::where('user_id', $userId)
-            ->pluck('session_id')
-            ->toArray();
-
-        $highestCompletedWeek = 0;
-
-        // Check each week to see if all training sessions are completed
-        foreach ($sessionsByWeek as $weekNumber => $sessions) {
-            $allCompleted = true;
-            foreach ($sessions as $session) {
-                if (!in_array($session->id, $completedSessions)) {
-                    $allCompleted = false;
-                    break;
-                }
-            }
-
-            // If all sessions in this week are completed, update the highest completed week
-            if ($allCompleted && $weekNumber > $highestCompletedWeek) {
-                $highestCompletedWeek = $weekNumber;
-            } else if (!$allCompleted && $weekNumber <= $highestCompletedWeek) {
-                // If we find an incomplete week that's earlier than our current highest,
-                // we need to stop as we only want consecutive completed weeks
-                break;
-            }
-        }
-
-        return $highestCompletedWeek;
     }
 
     public function showSession($sessionId)
     {
         $user = Auth::user();
         $session = TrainingSession::with('block')->findOrFail($sessionId);
+        $currentDate = Carbon::now();
 
-        // Check if this session should be accessible
-        // First get all completed sessions
-        $completedSessions = TrainingResult::where('user_id', $user->id)
-            ->pluck('session_id')
-            ->toArray();
+        // Check if this session should be accessible based on release date
+        $releaseDate = $session->release_date ? Carbon::parse($session->release_date) : null;
 
-        $completedTestSessions = TestResult::where('user_id', $user->id)
-            ->pluck('session_id')
-            ->toArray();
-
-        $completedSessions = array_merge($completedSessions, $completedTestSessions);
-
-        // If this session is already completed, allow access
-        if (in_array($sessionId, $completedSessions)) {
-            // Continue with normal flow
-        } else {
-            // Get the highest completed week for this block
-            $highestCompletedWeek = $this->getHighestCompletedWeek($session->block_id, $user->id);
-
-            // Current unlocked week is the one after highest completed
-            $currentUnlockedWeek = $highestCompletedWeek + 1;
-
-            // If no weeks completed yet, start with week 1
-            if ($highestCompletedWeek == 0) {
-                $currentUnlockedWeek = 1;
-            }
-
-            // Check if this session's week is unlocked
-            $isWeekUnlocked = $session->week_number <= $currentUnlockedWeek || $session->session_type === 'rest';
-
-            // If this session's week isn't unlocked, redirect back
-            if (!$isWeekUnlocked) {
-                return redirect()->route('student.training')
-                    ->with('error', 'You need to complete previous weeks first.');
-            }
+        // If release date is in the future, redirect back with error
+        if ($releaseDate && $currentDate->lt($releaseDate)) {
+            return redirect()->route('student.training')
+                ->with('error', 'This session is not available yet. It will be released on ' . $releaseDate->format('F j, Y') . '.');
         }
 
         // existing training result if any
@@ -279,6 +186,9 @@ class StudentTrainingController extends Controller
         // Get XP information
         $xpSummary = $this->xpService->getUserXpSummary($user->id);
 
+        // Format release date
+        $formattedReleaseDate = $releaseDate ? $releaseDate->format('F j, Y') : 'Not scheduled';
+
         return Inertia::render('Student/TrainingSession', [
             'session' => [
                 'id'             => $session->id,
@@ -291,6 +201,7 @@ class StudentTrainingController extends Controller
                     : (strtolower($session->session_type) === 'rest'
                         ? 'REST WEEK'
                         : "Session {$session->session_number}"),
+                'release_date'   => $formattedReleaseDate,
             ],
             'existingResult' => $trainingResult ? [
                 'warmup_completed'               => $trainingResult->warmup_completed,
@@ -316,6 +227,7 @@ class StudentTrainingController extends Controller
                 'xpNeeded' => $xpSummary['xp_needed_for_next_level'],
                 'bonusFields' => ['bent_arm_hang_assessment'], // Indicate which fields are bonus
             ],
+            'currentDate' => $currentDate->format('F j, Y'),
         ]);
     }
 
@@ -323,6 +235,14 @@ class StudentTrainingController extends Controller
     {
         $user = Auth::user();
         $session = TrainingSession::findOrFail($sessionId);
+        $currentDate = Carbon::now();
+
+        // Check if session is available based on release date
+        $releaseDate = $session->release_date ? Carbon::parse($session->release_date) : null;
+        if ($releaseDate && $currentDate->lt($releaseDate)) {
+            return redirect()->route('student.training')
+                ->with('error', 'This session is not available yet. It will be released on ' . $releaseDate->format('F j, Y') . '.');
+        }
 
         if (strtolower($session->session_type) === 'testing') {
             $validated = $request->validate([
@@ -388,42 +308,5 @@ class StudentTrainingController extends Controller
 
         return redirect()->route('student.training')
             ->with('success', $successMessage);
-    }
-
-    /**
-     * Check if a block is fully completed by the user
-     *
-     * @param int $blockId
-     * @param int $userId
-     * @return bool
-     */
-    protected function isBlockCompleted(int $blockId, int $userId): bool
-    {
-        // Get all required sessions for this block
-        $allSessions = TrainingSession::where('block_id', $blockId)
-            ->where(function ($query) {
-                $query->where('session_type', 'training')
-                    ->orWhere('session_type', 'testing');
-            }) // Get all training and testing sessions, but not rest sessions
-            ->pluck('id')
-            ->toArray();
-
-        // Get completed training sessions
-        $completedTrainingSessions = TrainingResult::where('user_id', $userId)
-            ->whereIn('session_id', $allSessions)
-            ->pluck('session_id')
-            ->toArray();
-
-        // Get completed test sessions
-        $completedTestSessions = TestResult::where('user_id', $userId)
-            ->whereIn('session_id', $allSessions)
-            ->pluck('session_id')
-            ->toArray();
-
-        // Combine all completed sessions
-        $completedSessions = array_merge($completedTrainingSessions, $completedTestSessions);
-
-        // Block is completed if all required sessions are completed
-        return count(array_intersect($allSessions, $completedSessions)) === count($allSessions);
     }
 }

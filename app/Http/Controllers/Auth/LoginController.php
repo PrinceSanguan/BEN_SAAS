@@ -19,18 +19,18 @@ class LoginController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'username' => 'required',
+            'login' => 'required', // Changed from username to login
             'password' => 'required',
         ]);
 
         if ($request->boolean('isAdmin')) {
-            if ($request->username === 'admin' && $request->password === 'admin') {
+            if ($request->login === 'admin' && $request->password === 'admin') {
                 $adminUser = User::firstOrCreate(
                     ['username' => 'admin'],
                     [
                         'password' => Hash::make('admin'),
                         'user_role' => 'admin',
-                        'email' => 'admin@example.com',
+                        'parent_email' => 'admin@example.com',
                     ]
                 );
 
@@ -47,11 +47,17 @@ class LoginController extends Controller
             }
         }
 
-        $user = User::where('username', $request->username)->first();
+        // Check if the input is an email or username
+        $isEmail = filter_var($request->login, FILTER_VALIDATE_EMAIL);
+
+        // Query based on whether input is email or username
+        $user = $isEmail
+            ? User::where('parent_email', $request->login)->first()
+            : User::where('username', $request->login)->first();
 
         if (!$user) {
             return redirect()->route('login')
-                ->withErrors(['credentials' => 'No account found with this username.']);
+                ->withErrors(['credentials' => 'No account found with this username or email.']);
         }
 
         if (!Hash::check($request->password, $user->password)) {

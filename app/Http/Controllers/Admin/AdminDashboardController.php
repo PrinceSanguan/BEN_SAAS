@@ -13,6 +13,9 @@ use Illuminate\Validation\Rules\Password;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
+use App\Models\Block;
+use App\Models\TrainingSession;
+use Carbon\Carbon;
 
 class AdminDashboardController extends Controller
 {
@@ -96,8 +99,42 @@ class AdminDashboardController extends Controller
                 'tested_at' => now()
             ]);
 
+            // Instead of calling seeders, create blocks and sessions directly
+
+            // Create blocks
+            $now = Carbon::now();
+
+            // Block 1: All 14 weeks (Training, Testing, Rest period)
+            $block1 = Block::create([
+                'block_number' => 1,
+                'start_date' => $now,
+                'end_date' => $now->copy()->addWeeks(14),
+            ]);
+
+            // Block 2: Complete reset, starting after Block 1
+            $block2 = Block::create([
+                'block_number' => 2,
+                'start_date' => $now->copy()->addWeeks(14)->addDay(),
+                'end_date' => $now->copy()->addWeeks(28), // 14 more weeks
+            ]);
+
+            // Block 3: Third block
+            $block3 = Block::create([
+                'block_number' => 3,
+                'start_date' => $now->copy()->addWeeks(28)->addDay(),
+                'end_date' => $now->copy()->addWeeks(42), // 14 more weeks
+            ]);
+
+            Log::info('Created blocks: 1, 2, and 3');
+
+            // Create sessions for each block
+            $this->createSessionsForBlock($block1);
+            $this->createSessionsForBlock($block2);
+            $this->createSessionsForBlock($block3);
+
             Log::info('User created successfully:', ['user_id' => $user->id]);
             Log::info('Pre-training test created successfully:', ['test_id' => $preTrainingTest->id]);
+            Log::info('Blocks and Training Sessions created successfully');
 
             DB::commit();
 
@@ -125,6 +162,74 @@ class AdminDashboardController extends Controller
             DB::rollBack();
             Log::error('Error creating athlete: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
             return redirect()->back()->with('error', 'Failed to create athlete: ' . $e->getMessage())->withInput();
+        }
+    }
+
+    /**
+     * Create all sessions for a single block
+     * 
+     * @param Block $block
+     */
+    private function createSessionsForBlock(Block $block): void
+    {
+        // Initialize session counter for this block
+        $sessionCount = 1;
+
+        // Iterate through all 14 weeks
+        for ($week = 1; $week <= 14; $week++) {
+            $weekStartDate = Carbon::parse($block->start_date ?: now())->addWeeks($week - 1);
+
+            // Week 7 is a REST week
+            if ($week == 7) {
+                // Create a special REST session with a special session number (0)
+                TrainingSession::create([
+                    'block_id'       => $block->id,
+                    'week_number'    => $week,
+                    'session_number' => 0, // Use 0 for rest sessions instead of null
+                    'session_type'   => 'rest',
+                    'release_date'   => $weekStartDate,
+                ]);
+
+                // Do not increment session count for rest week
+            }
+            // Special weeks with testing (5, 10, 14)
+            elseif (in_array($week, [5, 10, 14])) {
+                // First create the testing session with a special session number (-1)
+                TrainingSession::create([
+                    'block_id'       => $block->id,
+                    'week_number'    => $week,
+                    'session_number' => -1, // Use -1 for testing sessions instead of null
+                    'session_type'   => 'testing',
+                    'release_date'   => $weekStartDate,
+                ]);
+
+                // For weeks 5 and 10, also create 2 training sessions
+                if ($week != 14) {
+                    for ($i = 1; $i <= 2; $i++) {
+                        TrainingSession::create([
+                            'block_id'       => $block->id,
+                            'week_number'    => $week,
+                            'session_number' => $sessionCount,
+                            'session_type'   => 'training',
+                            'release_date'   => $weekStartDate->copy()->addDays($i),
+                        ]);
+                        $sessionCount++;
+                    }
+                }
+            }
+            // Regular weeks with 2 training sessions each
+            else {
+                for ($i = 0; $i <= 1; $i++) {
+                    TrainingSession::create([
+                        'block_id'       => $block->id,
+                        'week_number'    => $week,
+                        'session_number' => $sessionCount,
+                        'session_type'   => 'training',
+                        'release_date'   => $weekStartDate->copy()->addDays($i),
+                    ]);
+                    $sessionCount++;
+                }
+            }
         }
     }
 
