@@ -53,21 +53,20 @@ class LeaderboardController extends Controller
         $lastRank = 1;
 
         $formattedLeaderboard = $leaderboardData->map(function ($item) use ($user, &$rank, &$lastScore, &$lastRank) {
-            // Calculate consistency percentage based on training sessions completed out of available training sessions
-            // Excluding testing and rest sessions
+            // Calculate consistency percentage based on available sessions
             $consistencyPercentage = $item->sessions_available > 0
                 ? round(($item->sessions_completed / $item->sessions_available) * 100)
                 : 0;
 
             // If the score is the same as the previous user, keep the same rank (tied)
-            if ($lastScore !== null && $lastScore === $item->consistency_score) {
+            if ($lastScore !== null && $lastScore === $consistencyPercentage) {
                 $userRank = $lastRank;
             } else {
                 $userRank = $rank;
                 $lastRank = $rank;
             }
 
-            $lastScore = $item->consistency_score;
+            $lastScore = $consistencyPercentage;
             $rank++;
 
             return [

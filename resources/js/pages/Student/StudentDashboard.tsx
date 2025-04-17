@@ -576,7 +576,7 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({
 
                 <main className="mx-auto max-w-6xl px-8 py-6">
                     {/* Stats Grid */}
-                    <div ref={statsRef} className="mb-8 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+                    <div ref={statsRef} className="mb-8 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-2">
                         {/* Strength Level Card */}
                         <div className="flex flex-col items-center rounded-xl border border-[#1e3a5f] bg-[#0a1e3c] p-6 shadow-lg">
                             <div className="mb-3 flex w-full items-center justify-between">
@@ -606,22 +606,6 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({
                             )}
                         </div>
 
-                        {/* Consistency Score Card */}
-                        <div className="rounded-xl border border-[#1e3a5f] bg-[#0a1e3c] p-6 shadow-lg">
-                            <div className="mb-3 flex items-center justify-between">
-                                <h3 className="text-sm font-medium tracking-wider text-[#4a90e2] uppercase">Consistency</h3>
-                                <span className="rounded-full bg-[#1e3a5f] px-2.5 py-1 text-xs font-semibold text-[#63b3ed]">Weekly</span>
-                            </div>
-                            <div className="mb-3 flex items-center">
-                                <Award className="mr-2 h-6 w-6 text-[#4a90e2]" />
-                                <p className="text-3xl font-bold text-white">{consistencyScore}</p>
-                                <span className="ml-2 text-sm text-[#a3c0e6]">/ 100</span>
-                            </div>
-                            <div className="h-4 w-full overflow-hidden rounded-full bg-[#1e3a5f]">
-                                <div ref={consistencyRef} className="h-4 rounded-full bg-[#2ecc71]" style={{ width: `${consistencyScore}%` }}></div>
-                            </div>
-                        </div>
-
                         {/* Quick Navigation Card */}
                         <div className="rounded-xl border border-[#1e3a5f] bg-[#0a1e3c] p-6 shadow-lg">
                             <h3 className="mb-4 text-sm font-medium tracking-wider text-[#4a90e2] uppercase">Quick Navigation</h3>
@@ -645,7 +629,7 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({
                     </div>
 
                     {/* Training Blocks Section */}
-                    <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+                    <div className="grid grid-cols-1">
                         <div className="lg:col-span-2">
                             <div className="mb-8 rounded-xl border border-[#1e3a5f] bg-[#112845] p-6 shadow-lg">
                                 <div className="mb-4 flex items-center justify-between">
@@ -689,42 +673,6 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({
                                             </div>
                                         </button>
                                     ))}
-                                </div>
-                            </div>
-                        </div>
-
-                        <div>
-                            {/* Progress Summary */}
-                            <div className="rounded-xl border border-[#1e3a5f] bg-[#112845] p-6 shadow-lg">
-                                <h3 className="mb-4 text-lg font-semibold text-white">Training Progress</h3>
-                                <div className="space-y-4">
-                                    <div>
-                                        <div className="mb-1 flex items-center justify-between">
-                                            <span className="text-sm text-[#a3c0e6]">Strength Level</span>
-                                            <span className="text-sm font-medium text-white">Level {strengthLevel}</span>
-                                        </div>
-                                        <div className="h-2 w-full overflow-hidden rounded-full bg-[#1e3a5f]">
-                                            <div
-                                                className="h-2 rounded-full bg-[#2ecc71]"
-                                                style={{ width: hasXp ? `${xpInfo ? xpInfo.progress_percentage : 0}%` : '0%' }}
-                                            ></div>
-                                        </div>
-                                    </div>
-                                    <div>
-                                        <div className="mb-1 flex items-center justify-between">
-                                            <span className="text-sm text-[#a3c0e6]">Consistency</span>
-                                            <span className="text-sm font-medium text-white">{consistencyScore}%</span>
-                                        </div>
-                                        <div className="h-2 w-full overflow-hidden rounded-full bg-[#1e3a5f]">
-                                            <div className="h-2 rounded-full bg-[#2ecc71]" style={{ width: `${consistencyScore}%` }}></div>
-                                        </div>
-                                    </div>
-                                    <div>
-                                        <div className="mb-1 flex items-center justify-between">
-                                            <span className="text-sm text-[#a3c0e6]">Rank</span>
-                                            <span className="text-sm font-medium text-white">{hasXp ? `#${currentRank}` : 'Unranked'}</span>
-                                        </div>
-                                    </div>
                                 </div>
                             </div>
                         </div>
