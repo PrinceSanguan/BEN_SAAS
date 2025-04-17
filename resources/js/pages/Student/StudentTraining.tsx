@@ -100,6 +100,39 @@ const StudentTraining: React.FC<StudentTrainingProps> = ({ blocks, username = 'A
         });
     };
 
+    // Add these helper functions after state declarations
+    const getCompletedSessionCount = (block: Block): number => {
+        return block.weeks.reduce((count, week) => count + week.sessions.filter((session) => session.is_completed).length, 0);
+    };
+
+    const getAvailableSessionCount = (block: Block): number => {
+        return block.weeks.reduce((count, week) => count + week.sessions.filter((session) => !session.is_locked).length, 0);
+    };
+
+    const getRemainingSessionCount = (block: Block): number => {
+        const completed = getCompletedSessionCount(block);
+        const available = getAvailableSessionCount(block);
+        return available - completed;
+    };
+
+    // Add this filter before the return statement
+    const visibleBlocks = blocks.filter((block, index) => {
+        // Always show first block
+        if (index === 0) return true;
+
+        // Show second block only when first block has 1 remaining session
+        if (index === 1) {
+            return blocks.length > 0 && getRemainingSessionCount(blocks[0]) === 1;
+        }
+
+        // Show third block only when second block has 1 remaining session
+        if (index === 2) {
+            return blocks.length > 1 && getRemainingSessionCount(blocks[1]) === 1;
+        }
+
+        return false;
+    });
+
     // Helper to check if a date is today
     const isToday = (dateStr: string): boolean => {
         if (!dateStr || dateStr === 'Not scheduled') return false;
@@ -396,7 +429,7 @@ const StudentTraining: React.FC<StudentTrainingProps> = ({ blocks, username = 'A
                         </div>
                     ) : (
                         <div className="space-y-6">
-                            {blocks.map((block) => (
+                            {visibleBlocks.map((block) => (
                                 <div key={block.id} className="overflow-hidden rounded-xl border border-[#1e3a5f] bg-[#112845]/90 shadow-lg">
                                     <button
                                         onClick={() => toggleBlock(block.id)}

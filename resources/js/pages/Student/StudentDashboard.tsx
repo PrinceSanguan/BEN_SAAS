@@ -18,6 +18,7 @@ interface StudentDashboardProps {
         duration_weeks: number;
         is_current: boolean;
     }>;
+    remainingSessions?: number; // Added prop for remaining sessions
     routes?: {
         [key: string]: string;
     };
@@ -151,6 +152,7 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({
     consistencyScore,
     currentRank = 0,
     blocks = [], // Provide default empty array to prevent issues
+    remainingSessions = 0, // Default to 0 if not provided
     routes = {}, // Default to empty object if routes is not provided
     xpInfo, // Add xpInfo to the destructured props
 }) => {
@@ -172,6 +174,25 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({
             console.log('Routes received:', routes);
         }
     }, [routes]);
+
+    // Sequential block unlocking based on current block and remaining sessions
+    const visibleBlocks = blocks.filter((block) => {
+        // Always show block 1
+        if (block.block_number === 1) return true;
+
+        // Find the current block
+        const currentBlock = blocks.find((b) => b.is_current);
+
+        if (!currentBlock) return false;
+
+        // Show next block only when current block has 1 remaining session
+        if (block.block_number === currentBlock.block_number + 1) {
+            return remainingSessions === 1;
+        }
+
+        // Don't show blocks beyond the next one
+        return false;
+    });
 
     // Check if using mobile
     useEffect(() => {
@@ -569,6 +590,11 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({
                             <div className="flex items-center rounded-lg bg-[#1e3a5f]/50 px-4 py-2">
                                 <Calendar className="mr-2 h-5 w-5 text-[#4a90e2]" />
                                 <span className="text-sm text-[#a3c0e6]">Current: Block {currentBlock.block_number}</span>
+                                {remainingSessions <= 1 && (
+                                    <span className="ml-2 rounded-full bg-[#2ecc71]/20 px-2 py-0.5 text-xs text-[#2ecc71]">
+                                        {remainingSessions === 0 ? 'Complete' : '1 session left'}
+                                    </span>
+                                )}
                             </div>
                         )}
                     </div>
@@ -576,7 +602,7 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({
 
                 <main className="mx-auto max-w-6xl px-8 py-6">
                     {/* Stats Grid */}
-                    <div ref={statsRef} className="mb-8 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-2">
+                    <div ref={statsRef} className="lg:grid-cols- mb-8 grid grid-cols-1 gap-6 md:grid-cols-2">
                         {/* Strength Level Card */}
                         <div className="flex flex-col items-center rounded-xl border border-[#1e3a5f] bg-[#0a1e3c] p-6 shadow-lg">
                             <div className="mb-3 flex w-full items-center justify-between">
@@ -645,7 +671,7 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({
 
                                 {/* Block cards */}
                                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                                    {blocks.map((block) => (
+                                    {visibleBlocks.map((block) => (
                                         <button
                                             key={block.id}
                                             onClick={() => handleBlockClick(block)}
@@ -660,6 +686,11 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({
                                                     {block.is_current && (
                                                         <span className="ml-2 rounded-full bg-[#4a90e2]/20 px-2 py-0.5 text-xs text-[#63b3ed]">
                                                             Current
+                                                        </span>
+                                                    )}
+                                                    {block.block_number > 1 && remainingSessions <= 1 && (
+                                                        <span className="ml-2 rounded-full bg-[#2ecc71]/20 px-2 py-0.5 text-xs text-[#2ecc71]">
+                                                            Unlocked
                                                         </span>
                                                     )}
                                                 </div>
