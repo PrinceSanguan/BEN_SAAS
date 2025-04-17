@@ -32,6 +32,7 @@ class StudentDashboardController extends Controller
     public function index()
     {
         $user = Auth::user();
+        $currentDate = Carbon::now();
 
         // Get XP information with new formula data
         $xpSummary = $this->xpService->getUserXpSummary($user->id);
@@ -60,12 +61,36 @@ class StudentDashboardController extends Controller
                 ];
             });
 
+        // Calculate remaining sessions in the current block
+        $remainingSessions = 0;
+        $currentBlock = $blocks->firstWhere('is_current', true);
+
+        if ($currentBlock) {
+            // Get the total available training sessions in the current block
+            $availableSessions = TrainingSession::where('block_id', $currentBlock['id'])
+                ->where('session_type', 'training')
+                ->where('release_date', '<=', $currentDate)
+                ->count();
+
+            // Get the completed training sessions in the current block
+            $completedSessions = TrainingResult::join('training_sessions', 'training_results.session_id', '=', 'training_sessions.id')
+                ->where('training_results.user_id', $user->id)
+                ->where('training_sessions.block_id', $currentBlock['id'])
+                ->where('training_sessions.session_type', 'training')
+                ->count();
+
+            // Calculate remaining sessions
+            $remainingSessions = $availableSessions - $completedSessions;
+            if ($remainingSessions < 0) $remainingSessions = 0;
+        }
+
         return Inertia::render('Student/StudentDashboard', [
             'username' => $user->username,
             'strengthLevel' => $xpSummary['current_level'],
             'consistencyScore' => $consistencyScore,
             'currentRank' => $userRank, // Pass rank to the frontend
             'blocks' => $blocks,
+            'remainingSessions' => $remainingSessions, // Pass remaining sessions to frontend
             'xpInfo' => [
                 'total_xp' => $xpSummary['total_xp'],
                 'current_level' => $xpSummary['current_level'],
