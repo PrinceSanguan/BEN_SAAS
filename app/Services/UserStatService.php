@@ -69,10 +69,10 @@ class UserStatService
         // Calculate total sessions completed (for other metrics)
         $totalSessionsCompleted = $completedTrainingSessions + $completedTestingSessions;
 
-        // Count only available training sessions (excluding test and rest)
-        // Debug to see what's happening
-        $availableTrainingSessions = TrainingSession::where('session_type', 'training')->count();
-
+        // Get only available training sessions (those with release_date in the past)
+        $availableTrainingSessions = TrainingSession::where('session_type', 'training')
+            ->where('release_date', '<=', now())
+            ->count();
 
         // Get total available sessions (for other metrics)
         $totalAvailableSessions = TrainingSession::where('release_date', '<=', now())->count();
@@ -86,10 +86,10 @@ class UserStatService
         $userStat->total_xp = $totalXp;
         $userStat->strength_level = $strengthLevel;
         $userStat->sessions_completed = $completedTrainingSessions; // Only count training sessions for consistency
-        $userStat->sessions_available = $availableTrainingSessions; // Only count training sessions for consistency
+        $userStat->sessions_available = $availableTrainingSessions; // Only count available training sessions
         $userStat->last_updated = now();
 
-        // Calculate consistency score based on training sessions only
+        // Calculate consistency score based on available training sessions
         if ($availableTrainingSessions > 0) {
             $userStat->consistency_score = ($completedTrainingSessions / $availableTrainingSessions) * 100;
         } else {
