@@ -16,6 +16,8 @@ use Illuminate\Support\Facades\Auth;
 use App\Models\Block;
 use App\Models\TrainingSession;
 use Carbon\Carbon;
+use App\Models\UserStat;
+use App\Services\XpService;
 
 class AdminDashboardController extends Controller
 {
@@ -475,40 +477,130 @@ class AdminDashboardController extends Controller
                 return redirect()->back()->with('error', 'User is not an athlete.');
             }
 
-            // Store admin ID in session to allow navigation back
-            session(['admin_viewing_as_student' => auth()->id()]);
+            // Get the athlete's blocks
+            $blocks = Block::orderBy('block_number')->get();
 
-            // Store the student ID being viewed
+            // Get XP information
+            $xpService = app(XpService::class);
+            $xpSummary = $xpService->getUserXpSummary($athlete->id);
+
+            // Get user stats
+            $userStat = UserStat::where('user_id', $athlete->id)->first();
+            $strengthLevel = $userStat ? $userStat->strength_level : 1;
+            $consistencyScore = $userStat ? round($userStat->consistency_score) : 0;
+
+            // Store admin ID in session
+            session(['admin_viewing_as_student' => Auth::id()]);
             session(['viewing_student_id' => $athlete->id]);
-            // Log in as the student temporarily
-            Auth::login($athlete);
-            auth()->login($athlete);
 
-            // Redirect to student dashboard
-            return redirect()->route('student.dashboard');
+            // Render the admin view of student dashboard
+            return Inertia::render('Admin/ViewAthleteDashboard', [
+                'athlete' => [
+                    'id' => $athlete->id,
+                    'username' => $athlete->username,
+                    'email' => $athlete->parent_email,
+                ],
+                'blocks' => $blocks->map(function ($block) {
+                    return [
+                        'id' => $block->id,
+                        'block_number' => $block->block_number,
+                        'start_date' => $block->start_date ? Carbon::parse($block->start_date)->format('Y-m-d') : null,
+                        'end_date' => $block->end_date ? Carbon::parse($block->end_date)->format('Y-m-d') : null,
+                        'duration_weeks' => 14,
+                    ];
+                }),
+                'strengthLevel' => $strengthLevel,
+                'consistencyScore' => $consistencyScore,
+                'xpInfo' => [
+                    'total_xp' => $xpSummary['total_xp'],
+                    'current_level' => $xpSummary['current_level'],
+                    'next_level' => $xpSummary['next_level']
+                ],
+                'routes' => [
+                    'admin.update.block.dates' => route('admin.update.block.dates')
+                ]
+            ]);
         } catch (ModelNotFoundException $e) {
             return redirect()->back()->with('error', 'Athlete not found.');
         }
     }
 
-    /**
-     * Switch back to admin after viewing student dashboard
-     */
-    public function switchBackToAdmin()
+    public function updateBlockDates(Request $request)
     {
-        if (session()->has('admin_viewing_as_student')) {
-            $adminId = session('admin_viewing_as_student');
-            $admin = User::findOrFail($adminId);
+        try {
+            $validated = $request->validate([
+                'athlete_id' => 'required|exists:users,id',
+                'blocks' => 'required|array',
+                'blocks.*.id' => 'required|exists:blocks,id',
+                'blocks.*.start_date' => 'required|date',
+                'blocks.*.end_date' => 'required|date|after:blocks.*.start_date',
+            ]);
 
-            // Clear the session variables
-            session()->forget(['admin_viewing_as_student', 'viewing_student_id']);
+            $athleteId = $validated['athlete_id'];
+            $athlete = User::findOrFail($athleteId);
 
-            // Log back in as admin
-            auth()->login($admin);
+            DB::beginTransaction();
 
-            return redirect()->route('admin.dashboard')->with('success', 'Switched back to admin account.');
+            // Log received data for debugging
+            \Log::info('Updating block dates', [
+                'athlete_id' => $athleteId,
+                'blocks' => $validated['blocks']
+            ]);
+
+            // Update each block
+            foreach ($validated['blocks'] as $blockData) {
+                $block = Block::findOrFail($blockData['id']);
+                $block->start_date = $blockData['start_date'];
+                $block->end_date = $blockData['end_date'];
+                $block->save();
+
+                \Log::info('Updated block', [
+                    'block_id' => $block->id,
+                    'start_date' => $block->start_date,
+                    'end_date' => $block->end_date
+                ]);
+
+                // Recalculate all session release dates based on new block start date
+                $this->recalculateSessionDates($block);
+            }
+
+            DB::commit();
+
+            return redirect()->back()->with('success', 'Block dates updated successfully for ' . $athlete->username);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            \Log::error('Failed to update block dates: ' . $e->getMessage(), [
+                'exception' => $e,
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return redirect()->back()->with('error', 'Failed to update block dates: ' . $e->getMessage());
         }
+    }
 
-        return redirect()->route('login');
+    private function recalculateSessionDates(Block $block)
+    {
+        $startDate = Carbon::parse($block->start_date);
+
+        // Group sessions by week
+        $sessionsByWeek = TrainingSession::where('block_id', $block->id)
+            ->orderBy('week_number')
+            ->orderBy('session_number')
+            ->get()
+            ->groupBy('week_number');
+
+        foreach ($sessionsByWeek as $weekNumber => $sessions) {
+            // Calculate new week start date: block start date + (week_number - 1) weeks
+            $weekStartDate = $startDate->copy()->addWeeks($weekNumber - 1);
+
+            // Update each session in the week
+            foreach ($sessions as $index => $session) {
+                // Space sessions within the week (every 2 days)
+                $sessionDate = $weekStartDate->copy()->addDays($index * 2);
+
+                $session->release_date = $sessionDate->format('Y-m-d');
+                $session->save();
+            }
+        }
     }
 }
