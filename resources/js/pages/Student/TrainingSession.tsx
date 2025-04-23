@@ -122,8 +122,8 @@ const TrainingSession: React.FC<TrainingSessionProps> = ({ session = {}, existin
                   standing_long_jump: existingResult ? existingResult.standing_long_jump : '',
                   single_leg_jump_left: existingResult ? existingResult.single_leg_jump_left : '',
                   single_leg_jump_right: existingResult ? existingResult.single_leg_jump_right : '',
-                  single_leg_wall_sit_left: existingResult ? existingResult.single_leg_wall_sit_left : '',
-                  single_leg_wall_sit_right: existingResult ? existingResult.single_leg_wall_sit_right : '',
+                  // Change these field names to match the backend
+                  wall_sit_assessment: existingResult ? existingResult.wall_sit_assessment : '',
                   high_plank_assessment: existingResult ? existingResult.high_plank_assessment : '',
                   bent_arm_hang_assessment: existingResult ? existingResult.bent_arm_hang_assessment : '',
               }
@@ -361,18 +361,16 @@ const TrainingSession: React.FC<TrainingSessionProps> = ({ session = {}, existin
                                     </div>
                                     <div>
                                         <label className="mb-2 block text-sm font-medium tracking-wider text-[#4a90e2] uppercase">
-                                            SINGLE LEG WALL SIT (LEFT) – What was your best score?
+                                            WALL SIT ASSESSMENT – What was your best score?
                                         </label>
                                         <input
                                             type="text"
-                                            value={data.single_leg_wall_sit_left}
-                                            onChange={(e) => setData('single_leg_wall_sit_left', e.target.value)}
+                                            value={data.wall_sit_assessment}
+                                            onChange={(e) => setData('wall_sit_assessment', e.target.value)}
                                             className="focus:ring-opacity-50 mt-1 block w-full rounded-md border-[#1e3a5f] bg-[#0a1e3c] text-white shadow-sm focus:border-[#4a90e2] focus:ring focus:ring-[#4a90e2]"
                                             placeholder="Enter your score"
                                         />
-                                        {errors.single_leg_wall_sit_left && (
-                                            <p className="mt-1 text-sm text-red-400">{errors.single_leg_wall_sit_left}</p>
-                                        )}
+                                        {errors.wall_sit_assessment && <p className="mt-1 text-sm text-red-400">{errors.wall_sit_assessment}</p>}
                                     </div>
                                     <div>
                                         <label className="mb-2 block text-sm font-medium tracking-wider text-[#4a90e2] uppercase">
