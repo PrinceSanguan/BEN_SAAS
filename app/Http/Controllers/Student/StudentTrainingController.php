@@ -34,34 +34,38 @@ class StudentTrainingController extends Controller
     /**
      * Display the Student training.
      */
+    // In app/Http/Controllers/Student/StudentTrainingController.php
+    // Update the index method with proper eager loading
+
     public function index()
     {
         $user = Auth::user();
         $currentDate = Carbon::now();
 
-        // 1) Get all blocks + sessions, sorted by week_number, session_number.
+        // 1) Get all blocks + sessions with proper eager loading including session's block
         $blocks = Block::with(['sessions' => function ($query) {
             $query->orderBy('week_number')->orderBy('session_number');
-        }])->orderBy('block_number')->get();
+        }, 'sessions.block']) // Add block relationship to avoid n+1 on block access
+            ->orderBy('block_number')
+            ->get();
 
-        // 2) Find which sessions this user has completed (from training_results and test_results).
-        $completedSessions = TrainingResult::where('user_id', $user->id)
+        // 2) Find which sessions this user has completed in a single query
+        $completedTrainingResults = TrainingResult::where('user_id', $user->id)
             ->pluck('session_id')
             ->toArray();
 
-        // Add test results to completed sessions
-        $completedTestSessions = TestResult::where('user_id', $user->id)
+        $completedTestResults = TestResult::where('user_id', $user->id)
             ->pluck('session_id')
             ->toArray();
 
-        $completedSessions = array_merge($completedSessions, $completedTestSessions);
+        $completedSessions = array_merge($completedTrainingResults, $completedTestResults);
 
         // 3) Format blocks with date-based unlocking logic
         $formattedBlocks = $blocks->map(function ($block) use ($completedSessions, $user, $currentDate) {
             // Group sessions by week
             $sessionsByWeek = collect($block->sessions)->groupBy('week_number');
 
-            // For each week, figure out how many training vs. testing sessions exist, then build a label
+            // Process weeks
             $weeks = $sessionsByWeek->map(function ($sessions, $weekNumber) use ($completedSessions, $currentDate) {
                 // We'll separate training vs. testing sessions
                 $training = $sessions->where('session_type', 'training');
@@ -69,30 +73,25 @@ class StudentTrainingController extends Controller
                 $rest = $sessions->where('session_type', 'rest');
 
                 // Convert each session into appropriate label format
-                // For training: "TRAINING #X"
-                // For testing: "TESTING" (without session number)
                 $trainLabels = $training->map(fn($s) => "TRAINING #{$s->session_number}")->toArray();
                 $testLabels  = $testing->map(fn($s) => "TESTING")->toArray();
                 $restLabels  = $rest->map(fn($s) => "REST WEEK")->toArray();
 
-                // Then we combine them into a single label string
-                // e.g. "✅ TRAINING #1 & TRAINING #2, ✅ TESTING"
+                // Combine into a single label string
                 $labelTrain = $trainLabels ? "✅ " . implode(" & ", $trainLabels) : '';
                 $labelTest  = $testLabels  ? "✅ " . implode(" & ", $testLabels) : '';
                 $labelRest  = $restLabels  ? "✅ " . implode(" & ", $restLabels) : '';
 
-                // If both exist in same week, separate them with comma
                 $weekLabelParts = array_filter([$labelTrain, $labelTest, $labelRest]);
-                $weekLabel      = implode(", ", $weekLabelParts);
+                $weekLabel = implode(", ", $weekLabelParts);
 
-                // If the final label is empty, set a fallback
                 if (!$weekLabel) {
                     $weekLabel = "No sessions for this week (unexpected)";
                 }
 
-                // Map each session's details so the front-end can see them.
+                // Map each session's details
                 $mappedSessions = $sessions->map(function ($session) use ($completedSessions, $currentDate) {
-                    // For display label in frontend: don't include session number for testing sessions
+                    // For display label in frontend
                     $displayLabel = '';
                     if ($session->session_type === 'testing') {
                         $displayLabel = 'TESTING';
@@ -106,7 +105,7 @@ class StudentTrainingController extends Controller
                     $releaseDate = $session->release_date ? Carbon::parse($session->release_date) : null;
                     $isCompleted = in_array($session->id, $completedSessions);
 
-                    // Session is locked if the release date is in the future or null (not yet set)
+                    // Session is locked if the release date is in the future or null
                     $isLocked = $releaseDate ? $currentDate->lt($releaseDate) : true;
 
                     // Format release date for frontend display
@@ -129,7 +128,7 @@ class StudentTrainingController extends Controller
                     'label'       => "Week {$weekNumber}: {$weekLabel}",
                     'sessions'    => $mappedSessions,
                 ];
-            })->sortBy('week_number')->values(); // sort weeks ascending
+            })->sortBy('week_number')->values();
 
             return [
                 'id'           => $block->id,
@@ -142,7 +141,6 @@ class StudentTrainingController extends Controller
         // Get XP information
         $xpSummary = $this->xpService->getUserXpSummary($user->id);
 
-        // Render with Inertia to your Student/StudentTraining page
         return Inertia::render('Student/StudentTraining', [
             'blocks' => $formattedBlocks,
             'xp' => [
