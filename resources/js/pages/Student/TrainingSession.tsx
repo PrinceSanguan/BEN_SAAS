@@ -1,6 +1,6 @@
 import { Head, useForm } from '@inertiajs/react';
 import gsap from 'gsap';
-import { Activity, ArrowLeft, Award, BarChart2, Home, LogOut, Menu, Trophy, User, X } from 'lucide-react';
+import { Activity, ArrowLeft, Award, BarChart2, Home, LogOut, Menu, TrendingUp, Trophy, User, X } from 'lucide-react';
 import React, { useEffect, useRef, useState } from 'react';
 
 interface SessionData {
@@ -216,6 +216,13 @@ const TrainingSession: React.FC<TrainingSessionProps> = ({ session = {}, existin
                     <a href={getRoute('student.training')} className="group flex items-center rounded-md bg-[#1e3a5f] px-4 py-3 text-white">
                         <Activity className="mr-3 h-5 w-5 text-[#4a90e2]" />
                         <span>Training</span>
+                    </a>
+                    <a
+                        href={getRoute('student.progress')}
+                        className="flex items-center rounded-md px-4 py-3 text-[#a3c0e6] transition-colors hover:bg-[#1e3a5f]/40 hover:text-white"
+                    >
+                        <TrendingUp className="mr-3 h-5 w-5 text-[#4a90e2]" />
+                        <span>Progress</span>
                     </a>
                     <div className="mt-4 border-t border-[#1e3a5f] pt-4">
                         <h3 className="mb-2 px-4 text-xs font-semibold tracking-wider text-[#a3c0e6] uppercase">Leaderboards</h3>

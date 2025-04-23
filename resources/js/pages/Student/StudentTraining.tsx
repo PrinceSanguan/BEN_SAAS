@@ -1,6 +1,22 @@
 import { Head, Link } from '@inertiajs/react';
 import gsap from 'gsap';
-import { Activity, Award, BarChart2, Calendar, ChevronDown, ChevronUp, Clock, Home, Lock, LogOut, Menu, Trophy, User, X } from 'lucide-react';
+import {
+    Activity,
+    Award,
+    BarChart2,
+    Calendar,
+    ChevronDown,
+    ChevronUp,
+    Clock,
+    Home,
+    Lock,
+    LogOut,
+    Menu,
+    TrendingUp,
+    Trophy,
+    User,
+    X,
+} from 'lucide-react';
 import React, { useEffect, useRef, useState } from 'react';
 
 interface Session {
@@ -304,6 +320,13 @@ const StudentTraining: React.FC<StudentTrainingProps> = ({ blocks, username = 'A
                         <Activity className="mr-3 h-5 w-5 text-[#4a90e2]" />
                         <span>Training</span>
                     </a>
+                    <a
+                        href={getRoute('student.progress')}
+                        className="flex items-center rounded-md px-4 py-3 text-[#a3c0e6] transition-colors hover:bg-[#1e3a5f]/40 hover:text-white"
+                    >
+                        <TrendingUp className="mr-3 h-5 w-5 text-[#4a90e2]" />
+                        <span>Progress</span>
+                    </a>
                     <div className="mt-4 border-t border-[#1e3a5f] pt-4">
                         <h3 className="mb-2 px-4 text-xs font-semibold tracking-wider text-[#a3c0e6] uppercase">Leaderboards</h3>
                         <a
@@ -374,6 +397,7 @@ const StudentTraining: React.FC<StudentTrainingProps> = ({ blocks, username = 'A
                         <Activity className="mr-3 h-5 w-5 text-[#4a90e2]" />
                         <span>Training</span>
                     </a>
+
                     <div className="mt-4 border-t border-[#1e3a5f] pt-4">
                         <h3 className="mb-2 px-4 text-xs font-semibold tracking-wider text-[#a3c0e6] uppercase">Leaderboards</h3>
                         <a
