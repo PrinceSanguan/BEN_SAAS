@@ -37,6 +37,8 @@ const ViewAthleteDashboard: React.FC<ViewAthleteDashboardProps> = ({ athlete, bl
     const [editing, setEditing] = useState(false);
     const [editedBlocks, setEditedBlocks] = useState(blocks);
     const [startDate, setStartDate] = useState<string>('');
+    // Add this with your other useState declarations at the top of the component
+    const [selectedBlockNumber, setSelectedBlockNumber] = useState<number>(1);
 
     const formatDate = (dateString: string) => {
         return new Date(dateString).toLocaleDateString('en-US', {
@@ -46,28 +48,37 @@ const ViewAthleteDashboard: React.FC<ViewAthleteDashboardProps> = ({ athlete, bl
         });
     };
 
-    const updateAllBlockDates = (date: string) => {
+    // Replace the existing updateAllBlockDates function in resources/js/pages/Admin/ViewAthleteDashboard.tsx
+    // with this new implementation:
+
+    const updateAllBlockDates = (date: string, blockNumber: number) => {
         const newStartDate = new Date(date);
 
         // Create updated blocks with cascading dates
-        const updatedBlocks = [...editedBlocks].map((block, index) => {
-            // Calculate the start date for this block
-            const blockStartDate = new Date(newStartDate);
+        const updatedBlocks = [...editedBlocks].map((block) => {
+            // Only update this block and following blocks
+            if (block.block_number >= blockNumber) {
+                // Calculate the start date for this block
+                const blockStartDate = new Date(newStartDate);
 
-            // For blocks after the first one, add 14 weeks per previous block
-            if (index > 0) {
-                blockStartDate.setDate(blockStartDate.getDate() + index * 14 * 7 + index); // 14 weeks + 1 day between blocks
+                // For blocks after the selected one, add 14 weeks per previous block
+                if (block.block_number > blockNumber) {
+                    const blocksToSkip = block.block_number - blockNumber;
+                    blockStartDate.setDate(blockStartDate.getDate() + blocksToSkip * 14 * 7 + blocksToSkip); // 14 weeks + 1 day between blocks
+                }
+
+                // Calculate end date (start date + 14 weeks - 1 day)
+                const blockEndDate = new Date(blockStartDate);
+                blockEndDate.setDate(blockEndDate.getDate() + 14 * 7 - 1);
+
+                return {
+                    ...block,
+                    start_date: blockStartDate.toISOString().split('T')[0], // Format as YYYY-MM-DD
+                    end_date: blockEndDate.toISOString().split('T')[0],
+                };
             }
-
-            // Calculate end date (start date + 14 weeks - 1 day)
-            const blockEndDate = new Date(blockStartDate);
-            blockEndDate.setDate(blockEndDate.getDate() + 14 * 7 - 1);
-
-            return {
-                ...block,
-                start_date: blockStartDate.toISOString().split('T')[0], // Format as YYYY-MM-DD
-                end_date: blockEndDate.toISOString().split('T')[0],
-            };
+            // Return unchanged for blocks before the selected one
+            return block;
         });
 
         setEditedBlocks(updatedBlocks);
@@ -154,8 +165,25 @@ const ViewAthleteDashboard: React.FC<ViewAthleteDashboardProps> = ({ athlete, bl
 
                             {editing && (
                                 <div className="mb-6 rounded-lg border bg-blue-50 p-4">
-                                    <h3 className="mb-2 font-medium text-blue-700">Set First Block Start Date</h3>
+                                    <h3 className="mb-2 font-medium text-blue-700">Set Block Start Date</h3>
                                     <div className="flex items-center">
+                                        <div className="mr-4 flex items-center">
+                                            <label htmlFor="blockSelect" className="mr-2 text-gray-700">
+                                                Choose Block:
+                                            </label>
+                                            <select
+                                                id="blockSelect"
+                                                className="rounded border px-2 py-1"
+                                                onChange={(e) => setSelectedBlockNumber(parseInt(e.target.value, 10))}
+                                                value={selectedBlockNumber}
+                                            >
+                                                {editedBlocks.map((block) => (
+                                                    <option key={block.id} value={block.block_number}>
+                                                        Block {block.block_number}
+                                                    </option>
+                                                ))}
+                                            </select>
+                                        </div>
                                         <input
                                             type="date"
                                             value={startDate}
@@ -163,15 +191,16 @@ const ViewAthleteDashboard: React.FC<ViewAthleteDashboardProps> = ({ athlete, bl
                                             className="mr-4 rounded border px-3 py-2"
                                         />
                                         <button
-                                            onClick={() => updateAllBlockDates(startDate)}
+                                            onClick={() => updateAllBlockDates(startDate, selectedBlockNumber)}
                                             className="rounded bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
                                             disabled={!startDate}
                                         >
-                                            Apply to All Blocks
+                                            Apply to Block {selectedBlockNumber} & Following
                                         </button>
                                     </div>
                                     <p className="mt-2 text-sm text-blue-600">
-                                        This will update all block dates automatically, with each block starting after the previous one ends.
+                                        This will update Block {selectedBlockNumber} and all following blocks automatically, with each block starting
+                                        after the previous one ends.
                                     </p>
                                 </div>
                             )}
