@@ -1,6 +1,6 @@
 import { Head, Link } from '@inertiajs/react';
 import gsap from 'gsap';
-import { Activity, Award, BarChart2, Home, LogOut, Menu, Trophy, User, X } from 'lucide-react';
+import { Activity, Award, BarChart2, Home, LogOut, Menu, TrendingUp, Trophy, User, X } from 'lucide-react';
 import React, { useEffect, useRef, useState } from 'react';
 
 interface LeaderboardUser {
@@ -299,6 +299,13 @@ const StrengthLeaderboard: React.FC<StrengthLeaderboardProps> = ({ leaderboardDa
                     >
                         <Activity className="mr-3 h-5 w-5 text-[#4a90e2] group-hover:text-white" />
                         <span className="group-hover:text-white">Training</span>
+                    </a>
+                    <a
+                        href={getRoute('student.progress')}
+                        className="flex items-center rounded-md px-4 py-3 text-[#a3c0e6] transition-colors hover:bg-[#1e3a5f]/40 hover:text-white"
+                    >
+                        <TrendingUp className="mr-3 h-5 w-5 text-[#4a90e2]" />
+                        <span>Progress</span>
                     </a>
 
                     <div className="mt-4 border-t border-[#1e3a5f] pt-4">
