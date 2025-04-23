@@ -66,22 +66,25 @@ class StudentDashboardController extends Controller
         $currentBlock = $blocks->firstWhere('is_current', true);
 
         if ($currentBlock) {
-            // Get the total available training sessions in the current block
-            $availableSessions = TrainingSession::where('block_id', $currentBlock['id'])
+            // Use a single query with a join to get completed sessions for performance
+            $sessionsInfo = TrainingSession::where('block_id', $currentBlock['id'])
                 ->where('session_type', 'training')
                 ->where('release_date', '<=', $currentDate)
-                ->count();
+                ->leftJoin('training_results', function ($join) use ($user) {
+                    $join->on('training_sessions.id', '=', 'training_results.session_id')
+                        ->where('training_results.user_id', '=', $user->id);
+                })
+                ->selectRaw('COUNT(training_sessions.id) as available_sessions, COUNT(training_results.id) as completed_sessions')
+                ->first();
 
-            // Get the completed training sessions in the current block
-            $completedSessions = TrainingResult::join('training_sessions', 'training_results.session_id', '=', 'training_sessions.id')
-                ->where('training_results.user_id', $user->id)
-                ->where('training_sessions.block_id', $currentBlock['id'])
-                ->where('training_sessions.session_type', 'training')
-                ->count();
+            if ($sessionsInfo) {
+                $availableSessions = $sessionsInfo->available_sessions;
+                $completedSessions = $sessionsInfo->completed_sessions;
 
-            // Calculate remaining sessions
-            $remainingSessions = $availableSessions - $completedSessions;
-            if ($remainingSessions < 0) $remainingSessions = 0;
+                // Calculate remaining sessions
+                $remainingSessions = $availableSessions - $completedSessions;
+                if ($remainingSessions < 0) $remainingSessions = 0;
+            }
         }
 
         return Inertia::render('Student/StudentDashboard', [
@@ -115,27 +118,22 @@ class StudentDashboardController extends Controller
         // Get the last 4 weeks of sessions
         $fourWeeksAgo = Carbon::now()->subWeeks(4);
 
-        // Get all training sessions in the last 4 weeks
-        $sessions = TrainingSession::where('release_date', '>=', $fourWeeksAgo)
+        // Use a join to get both sessions and completed results in a single query
+        $sessionsInfo = TrainingSession::where('release_date', '>=', $fourWeeksAgo)
             ->where('session_type', 'training')
-            ->pluck('id');
+            ->leftJoin('training_results', function ($join) use ($userId) {
+                $join->on('training_sessions.id', '=', 'training_results.session_id')
+                    ->where('training_results.user_id', '=', $userId);
+            })
+            ->selectRaw('COUNT(training_sessions.id) as total_sessions, COUNT(training_results.id) as completed_sessions')
+            ->first();
 
-        if ($sessions->isEmpty()) {
+        if (!$sessionsInfo || $sessionsInfo->total_sessions == 0) {
             return 0;
         }
 
-        // Count how many of these sessions the user has completed
-        $completedSessions = TrainingResult::where('user_id', $userId)
-            ->whereIn('session_id', $sessions)
-            ->count();
-
         // Calculate percentage (0-100)
-        $totalSessions = $sessions->count();
-        $consistencyScore = $totalSessions > 0
-            ? round(($completedSessions / $totalSessions) * 100)
-            : 0;
-
-        return $consistencyScore;
+        return round(($sessionsInfo->completed_sessions / $sessionsInfo->total_sessions) * 100);
     }
 
     /**
@@ -167,7 +165,7 @@ class StudentDashboardController extends Controller
         );
 
         // Since you're the only student, your rank should be 1
-        // We'll add this direct check
+        // Use a single count query 
         $studentCount = UserStat::join('users', 'user_stats.user_id', '=', 'users.id')
             ->where('users.user_role', 'student')
             ->count();

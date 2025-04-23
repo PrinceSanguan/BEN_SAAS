@@ -33,7 +33,7 @@ class LeaderboardController extends Controller
         // Update all user statistics to ensure they're current
         $this->userStatService->updateStats();
 
-        // Get users ranked by consistency score
+        // Get users ranked by consistency score with proper eager loading
         $leaderboardData = UserStat::join('users', 'user_stats.user_id', '=', 'users.id')
             ->where('users.user_role', 'student')
             ->select(
@@ -101,7 +101,7 @@ class LeaderboardController extends Controller
         // Update all user statistics to ensure they're current
         $this->userStatService->updateStats();
 
-        // Get users ranked by strength level and total XP
+        // Get users ranked by strength level and total XP with eager loading
         $leaderboardData = UserStat::join('users', 'user_stats.user_id', '=', 'users.id')
             ->where('users.user_role', 'student')
             ->select('users.id', 'users.username', 'user_stats.strength_level', 'user_stats.total_xp')
@@ -116,7 +116,10 @@ class LeaderboardController extends Controller
         $lastXp = null;
         $lastRank = 1;
 
-        $formattedLeaderboard = $leaderboardData->map(function ($item) use ($user, &$rank, &$lastLevel, &$lastXp, &$lastRank) {
+        // Prefetch the XP information for the current user
+        $currentUserXpInfo = $this->xpService->getNextLevelInfo($user->id);
+
+        $formattedLeaderboard = $leaderboardData->map(function ($item) use ($user, &$rank, &$lastLevel, &$lastXp, &$lastRank, $currentUserXpInfo) {
             // If both the level and XP are the same as the previous user, keep the same rank (tied)
             if ($lastLevel !== null && $lastXp !== null && $lastLevel === $item->strength_level && $lastXp === $item->total_xp) {
                 $userRank = $lastRank;
@@ -132,11 +135,10 @@ class LeaderboardController extends Controller
             // Get XP info for this user to show progress to next level
             $nextLevelInfo = [];
             if ($item->id === $user->id) {
-                $xpInfo = $this->xpService->getNextLevelInfo($user->id);
                 $nextLevelInfo = [
-                    'xp_needed' => $xpInfo['xp_needed'],
-                    'progress_percentage' => $xpInfo['progress_percentage'],
-                    'next_level' => $xpInfo['next_level']
+                    'xp_needed' => $currentUserXpInfo['xp_needed'],
+                    'progress_percentage' => $currentUserXpInfo['progress_percentage'],
+                    'next_level' => $currentUserXpInfo['next_level']
                 ];
             }
 
@@ -160,6 +162,7 @@ class LeaderboardController extends Controller
 
             if ($userStat) {
                 // Count how many users have higher strength level or same level but higher XP
+                // Use a single query to avoid N+1
                 $userRank = UserStat::join('users', 'user_stats.user_id', '=', 'users.id')
                     ->where('users.user_role', 'student')
                     ->where(function ($query) use ($userStat) {
@@ -171,9 +174,6 @@ class LeaderboardController extends Controller
                     })
                     ->count();
 
-                // Get XP info for this user
-                $xpInfo = $this->xpService->getNextLevelInfo($user->id);
-
                 // Add the current user to the end of the list
                 $formattedLeaderboard->push([
                     'id' => $user->id,
@@ -183,9 +183,9 @@ class LeaderboardController extends Controller
                     'total_xp' => $userStat->total_xp,
                     'isYou' => true,
                     'next_level_info' => [
-                        'xp_needed' => $xpInfo['xp_needed'],
-                        'progress_percentage' => $xpInfo['progress_percentage'],
-                        'next_level' => $xpInfo['next_level']
+                        'xp_needed' => $currentUserXpInfo['xp_needed'],
+                        'progress_percentage' => $currentUserXpInfo['progress_percentage'],
+                        'next_level' => $currentUserXpInfo['next_level']
                     ]
                 ]);
             }
