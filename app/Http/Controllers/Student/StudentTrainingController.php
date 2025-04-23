@@ -249,7 +249,7 @@ class StudentTrainingController extends Controller
                 'standing_long_jump'       => 'required|numeric',
                 'single_leg_jump_left'     => 'required|numeric',
                 'single_leg_jump_right'    => 'required|numeric',
-                'wall_sit_assessment'      => 'required|numeric',
+                'wall_sit_assessment'      => 'required|numeric',  // Make sure this matches form field
                 'high_plank_assessment'    => 'required|numeric',
                 'bent_arm_hang_assessment' => 'nullable|numeric', // Optional field
             ]);

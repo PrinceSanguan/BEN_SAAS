@@ -67,13 +67,9 @@ class ProgressController extends Controller
                 'name' => 'Single Leg Jump (RIGHT)',
                 'pre_training_field' => 'single_leg_jump_right'
             ],
-            'single_leg_wall_sit_left' => [
-                'name' => 'Single Leg Wall Sit (LEFT)',
-                'pre_training_field' => 'single_leg_wall_sit_left'
-            ],
-            'single_leg_wall_sit_right' => [
-                'name' => 'Single Leg Wall Sit (RIGHT)',
-                'pre_training_field' => 'single_leg_wall_sit_right'
+            'wall_sit_assessment' => [  // This name should match your database field
+                'name' => 'Wall Sit Assessment',
+                'pre_training_field' => 'single_leg_wall_sit_left'  // Keep this unchanged if it matches pre-training test field
             ],
             'high_plank_assessment' => [
                 'name' => 'High Plank Assessment',
