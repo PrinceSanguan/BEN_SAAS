@@ -278,7 +278,7 @@ class AdminDashboardController extends Controller
     private function getAthletesWithTrainingResults()
     {
         return User::where('user_role', 'student')
-            ->with('preTrainingTest')
+            ->with('preTrainingTest') // Eager load preTrainingTest relationship
             ->get()
             ->map(function ($user) {
                 return [
@@ -298,12 +298,14 @@ class AdminDashboardController extends Controller
             });
     }
 
+
     /**
      * Get basic athlete data without training results
      */
     private function getBasicAthleteData()
     {
         return User::where('user_role', 'student')
+            ->select('id', 'username', 'parent_email') // Select only needed fields
             ->get()
             ->map(function ($user) {
                 return [
@@ -471,20 +473,21 @@ class AdminDashboardController extends Controller
     public function viewAthleteDashboard($id)
     {
         try {
-            $athlete = User::findOrFail($id);
+            // Use eager loading to get the athlete with a single query
+            $athlete = User::with('preTrainingTest')->findOrFail($id);
 
             if ($athlete->user_role !== 'student') {
                 return redirect()->back()->with('error', 'User is not an athlete.');
             }
 
-            // Get the athlete's blocks
+            // Load all blocks with a single query instead of separate queries
             $blocks = Block::orderBy('block_number')->get();
 
             // Get XP information
             $xpService = app(XpService::class);
             $xpSummary = $xpService->getUserXpSummary($athlete->id);
 
-            // Get user stats
+            // Get user stats - use eloquent with to avoid multiple queries
             $userStat = UserStat::where('user_id', $athlete->id)->first();
             $strengthLevel = $userStat ? $userStat->strength_level : 1;
             $consistencyScore = $userStat ? round($userStat->consistency_score) : 0;
@@ -537,7 +540,7 @@ class AdminDashboardController extends Controller
             ]);
 
             $athleteId = $validated['athlete_id'];
-            $athlete = User::findOrFail($athleteId);
+            $athlete = User::select('id', 'username')->findOrFail($athleteId);
 
             DB::beginTransaction();
 
@@ -547,9 +550,18 @@ class AdminDashboardController extends Controller
                 'blocks' => $validated['blocks']
             ]);
 
+            // Group blocks by ID for faster lookup
+            $blockUpdates = collect($validated['blocks'])->keyBy('id');
+
+            // Get all block IDs that need to be updated
+            $blockIds = $blockUpdates->keys()->toArray();
+
+            // Fetch all blocks that need to be updated in a single query
+            $blocks = Block::whereIn('id', $blockIds)->get();
+
             // Update each block
-            foreach ($validated['blocks'] as $blockData) {
-                $block = Block::findOrFail($blockData['id']);
+            foreach ($blocks as $block) {
+                $blockData = $blockUpdates[$block->id];
                 $block->start_date = $blockData['start_date'];
                 $block->end_date = $blockData['end_date'];
                 $block->save();
@@ -582,24 +594,47 @@ class AdminDashboardController extends Controller
     {
         $startDate = Carbon::parse($block->start_date);
 
-        // Group sessions by week
-        $sessionsByWeek = TrainingSession::where('block_id', $block->id)
+        // Group sessions by week and retrieve them all at once
+        $sessions = TrainingSession::where('block_id', $block->id)
             ->orderBy('week_number')
             ->orderBy('session_number')
             ->get()
             ->groupBy('week_number');
 
-        foreach ($sessionsByWeek as $weekNumber => $sessions) {
+        // Prepare bulk update data
+        $sessionUpdates = [];
+
+        foreach ($sessions as $weekNumber => $weekSessions) {
             // Calculate new week start date: block start date + (week_number - 1) weeks
             $weekStartDate = $startDate->copy()->addWeeks($weekNumber - 1);
 
             // Update each session in the week
-            foreach ($sessions as $index => $session) {
+            foreach ($weekSessions as $index => $session) {
                 // Space sessions within the week (every 2 days)
                 $sessionDate = $weekStartDate->copy()->addDays($index * 2);
 
-                $session->release_date = $sessionDate->format('Y-m-d');
-                $session->save();
+                // Instead of saving one by one, collect updates for bulk operation
+                $sessionUpdates[] = [
+                    'id' => $session->id,
+                    'release_date' => $sessionDate->format('Y-m-d')
+                ];
+            }
+        }
+
+        // Perform bulk updates in a single transaction
+        if (!empty($sessionUpdates)) {
+            DB::beginTransaction();
+
+            try {
+                foreach ($sessionUpdates as $update) {
+                    TrainingSession::where('id', $update['id'])
+                        ->update(['release_date' => $update['release_date']]);
+                }
+
+                DB::commit();
+            } catch (\Exception $e) {
+                DB::rollBack();
+                throw $e;
             }
         }
     }

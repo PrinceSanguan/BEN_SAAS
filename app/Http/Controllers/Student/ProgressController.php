@@ -42,13 +42,13 @@ class ProgressController extends Controller
         $preTrainingTest = PreTrainingTest::where('user_id', $user->id)->first();
         $preTrainingDate = $preTrainingTest ? Carbon::parse($preTrainingTest->created_at) : null;
 
-        // Get all test sessions in order (for all blocks 1-3)
+        // Get all test sessions in order with block relationship eagerly loaded
         $testSessions = TrainingSession::where('session_type', 'testing')
             ->with('block')
             ->orderBy('week_number')
             ->get();
 
-        // Get all test results for this user
+        // Get all test results for this user in a single query
         $testResults = TestResult::where('user_id', $user->id)
             ->get()
             ->keyBy('session_id');
@@ -67,9 +67,13 @@ class ProgressController extends Controller
                 'name' => 'Single Leg Jump (RIGHT)',
                 'pre_training_field' => 'single_leg_jump_right'
             ],
-            'wall_sit_assessment' => [  // This name should match your database field
-                'name' => 'Wall Sit Assessment',
-                'pre_training_field' => 'single_leg_wall_sit_left'  // Keep this unchanged if it matches pre-training test field
+            'single_leg_wall_sit_left' => [
+                'name' => 'Single Leg Wall Sit (LEFT)',
+                'pre_training_field' => 'single_leg_wall_sit_left'
+            ],
+            'single_leg_wall_sit_right' => [
+                'name' => 'Single Leg Wall Sit (RIGHT)',
+                'pre_training_field' => 'single_leg_wall_sit_right'
             ],
             'high_plank_assessment' => [
                 'name' => 'High Plank Assessment',
@@ -96,7 +100,7 @@ class ProgressController extends Controller
                 if ($preTrainingValue > 0) {
                     $sessionData[] = [
                         'label' => 'PRE-TRAINING',
-                        'date' => $preTrainingDate ? $preTrainingDate->format('Y-m-d') : Carbon::now()->subMonths(3)->format('Y-m-d'), // Use a default date if not available
+                        'date' => $preTrainingDate ? $preTrainingDate->format('Y-m-d') : Carbon::now()->subMonths(3)->format('Y-m-d'),
                         'value' => $preTrainingValue
                     ];
                     $values[] = $preTrainingValue;
