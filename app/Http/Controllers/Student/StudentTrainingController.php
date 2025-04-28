@@ -46,8 +46,10 @@ class StudentTrainingController extends Controller
         $blocks = Block::with(['sessions' => function ($query) {
             $query->orderBy('week_number')->orderBy('session_number');
         }, 'sessions.block']) // Add block relationship to avoid n+1 on block access
+            ->where('user_id', $user->id) // Filter blocks by user_id
             ->orderBy('block_number')
             ->get();
+
 
         // 2) Find which sessions this user has completed in a single query
         $completedTrainingResults = TrainingResult::where('user_id', $user->id)
@@ -142,7 +144,7 @@ class StudentTrainingController extends Controller
         $xpSummary = $this->xpService->getUserXpSummary($user->id);
 
         return Inertia::render('Student/StudentTraining', [
-            'blocks' => $formattedBlocks,
+            'blocks' => $formattedBlocks, // Use all formatted blocks without filtering
             'xp' => [
                 'total' => $xpSummary['total_xp'],
                 'level' => $xpSummary['current_level'],

@@ -206,7 +206,9 @@ const StrengthLeaderboard: React.FC<StrengthLeaderboardProps> = ({ leaderboardDa
                 <div className="h-1.5 w-full overflow-hidden rounded-full bg-[#1e3a5f]">
                     <div
                         className="h-1.5 rounded-full bg-gradient-to-r from-[#4a90e2] to-[#63b3ed]"
-                        style={{ width: `${progressPercentage}%` }}
+                        style={{
+                            width: user.strength_level === 1 ? `${(user.total_xp / 3) * 100}%` : `${progressPercentage}%`,
+                        }}
                     ></div>
                 </div>
                 <div className="mt-1 text-center text-xs text-[#a3c0e6]">
@@ -472,15 +474,21 @@ const StrengthLeaderboard: React.FC<StrengthLeaderboardProps> = ({ leaderboardDa
                                                             {user.isYou && user.next_level_info && (
                                                                 <div className="mt-1 w-full">
                                                                     <div className="h-1.5 w-32 overflow-hidden rounded-full bg-[#1e3a5f]">
-                                                                        <div
-                                                                            className="h-1.5 rounded-full bg-gradient-to-r from-[#4a90e2] to-[#63b3ed]"
-                                                                            style={{
-                                                                                width:
-                                                                                    user.total_xp > 0
-                                                                                        ? `${user.next_level_info.progress_percentage}%`
-                                                                                        : '0%',
-                                                                            }}
-                                                                        ></div>
+                                                                        <div className="h-1.5 w-32 overflow-hidden rounded-full bg-[#1e3a5f]">
+                                                                            <div className="h-1.5 w-32 overflow-hidden rounded-full bg-[#1e3a5f]">
+                                                                                <div
+                                                                                    className="h-1.5 rounded-full bg-gradient-to-r from-[#4a90e2] to-[#63b3ed]"
+                                                                                    style={{
+                                                                                        width:
+                                                                                            user.total_xp > 0
+                                                                                                ? user.strength_level === 1
+                                                                                                    ? `${(user.total_xp / 3) * 100}%`
+                                                                                                    : `${user.next_level_info.progress_percentage}%`
+                                                                                                : '0%',
+                                                                                    }}
+                                                                                ></div>
+                                                                            </div>
+                                                                        </div>
                                                                     </div>
                                                                     <div className="mt-1 text-xs text-[#a3c0e6]">
                                                                         <span>{user.next_level_info.xp_needed} XP to next level</span>

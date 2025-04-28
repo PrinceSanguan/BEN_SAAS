@@ -99,4 +99,9 @@ class Block extends Model
 
         return $query->first();
     }
+
+    public function users()
+    {
+        return $this->belongsToMany(User::class, 'block_user', 'block_id', 'user_id');
+    }
 }
