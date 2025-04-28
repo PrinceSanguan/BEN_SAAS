@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Block extends Model
 {
@@ -19,6 +20,7 @@ class Block extends Model
         'block_number',
         'start_date',
         'end_date',
+        'user_id',  // Added user_id to fillable
     ];
 
     /**
@@ -38,6 +40,14 @@ class Block extends Model
     public function sessions(): HasMany
     {
         return $this->hasMany(TrainingSession::class);
+    }
+
+    /**
+     * Relationship: Block belongs to a User.
+     */
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
     }
 
     /**
@@ -73,14 +83,20 @@ class Block extends Model
     }
 
     /**
-     * Get the current active block.
+     * Get the current active block for a specific user.
      * 
+     * @param int|null $userId
      * @return Block|null
      */
-    public static function getCurrentBlock()
+    public static function getCurrentBlock($userId = null)
     {
-        return self::where('start_date', '<=', now())
-            ->where('end_date', '>=', now())
-            ->first();
+        $query = self::where('start_date', '<=', now())
+            ->where('end_date', '>=', now());
+
+        if ($userId) {
+            $query->where('user_id', $userId);
+        }
+
+        return $query->first();
     }
 }
