@@ -1,5 +1,5 @@
 import { Head, router } from '@inertiajs/react';
-import { Activity, Award, BarChart2, Calendar, ChevronRight, Edit, Home, Save, TrendingUp, Trophy, User } from 'lucide-react';
+import { Calendar, ChevronRight, Edit, Menu, Save, Trophy, User, X } from 'lucide-react';
 import { useState } from 'react';
 
 interface AthleteData {
@@ -38,6 +38,7 @@ const ViewAthleteDashboard: React.FC<ViewAthleteDashboardProps> = ({ athlete, bl
     const [editedBlocks, setEditedBlocks] = useState(blocks);
     const [startDate, setStartDate] = useState<string>('');
     const [selectedBlockNumber, setSelectedBlockNumber] = useState<number>(1);
+    const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
 
     const formatDate = (dateString: string) => {
         return new Date(dateString).toLocaleDateString('en-US', {
@@ -110,6 +111,68 @@ const ViewAthleteDashboard: React.FC<ViewAthleteDashboardProps> = ({ athlete, bl
             <Head title={`Viewing ${athlete.username}'s Block`} />
 
             {/* Sidebar */}
+            {/* Mobile Sidebar Menu */}
+            <div className="lg:hidden">
+                {/* Mobile Menu Toggle Button */}
+                <button
+                    onClick={() => setMobileSidebarOpen(!mobileSidebarOpen)}
+                    className="fixed top-4 left-4 z-20 rounded-full bg-[#1e3a5f] p-2 text-white shadow-lg"
+                >
+                    {mobileSidebarOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+                </button>
+
+                {/* Mobile Sidebar Overlay */}
+                {mobileSidebarOpen && (
+                    <div className="fixed inset-0 z-10 bg-black/50 backdrop-blur-sm transition-opacity" onClick={() => setMobileSidebarOpen(false)} />
+                )}
+
+                {/* Mobile Sidebar Content */}
+                <div
+                    className={`fixed top-0 left-0 z-20 h-full w-64 transform bg-[#0a1e3c] shadow-xl transition-transform duration-300 ${
+                        mobileSidebarOpen ? 'translate-x-0' : '-translate-x-full'
+                    }`}
+                >
+                    <div className="flex h-16 items-center border-b border-[#1e3a5f] px-6">
+                        <div className="mr-3 flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-[#4a90e2] to-[#63b3ed]">
+                            <Trophy className="h-5 w-5 text-white" />
+                        </div>
+                        <h1 className="text-xl font-bold text-white">AthleteTrack</h1>
+                    </div>
+                    <div className="border-b border-[#1e3a5f] p-4">
+                        <div className="flex items-center">
+                            <div className="mr-3 flex h-10 w-10 items-center justify-center rounded-full bg-[#1e3a5f]">
+                                <User className="h-5 w-5 text-[#4a90e2]" />
+                            </div>
+                            <div>
+                                <h2 className="text-sm font-medium text-white">Admin View</h2>
+                                <p className="text-xs text-[#a3c0e6]">Viewing as {athlete.username}</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div className="p-4">
+                        <nav className="space-y-2">
+                            <a
+                                href="#"
+                                onClick={() => router.get(`/admin/dashboard`)}
+                                className="flex items-center rounded-lg bg-[#1e3a5f]/50 px-4 py-3 text-[#a3c0e6] transition-colors hover:bg-[#1e3a5f]"
+                            >
+                                <ChevronRight className="mr-3 h-5 w-5" />
+                                <span>Return to Admin</span>
+                            </a>
+                            <a href="#" className="flex items-center rounded-lg px-4 py-3 text-[#a3c0e6] transition-colors hover:bg-[#1e3a5f]/50">
+                                <Calendar className="mr-3 h-5 w-5" />
+                                <span>View Training Blocks</span>
+                            </a>
+                            <a href="#" className="flex items-center rounded-lg px-4 py-3 text-[#a3c0e6] transition-colors hover:bg-[#1e3a5f]/50">
+                                <User className="mr-3 h-5 w-5" />
+                                <span>Athlete Profile</span>
+                            </a>
+                        </nav>
+                    </div>
+                </div>
+            </div>
+
+            {/* Desktop Sidebar */}
             <div className="fixed z-10 hidden h-full w-64 border-r border-[#1e3a5f] bg-[#0a1e3c] lg:block">
                 <div className="flex h-16 items-center border-b border-[#1e3a5f] px-6">
                     <div className="mr-3 flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-[#4a90e2] to-[#63b3ed]">
@@ -128,38 +191,32 @@ const ViewAthleteDashboard: React.FC<ViewAthleteDashboardProps> = ({ athlete, bl
                         </div>
                     </div>
                 </div>
-                <nav className="space-y-1 p-4">
-                    <a className="flex items-center rounded-md bg-[#1e3a5f] px-4 py-3 text-white">
-                        <Home className="mr-3 h-5 w-5 text-[#4a90e2]" />
-                        <span>Dashboard</span>
-                    </a>
-                    <a className="flex items-center rounded-md px-4 py-3 text-[#a3c0e6] transition-colors hover:bg-[#1e3a5f]/40 hover:text-white">
-                        <Activity className="mr-3 h-5 w-5 text-[#4a90e2]" />
-                        <span>Training</span>
-                    </a>
-                    <a className="flex items-center rounded-md px-4 py-3 text-[#a3c0e6] transition-colors hover:bg-[#1e3a5f]/40 hover:text-white">
-                        <TrendingUp className="mr-3 h-5 w-5 text-[#4a90e2]" />
-                        <span>Progress</span>
-                    </a>
-
-                    <div className="pt-4">
-                        <h3 className="px-4 py-2 text-xs font-semibold tracking-wider text-[#63b3ed] uppercase">Leaderboards</h3>
-                        <a className="flex items-center rounded-md px-4 py-3 text-[#a3c0e6] transition-colors hover:bg-[#1e3a5f]/40 hover:text-white">
-                            <Award className="mr-3 h-5 w-5 text-[#4a90e2]" />
-                            <span>Strength</span>
+                <div className="p-4">
+                    <nav className="space-y-2">
+                        <a
+                            href="#"
+                            onClick={() => router.get(`/admin/dashboard`)}
+                            className="flex items-center rounded-lg bg-[#1e3a5f]/50 px-4 py-3 text-[#a3c0e6] transition-colors hover:bg-[#1e3a5f]"
+                        >
+                            <ChevronRight className="mr-3 h-5 w-5" />
+                            <span>Return to Admin</span>
                         </a>
-                        <a className="flex items-center rounded-md px-4 py-3 text-[#a3c0e6] transition-colors hover:bg-[#1e3a5f]/40 hover:text-white">
-                            <BarChart2 className="mr-3 h-5 w-5 text-[#4a90e2]" />
-                            <span>Consistency</span>
+                        <a href="#" className="flex items-center rounded-lg px-4 py-3 text-[#a3c0e6] transition-colors hover:bg-[#1e3a5f]/50">
+                            <Calendar className="mr-3 h-5 w-5" />
+                            <span>View Training Blocks</span>
                         </a>
-                    </div>
-                </nav>
+                        <a href="#" className="flex items-center rounded-lg px-4 py-3 text-[#a3c0e6] transition-colors hover:bg-[#1e3a5f]/50">
+                            <User className="mr-3 h-5 w-5" />
+                            <span>Athlete Profile</span>
+                        </a>
+                    </nav>
+                </div>
             </div>
 
             {/* Main Content */}
-            <div className="ml-0 flex-1 lg:ml-64">
+            <div className="ml-0 w-full flex-1 lg:ml-64">
                 <header className="sticky top-0 z-10 border-b border-[#1e3a5f] bg-[#0a1e3c]/80 px-4 py-4 backdrop-blur-md lg:px-8">
-                    <div className="flex items-center justify-between">
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                         <div className="flex items-center">
                             <div className="mr-2 flex h-8 w-8 items-center justify-center rounded-full bg-[#1e3a5f] text-[#4a90e2] lg:hidden">
                                 <Trophy className="h-4 w-4" />
@@ -168,7 +225,7 @@ const ViewAthleteDashboard: React.FC<ViewAthleteDashboardProps> = ({ athlete, bl
                         </div>
                         <button
                             onClick={() => (editing ? saveChanges() : setEditing(true))}
-                            className={`flex items-center rounded-lg px-4 py-2 ${
+                            className={`flex w-full items-center justify-center rounded-lg px-4 py-2 sm:w-auto ${
                                 editing ? 'bg-green-600 text-white hover:bg-green-700' : 'bg-blue-600 text-white hover:bg-blue-700'
                             }`}
                         >
@@ -198,13 +255,13 @@ const ViewAthleteDashboard: React.FC<ViewAthleteDashboardProps> = ({ athlete, bl
 
                     {/* Stats Cards */}
                     <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                        <div className="rounded-xl border border-[#1e3a5f] bg-[#112845] p-4 shadow-lg">
+                        <div className="rounded-xl border border-[#1e3a5f] bg-[#112845] p-4 shadow-lg transition-colors hover:bg-[#173356]">
                             <h3 className="mb-2 text-sm font-medium text-[#a3c0e6]">ATHLETE NAME</h3>
                             <p className="text-xl font-bold text-white">{athlete.username}</p>
                             <p className="mt-1 text-xs text-[#63b3ed]">{athlete.email}</p>
                         </div>
 
-                        <div className="rounded-xl border border-[#1e3a5f] bg-[#112845] p-4 shadow-lg">
+                        <div className="rounded-xl border border-[#1e3a5f] bg-[#112845] p-4 shadow-lg transition-colors hover:bg-[#173356]">
                             <h3 className="mb-2 text-sm font-medium text-[#a3c0e6]">STRENGTH LEVEL</h3>
                             <div className="flex items-end">
                                 <p className="text-2xl font-bold text-white">{strengthLevel}</p>
@@ -221,7 +278,7 @@ const ViewAthleteDashboard: React.FC<ViewAthleteDashboardProps> = ({ athlete, bl
                             <p className="mt-1 text-xs text-[#63b3ed]">{xpInfo.total_xp} XP Total</p>
                         </div>
 
-                        <div className="rounded-xl border border-[#1e3a5f] bg-[#112845] p-4 shadow-lg">
+                        <div className="rounded-xl border border-[#1e3a5f] bg-[#112845] p-4 shadow-lg transition-colors hover:bg-[#173356]">
                             <h3 className="mb-2 text-sm font-medium text-[#a3c0e6]">CONSISTENCY SCORE</h3>
                             <p className="text-2xl font-bold text-white">{consistencyScore}%</p>
                             <div className="mt-2 flex items-center">
@@ -234,7 +291,7 @@ const ViewAthleteDashboard: React.FC<ViewAthleteDashboardProps> = ({ athlete, bl
                             </div>
                         </div>
 
-                        <div className="rounded-xl border border-[#1e3a5f] bg-[#112845] p-4 shadow-lg">
+                        <div className="rounded-xl border border-[#1e3a5f] bg-[#112845] p-4 shadow-lg transition-colors hover:bg-[#173356]">
                             <h3 className="mb-2 text-sm font-medium text-[#a3c0e6]">QUICK ACTIONS</h3>
                             <a
                                 href="#"
@@ -251,13 +308,13 @@ const ViewAthleteDashboard: React.FC<ViewAthleteDashboardProps> = ({ athlete, bl
                         <div className="mb-6 rounded-xl border border-blue-500/30 bg-[#112845] p-6 shadow-lg">
                             <h3 className="mb-4 text-lg font-semibold text-white">Edit Block Dates</h3>
                             <div className="flex flex-col space-y-4 md:flex-row md:items-end md:space-y-0 md:space-x-4">
-                                <div>
+                                <div className="w-full md:w-auto">
                                     <label htmlFor="blockSelect" className="mb-2 block text-sm font-medium text-[#a3c0e6]">
                                         Select Block:
                                     </label>
                                     <select
                                         id="blockSelect"
-                                        className="w-full rounded-lg border border-[#1e3a5f] bg-[#0a1e3c] px-3 py-2 text-white focus:border-[#4a90e2] focus:outline-none md:w-auto"
+                                        className="w-full rounded-lg border border-[#1e3a5f] bg-[#0a1e3c] px-3 py-2 text-white focus:border-[#4a90e2] focus:outline-none"
                                         onChange={(e) => setSelectedBlockNumber(parseInt(e.target.value, 10))}
                                         value={selectedBlockNumber}
                                     >
@@ -285,7 +342,7 @@ const ViewAthleteDashboard: React.FC<ViewAthleteDashboardProps> = ({ athlete, bl
                                 <button
                                     onClick={() => updateAllBlockDates(startDate, selectedBlockNumber)}
                                     disabled={!startDate}
-                                    className="rounded-lg bg-blue-600 px-4 py-2 text-white transition-colors hover:bg-blue-700 disabled:opacity-50"
+                                    className="w-full rounded-lg bg-blue-600 px-4 py-2 text-white transition-colors hover:bg-blue-700 disabled:opacity-50 md:w-auto"
                                 >
                                     Apply to Block {selectedBlockNumber} & Following
                                 </button>
@@ -333,11 +390,56 @@ const ViewAthleteDashboard: React.FC<ViewAthleteDashboardProps> = ({ athlete, bl
                         </div>
                     </div>
 
+                    {/* Mobile friendly table alternative for small screens */}
+                    <div className="mt-6 block sm:hidden">
+                        <h3 className="mb-4 text-lg font-semibold text-white">Training Blocks (Mobile View)</h3>
+                        <div className="space-y-4">
+                            {editedBlocks.map((block) => (
+                                <div key={block.id} className="rounded-lg border border-[#1e3a5f] bg-[#112845] p-4 shadow-md">
+                                    <div className="mb-2 flex items-center">
+                                        <Calendar className="mr-2 h-5 w-5 text-[#4a90e2]" />
+                                        <span className="font-medium text-white">Block {block.block_number}</span>
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-2 text-sm">
+                                        <div>
+                                            <p className="text-xs text-[#a3c0e6]">START DATE</p>
+                                            <p className="text-white">{formatDate(block.start_date)}</p>
+                                        </div>
+                                        <div>
+                                            <p className="text-xs text-[#a3c0e6]">END DATE</p>
+                                            <p className="text-white">{formatDate(block.end_date)}</p>
+                                        </div>
+                                        <div className="col-span-2 mt-1">
+                                            <p className="text-xs text-[#a3c0e6]">DURATION</p>
+                                            <p className="text-white">{block.duration_weeks} weeks</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+
                     {editing && (
                         <div className="mt-4 text-sm text-[#a3c0e6]">
                             <p>⚠️ Changing block dates will automatically adjust the release dates of all sessions within each block.</p>
                         </div>
                     )}
+
+                    {/* Mobile Bottom Navigation Bar */}
+                    <div className="fixed right-0 bottom-0 left-0 z-10 flex justify-around border-t border-[#1e3a5f] bg-[#0a1e3c]/90 p-4 backdrop-blur-md lg:hidden">
+                        <button onClick={() => router.get(`/admin/dashboard`)} className="flex flex-col items-center text-[#a3c0e6]">
+                            <ChevronRight className="h-6 w-6" />
+                            <span className="mt-1 text-xs">Admin</span>
+                        </button>
+                        <button onClick={() => (editing ? saveChanges() : setEditing(true))} className="flex flex-col items-center text-[#a3c0e6]">
+                            {editing ? <Save className="h-6 w-6" /> : <Edit className="h-6 w-6" />}
+                            <span className="mt-1 text-xs">{editing ? 'Save' : 'Edit'}</span>
+                        </button>
+                        <button className="flex flex-col items-center text-[#a3c0e6]">
+                            <User className="h-6 w-6" />
+                            <span className="mt-1 text-xs">Profile</span>
+                        </button>
+                    </div>
                 </main>
             </div>
         </div>
