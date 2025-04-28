@@ -130,14 +130,20 @@ class AdminDashboardController extends Controller
 
             Log::info('Created blocks for user_id: ' . $user->id);
 
+            // Use the direct many-to-many relationship from the Block model
+            if (method_exists($block1, 'users')) {
+                $block1->users()->attach($user->id);
+                $block2->users()->attach($user->id);
+                $block3->users()->attach($user->id);
+                Log::info('Attached user to blocks via many-to-many');
+            }
+
             // Create sessions for each block
             $this->createSessionsForBlock($block1);
             $this->createSessionsForBlock($block2);
             $this->createSessionsForBlock($block3);
 
-            Log::info('User created successfully:', ['user_id' => $user->id]);
-            Log::info('Pre-training test created successfully:', ['test_id' => $preTrainingTest->id]);
-            Log::info('Blocks and Training Sessions created successfully');
+            Log::info('Created sessions for all blocks');
 
             DB::commit();
 

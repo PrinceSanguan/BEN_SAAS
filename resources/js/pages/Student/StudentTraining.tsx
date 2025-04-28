@@ -131,24 +131,6 @@ const StudentTraining: React.FC<StudentTrainingProps> = ({ blocks, username = 'A
         return available - completed;
     };
 
-    // Add this filter before the return statement
-    const visibleBlocks = blocks.filter((block, index) => {
-        // Always show first block
-        if (index === 0) return true;
-
-        // Show second block only when first block has 1 remaining session
-        if (index === 1) {
-            return blocks.length > 0 && getRemainingSessionCount(blocks[0]) === 1;
-        }
-
-        // Show third block only when second block has 1 remaining session
-        if (index === 2) {
-            return blocks.length > 1 && getRemainingSessionCount(blocks[1]) === 1;
-        }
-
-        return false;
-    });
-
     // Helper to check if a date is today
     const isToday = (dateStr: string): boolean => {
         if (!dateStr || dateStr === 'Not scheduled') return false;
@@ -453,7 +435,7 @@ const StudentTraining: React.FC<StudentTrainingProps> = ({ blocks, username = 'A
                         </div>
                     ) : (
                         <div className="space-y-6">
-                            {visibleBlocks.map((block) => (
+                            {blocks.map((block) => (
                                 <div key={block.id} className="overflow-hidden rounded-xl border border-[#1e3a5f] bg-[#112845]/90 shadow-lg">
                                     <button
                                         onClick={() => toggleBlock(block.id)}
