@@ -44,7 +44,8 @@ class StudentDashboardController extends Controller
         $userRank = $this->calculateUserRank($user->id, $xpSummary['current_level'], $xpSummary['total_xp']);
 
         // Get all blocks
-        $blocks = Block::orderBy('block_number')
+        $blocks = Block::where('user_id', $user->id)
+            ->orderBy('block_number')
             ->get()
             ->map(function ($block) {
                 $now = Carbon::now();
@@ -56,8 +57,9 @@ class StudentDashboardController extends Controller
                     'block_number' => $block->block_number,
                     'start_date' => $startDate->format('Y-m-d'),
                     'end_date' => $endDate->format('Y-m-d'),
-                    'duration_weeks' => 14, // Set fixed value of 14 weeks
-                    'is_current' => $now->between($startDate, $endDate)
+                    'duration_weeks' => $startDate->diffInWeeks($endDate) + 1,
+                    'is_current' => $now->between($startDate, $endDate),
+                    'is_associated_with_user' => true // Always true since we're filtering by user_id
                 ];
             });
 
@@ -117,9 +119,12 @@ class StudentDashboardController extends Controller
     {
         // Get the last 4 weeks of sessions
         $fourWeeksAgo = Carbon::now()->subWeeks(4);
+        $today = Carbon::now();
 
         // Use a join to get both sessions and completed results in a single query
+        // But only count sessions that are available TODAY or earlier (not future sessions)
         $sessionsInfo = TrainingSession::where('release_date', '>=', $fourWeeksAgo)
+            ->where('release_date', '<=', $today) // Only include sessions up to today
             ->where('session_type', 'training')
             ->leftJoin('training_results', function ($join) use ($userId) {
                 $join->on('training_sessions.id', '=', 'training_results.session_id')

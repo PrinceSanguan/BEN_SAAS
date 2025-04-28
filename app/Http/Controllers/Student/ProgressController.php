@@ -21,7 +21,8 @@ class ProgressController extends Controller
         $user = Auth::user();
 
         // Get all blocks
-        $blocks = Block::orderBy('block_number')
+        $blocks = Block::where('user_id', $user->id)
+            ->orderBy('block_number')
             ->get()
             ->map(function ($block) {
                 $now = Carbon::now();

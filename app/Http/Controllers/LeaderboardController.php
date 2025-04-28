@@ -9,6 +9,9 @@ use App\Models\Session;
 use App\Services\UserStatService;
 use App\Services\XpService;
 use Inertia\Inertia;
+use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class LeaderboardController extends Controller
 {
@@ -29,59 +32,81 @@ class LeaderboardController extends Controller
     public function consistency()
     {
         $user = Auth::user();
+        $today = Carbon::now();
 
-        // Update all user statistics to ensure they're current
-        $this->userStatService->updateStats();
+        Log::info('Starting consistency calculation', [
+            'user_id' => $user->id,
+            'current_time' => $today->toDateTimeString()
+        ]);
 
-        // Get users ranked by consistency score with proper eager loading
-        $leaderboardData = UserStat::join('users', 'user_stats.user_id', '=', 'users.id')
-            ->where('users.user_role', 'student')
-            ->select(
-                'users.id',
-                'users.username',
-                'user_stats.consistency_score',
-                'user_stats.sessions_completed',
-                'user_stats.sessions_available'
-            )
-            ->orderBy('user_stats.consistency_score', 'desc')
-            ->orderBy('user_stats.sessions_completed', 'desc')
+        // Get all users with student role
+        $students = DB::table('users')
+            ->where('user_role', 'student')
             ->get();
 
-        // Add ranking and check if the user is the current user
+        $leaderboardData = collect();
+
+        // Process each student separately to get their individual stats
+        foreach ($students as $student) {
+            // Get blocks associated with this user
+            $userBlocks = DB::table('blocks')
+                ->where('user_id', $student->id)
+                ->pluck('id');
+
+            // Get available training sessions in blocks for this user
+            $availableSessions = DB::table('training_sessions')
+                ->where('session_type', 'training')
+                ->where('release_date', '<=', $today)
+                ->whereIn('block_id', $userBlocks)
+                ->count();
+
+            // Get completed sessions for this user
+            $completedSessions = DB::table('training_results')
+                ->where('user_id', $student->id)
+                ->whereNotNull('completed_at')
+                ->count();
+
+            // Calculate consistency percentage
+            $consistencyPercentage = $availableSessions > 0
+                ? round(($completedSessions / $availableSessions) * 100)
+                : 0;
+
+            $leaderboardData->push([
+                'id' => $student->id,
+                'username' => $student->username,
+                'consistency_score' => $consistencyPercentage,
+                'completed_sessions' => $completedSessions,
+                'available_sessions' => $availableSessions,
+                'isYou' => $student->id === $user->id
+            ]);
+        }
+
+        // Sort by consistency score
+        $leaderboardData = $leaderboardData->sortByDesc('consistency_score')->values();
+
+        // Apply ranking
         $rank = 1;
         $lastScore = null;
         $lastRank = 1;
 
-        $formattedLeaderboard = $leaderboardData->map(function ($item) use ($user, &$rank, &$lastScore, &$lastRank) {
-            // Calculate consistency percentage based on available sessions
-            $consistencyPercentage = $item->sessions_available > 0
-                ? round(($item->sessions_completed / $item->sessions_available) * 100)
-                : 0;
-
-            // If the score is the same as the previous user, keep the same rank (tied)
-            if ($lastScore !== null && $lastScore === $consistencyPercentage) {
-                $userRank = $lastRank;
+        $leaderboardData = $leaderboardData->map(function ($item) use (&$rank, &$lastScore, &$lastRank) {
+            if ($lastScore !== null && $lastScore === $item['consistency_score']) {
+                $item['rank'] = $lastRank;
             } else {
-                $userRank = $rank;
+                $item['rank'] = $rank;
                 $lastRank = $rank;
             }
 
-            $lastScore = $consistencyPercentage;
+            $lastScore = $item['consistency_score'];
             $rank++;
 
-            return [
-                'id' => $item->id,
-                'rank' => $userRank,
-                'username' => $item->username,
-                'consistency_score' => $consistencyPercentage, // Use the calculated percentage
-                'completed_sessions' => $item->sessions_completed,
-                'available_sessions' => $item->sessions_available,
-                'isYou' => $item->id === $user->id
-            ];
+            return $item;
         });
 
+        Log::info('Final formatted leaderboard:', $leaderboardData->toArray());
+
         return Inertia::render('Student/ConsistencyLeaderboard', [
-            'leaderboardData' => $formattedLeaderboard,
+            'leaderboardData' => $leaderboardData,
             'username' => $user->username,
             'routes' => [
                 'student.dashboard' => route('student.dashboard'),
@@ -90,6 +115,7 @@ class LeaderboardController extends Controller
                 'student.xp' => route('student.xp'),
                 'leaderboard.consistency' => route('leaderboard.consistency'),
                 'leaderboard.strength' => route('leaderboard.strength'),
+                'admin.logout' => route('admin.logout'),
             ]
         ]);
     }
