@@ -101,9 +101,7 @@ class AdminDashboardController extends Controller
                 'tested_at' => now()
             ]);
 
-            // Instead of calling seeders, create blocks and sessions directly
-
-            // Create blocks
+            // Create blocks with user_id to associate them with this specific user
             $now = Carbon::now();
 
             // Block 1: All 14 weeks (Training, Testing, Rest period)
@@ -111,6 +109,7 @@ class AdminDashboardController extends Controller
                 'block_number' => 1,
                 'start_date' => $now,
                 'end_date' => $now->copy()->addWeeks(14),
+                'user_id' => $user->id  // Associate this block with the user
             ]);
 
             // Block 2: Complete reset, starting after Block 1
@@ -118,6 +117,7 @@ class AdminDashboardController extends Controller
                 'block_number' => 2,
                 'start_date' => $now->copy()->addWeeks(14)->addDay(),
                 'end_date' => $now->copy()->addWeeks(28), // 14 more weeks
+                'user_id' => $user->id  // Associate this block with the user
             ]);
 
             // Block 3: Third block
@@ -125,9 +125,10 @@ class AdminDashboardController extends Controller
                 'block_number' => 3,
                 'start_date' => $now->copy()->addWeeks(28)->addDay(),
                 'end_date' => $now->copy()->addWeeks(42), // 14 more weeks
+                'user_id' => $user->id  // Associate this block with the user
             ]);
 
-            Log::info('Created blocks: 1, 2, and 3');
+            Log::info('Created blocks for user_id: ' . $user->id);
 
             // Create sessions for each block
             $this->createSessionsForBlock($block1);
