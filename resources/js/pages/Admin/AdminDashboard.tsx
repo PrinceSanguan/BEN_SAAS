@@ -20,7 +20,8 @@ type Athlete = {
         single_leg_jump_right: number | null;
         single_leg_wall_sit_left: number | null;
         single_leg_wall_sit_right: number | null;
-        core_endurance: number | null;
+        core_endurance_left: number | null;
+        core_endurance_right: number | null;
         bent_arm_hang: number | null;
     };
     bent_arm_enabled?: boolean;

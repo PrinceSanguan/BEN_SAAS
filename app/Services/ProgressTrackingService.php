@@ -65,6 +65,8 @@ class ProgressTrackingService
                 'single_leg_jump_right',
                 'wall_sit_assessment',
                 'high_plank_assessment',
+                'core_endurance_left',
+                'core_endurance_right',
                 'bent_arm_hang_assessment'
             ];
 

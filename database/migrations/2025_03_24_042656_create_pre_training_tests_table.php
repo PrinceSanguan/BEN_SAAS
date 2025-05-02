@@ -19,7 +19,8 @@ return new class extends Migration
             $table->float('single_leg_jump_right')->nullable()->comment('Measured in centimeters');
             $table->float('single_leg_wall_sit_left')->nullable()->comment('Measured in seconds');
             $table->float('single_leg_wall_sit_right')->nullable()->comment('Measured in seconds');
-            $table->float('core_endurance')->nullable()->comment('Measured in seconds');
+            $table->float('core_endurance_left')->nullable()->comment('Measured in seconds');
+            $table->float('core_endurance_right')->nullable()->comment('Measured in seconds');
             $table->float('bent_arm_hang')->nullable()->comment('Measured in seconds');
             $table->timestamp('tested_at')->nullable();
             $table->text('notes')->nullable();

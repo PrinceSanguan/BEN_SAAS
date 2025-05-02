@@ -26,13 +26,14 @@ interface AthleteFormData {
     singleLegJumpRight: string;
     singleLegWallSitLeft: string;
     singleLegWallSitRight: string;
-    coreEndurance: string;
+    coreEnduranceLeft: string; // Changed from coreEndurance
+    coreEnduranceRight: string; // Added new field
     bentArmHang: string;
     bentArmHangEnabled: boolean;
     [key: string]: string | number | boolean | undefined;
 }
 
-// Define interface for the formatted form data to fix TypeScript errors
+// Also update FormattedData interface:
 interface FormattedData {
     username: string;
     parent_email: string;
@@ -42,7 +43,8 @@ interface FormattedData {
     single_leg_jump_right: number | null;
     single_leg_wall_sit_left: number | null;
     single_leg_wall_sit_right: number | null;
-    core_endurance: number | null;
+    core_endurance_left: number | null; // Changed from core_endurance
+    core_endurance_right: number | null; // Added new field
     bent_arm_hang: number | null;
     bent_arm_enabled: boolean;
     training_results: {
@@ -51,12 +53,12 @@ interface FormattedData {
         single_leg_jump_right: number | null;
         single_leg_wall_sit_left: number | null;
         single_leg_wall_sit_right: number | null;
-        core_endurance: number | null;
+        core_endurance_left: number | null; // Changed from core_endurance
+        core_endurance_right: number | null; // Added new field
         bent_arm_hang: number | null;
     };
     [key: string]: any; // Allow additional properties
 }
-
 interface FlashData {
     newAthlete?: Athlete;
     [key: string]: unknown;
@@ -80,7 +82,8 @@ export default function useAthleteForm(athletes: Athlete[], setAthletes: React.D
         singleLegJumpRight: '',
         singleLegWallSitLeft: '',
         singleLegWallSitRight: '',
-        coreEndurance: '',
+        coreEnduranceLeft: '',
+        coreEnduranceRight: '',
         bentArmHang: '',
         bentArmHangEnabled: false,
     });
@@ -125,7 +128,8 @@ export default function useAthleteForm(athletes: Athlete[], setAthletes: React.D
         const singleLegJumpRight = form.singleLegJumpRight === '' ? null : Number(form.singleLegJumpRight);
         const singleLegWallSitLeft = form.singleLegWallSitLeft === '' ? null : Number(form.singleLegWallSitLeft);
         const singleLegWallSitRight = form.singleLegWallSitRight === '' ? null : Number(form.singleLegWallSitRight);
-        const coreEndurance = form.coreEndurance === '' ? null : Number(form.coreEndurance);
+        const coreEnduranceLeft = form.coreEnduranceLeft === '' ? null : Number(form.coreEnduranceLeft);
+        const coreEnduranceRight = form.coreEnduranceRight === '' ? null : Number(form.coreEnduranceRight);
 
         // Only use bentArmHang value if enabled
         const bentArmHang = form.bentArmHangEnabled && form.bentArmHang !== '' ? Number(form.bentArmHang) : null;
@@ -143,7 +147,8 @@ export default function useAthleteForm(athletes: Athlete[], setAthletes: React.D
             single_leg_jump_right: singleLegJumpRight,
             single_leg_wall_sit_left: singleLegWallSitLeft,
             single_leg_wall_sit_right: singleLegWallSitRight,
-            core_endurance: coreEndurance,
+            core_endurance_left: coreEnduranceLeft,
+            core_endurance_right: coreEnduranceRight,
             bent_arm_hang: bentArmHang,
 
             // Add nested structure for controller processing
@@ -153,7 +158,8 @@ export default function useAthleteForm(athletes: Athlete[], setAthletes: React.D
                 single_leg_jump_right: singleLegJumpRight,
                 single_leg_wall_sit_left: singleLegWallSitLeft,
                 single_leg_wall_sit_right: singleLegWallSitRight,
-                core_endurance: coreEndurance,
+                core_endurance_left: coreEnduranceLeft,
+                core_endurance_right: coreEnduranceRight,
                 bent_arm_hang: bentArmHang,
             },
         };
@@ -206,7 +212,8 @@ export default function useAthleteForm(athletes: Athlete[], setAthletes: React.D
                     singleLegJumpRight: '',
                     singleLegWallSitLeft: '',
                     singleLegWallSitRight: '',
-                    coreEndurance: '',
+                    coreEnduranceLeft: '', // Changed from coreEndurance
+                    coreEnduranceRight: '', // Added new field
                     bentArmHang: '',
                     bentArmHangEnabled: false,
                 });

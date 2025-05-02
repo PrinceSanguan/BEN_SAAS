@@ -212,16 +212,32 @@ export default function AddAthleteModal({
                                     />
                                 </div>
 
-                                {/* Core Endurance */}
+                                {/* Core Endurance Left */}
                                 <div className="col-span-2 sm:col-span-1">
-                                    <label htmlFor="coreEndurance" className="mb-2 block text-sm font-medium text-white">
-                                        Core Endurance (sec)
+                                    <label htmlFor="coreEnduranceLeft" className="mb-2 block text-sm font-medium text-white">
+                                        Core Endurance Left (sec)
                                     </label>
                                     <input
                                         type="number"
-                                        name="coreEndurance"
-                                        id="coreEndurance"
-                                        value={form.coreEndurance}
+                                        name="coreEnduranceLeft"
+                                        id="coreEnduranceLeft"
+                                        value={form.coreEnduranceLeft}
+                                        onChange={handleChange}
+                                        className="block w-full rounded-lg border border-gray-600 bg-gray-700 p-2.5 text-white placeholder-gray-400 focus:border-blue-500 focus:ring-blue-500"
+                                        placeholder="60"
+                                    />
+                                </div>
+
+                                {/* Core Endurance Right */}
+                                <div className="col-span-2 sm:col-span-1">
+                                    <label htmlFor="coreEnduranceRight" className="mb-2 block text-sm font-medium text-white">
+                                        Core Endurance Right (sec)
+                                    </label>
+                                    <input
+                                        type="number"
+                                        name="coreEnduranceRight"
+                                        id="coreEnduranceRight"
+                                        value={form.coreEnduranceRight}
                                         onChange={handleChange}
                                         className="block w-full rounded-lg border border-gray-600 bg-gray-700 p-2.5 text-white placeholder-gray-400 focus:border-blue-500 focus:ring-blue-500"
                                         placeholder="60"
