@@ -11,7 +11,8 @@ type Athlete = {
         single_leg_jump_right: number | null;
         single_leg_wall_sit_left: number | null;
         single_leg_wall_sit_right: number | null;
-        core_endurance: number | null;
+        core_endurance_left: number | null;
+        core_endurance_right: number | null;
         bent_arm_hang: number | null;
     };
 };
@@ -89,7 +90,10 @@ export default function AthleteTable({ athletes, onAddClick }: AthleteTableProps
                                 Wall Sit (R)
                             </th>
                             <th scope="col" className="px-4 py-3 text-left text-xs font-medium tracking-wider text-gray-400 uppercase">
-                                Core
+                                Core (L)
+                            </th>
+                            <th scope="col" className="px-4 py-3 text-left text-xs font-medium tracking-wider text-gray-400 uppercase">
+                                Core (R)
                             </th>
                             <th scope="col" className="px-4 py-3 text-left text-xs font-medium tracking-wider text-gray-400 uppercase">
                                 Bent Arm
@@ -124,7 +128,10 @@ export default function AthleteTable({ athletes, onAddClick }: AthleteTableProps
                                     {athlete.training_results?.single_leg_wall_sit_right || '-'} sec
                                 </td>
                                 <td className="px-4 py-3 text-sm whitespace-nowrap text-gray-300">
-                                    {athlete.training_results?.core_endurance || '-'} sec
+                                    {athlete.training_results?.core_endurance_left || '-'} sec
+                                </td>
+                                <td className="px-4 py-3 text-sm whitespace-nowrap text-gray-300">
+                                    {athlete.training_results?.core_endurance_right || '-'} sec
                                 </td>
                                 <td className="px-4 py-3 text-sm whitespace-nowrap text-gray-300">
                                     {athlete.training_results?.bent_arm_hang || '-'} sec

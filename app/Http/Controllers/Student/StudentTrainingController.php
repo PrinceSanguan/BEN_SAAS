@@ -216,8 +216,9 @@ class StudentTrainingController extends Controller
                 'single_leg_jump_left'     => $testResult->single_leg_jump_left,
                 'single_leg_jump_right'    => $testResult->single_leg_jump_right,
                 'wall_sit_assessment'      => $testResult->wall_sit_assessment,
-                'high_plank_assessment'    => $testResult->high_plank_assessment,
-                'bent_arm_hang_assessment' => $testResult->bent_arm_hang_assessment, // Bonus assessment
+                'core_endurance_left'      => $testResult->core_endurance_left,
+                'core_endurance_right'     => $testResult->core_endurance_right,
+                'bent_arm_hang_assessment' => $testResult->bent_arm_hang_assessment,
                 'completed_at'             => $testResult->completed_at,
             ] : null,
             'xp' => [
@@ -249,9 +250,11 @@ class StudentTrainingController extends Controller
                 'standing_long_jump'       => 'required|numeric',
                 'single_leg_jump_left'     => 'required|numeric',
                 'single_leg_jump_right'    => 'required|numeric',
-                'wall_sit_assessment'      => 'required|numeric',  // Make sure this matches form field
-                'high_plank_assessment'    => 'required|numeric',
-                'bent_arm_hang_assessment' => 'nullable|numeric', // Optional field
+                'single_leg_wall_sit_left' => 'required|numeric', // Changed from wall_sit_assessment
+                'single_leg_wall_sit_right' => 'required|numeric',
+                'core_endurance_left'      => 'required|numeric',
+                'core_endurance_right'     => 'required|numeric',
+                'bent_arm_hang_assessment' => 'nullable|numeric',
             ]);
 
             TestResult::updateOrCreate(
@@ -263,8 +266,10 @@ class StudentTrainingController extends Controller
                     'standing_long_jump'       => $validated['standing_long_jump'],
                     'single_leg_jump_left'     => $validated['single_leg_jump_left'],
                     'single_leg_jump_right'    => $validated['single_leg_jump_right'],
-                    'wall_sit_assessment'      => $validated['wall_sit_assessment'],
-                    'high_plank_assessment'    => $validated['high_plank_assessment'],
+                    'single_leg_wall_sit_left' => $validated['single_leg_wall_sit_left'], // Changed
+                    'single_leg_wall_sit_right' => $validated['single_leg_wall_sit_right'], // Changed
+                    'core_endurance_left'      => $validated['core_endurance_left'],
+                    'core_endurance_right'     => $validated['core_endurance_right'],
                     'bent_arm_hang_assessment' => $validated['bent_arm_hang_assessment'] ?? null,
                     'completed_at'             => now(),
                 ]

@@ -18,25 +18,27 @@ class TestResult extends Model
         'standing_long_jump',
         'single_leg_jump_left',
         'single_leg_jump_right',
-        'single_leg_wall_sit_left',
+        'single_leg_wall_sit_left', // Changed from wall_sit_assessment
         'single_leg_wall_sit_right',
-        'high_plank_assessment',
+        'core_endurance_left',
+        'core_endurance_right',
         'bent_arm_hang_assessment',
-        'completed_at',
+        'completed_at'
     ];
 
     /**
      * The attributes that should be cast.
      */
     protected $casts = [
-        'standing_long_jump' => 'decimal:1',
-        'single_leg_jump_left' => 'decimal:1',
-        'single_leg_jump_right' => 'decimal:1',
-        'single_leg_wall_sit_left' => 'decimal:1',
-        'single_leg_wall_sit_right' => 'decimal:1',
-        'high_plank_assessment' => 'decimal:1',
-        'bent_arm_hang_assessment' => 'decimal:1',
         'completed_at' => 'datetime',
+        'standing_long_jump' => 'float',
+        'single_leg_jump_left' => 'float',
+        'single_leg_jump_right' => 'float',
+        'single_leg_wall_sit_left' => 'float', // Changed from wall_sit_assessment
+        'single_leg_wall_sit_right' => 'float',
+        'core_endurance_left' => 'float',
+        'core_endurance_right' => 'float',
+        'bent_arm_hang_assessment' => 'float',
     ];
 
     /**

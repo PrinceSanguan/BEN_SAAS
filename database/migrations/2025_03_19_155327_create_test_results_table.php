@@ -20,7 +20,8 @@ return new class extends Migration
             $table->decimal('single_leg_jump_right', 5, 1)->nullable();
             $table->decimal('single_leg_wall_sit_left', 5, 1)->nullable();
             $table->decimal('single_leg_wall_sit_right', 5, 1)->nullable();
-            $table->decimal('high_plank_assessment', 5, 1)->nullable();
+            $table->decimal('core_endurance_left', 5, 1)->nullable();
+            $table->decimal('core_endurance_right', 5, 1)->nullable();
             $table->decimal('bent_arm_hang_assessment', 5, 1)->nullable();
             $table->timestamp('completed_at')->useCurrent();
             $table->timestamps();

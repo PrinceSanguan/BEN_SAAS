@@ -76,9 +76,13 @@ class ProgressController extends Controller
                 'name' => 'Single Leg Wall Sit (RIGHT)',
                 'pre_training_field' => 'single_leg_wall_sit_right'
             ],
-            'high_plank_assessment' => [
-                'name' => 'High Plank Assessment',
-                'pre_training_field' => 'core_endurance'
+            'core_endurance_left' => [
+                'name' => 'Core Endurance (LEFT)',
+                'pre_training_field' => 'core_endurance_left'
+            ],
+            'core_endurance_right' => [
+                'name' => 'Core Endurance (RIGHT)',
+                'pre_training_field' => 'core_endurance_right'
             ],
             'bent_arm_hang_assessment' => [
                 'name' => 'Bent Arm Hold',
