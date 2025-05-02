@@ -1,11 +1,19 @@
 import { Head, router } from '@inertiajs/react';
 import { Calendar, ChevronRight, Edit, Menu, Save, Trophy, User, X } from 'lucide-react';
 import { useState } from 'react';
+import { CartesianGrid, Legend, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 
 interface AthleteData {
     id: number;
     username: string;
     email: string;
+}
+
+interface ProgressData {
+    testType: string;
+    sessionLabel: string;
+    date: string;
+    value: number;
 }
 
 interface BlockData {
@@ -28,12 +36,31 @@ interface ViewAthleteDashboardProps {
     strengthLevel: number;
     consistencyScore: number;
     xpInfo: XpInfoData;
+    progressData?: {
+        [key: string]: {
+            name: string;
+            sessions: {
+                label: string;
+                date: string;
+                value: number;
+            }[];
+            percentageIncrease: number | null;
+        };
+    };
     routes: {
         [key: string]: string;
     };
 }
 
-const ViewAthleteDashboard: React.FC<ViewAthleteDashboardProps> = ({ athlete, blocks, strengthLevel, consistencyScore, xpInfo, routes }) => {
+const ViewAthleteDashboard: React.FC<ViewAthleteDashboardProps> = ({
+    athlete,
+    blocks,
+    strengthLevel,
+    consistencyScore,
+    xpInfo,
+    progressData = {},
+    routes,
+}) => {
     const [editing, setEditing] = useState(false);
     const [editedBlocks, setEditedBlocks] = useState(blocks);
     const [startDate, setStartDate] = useState<string>('');
@@ -159,14 +186,6 @@ const ViewAthleteDashboard: React.FC<ViewAthleteDashboardProps> = ({ athlete, bl
                                 <ChevronRight className="mr-3 h-5 w-5" />
                                 <span>Return to Admin</span>
                             </a>
-                            <a href="#" className="flex items-center rounded-lg px-4 py-3 text-[#a3c0e6] transition-colors hover:bg-[#1e3a5f]/50">
-                                <Calendar className="mr-3 h-5 w-5" />
-                                <span>View Training Blocks</span>
-                            </a>
-                            <a href="#" className="flex items-center rounded-lg px-4 py-3 text-[#a3c0e6] transition-colors hover:bg-[#1e3a5f]/50">
-                                <User className="mr-3 h-5 w-5" />
-                                <span>Athlete Profile</span>
-                            </a>
                         </nav>
                     </div>
                 </div>
@@ -200,14 +219,6 @@ const ViewAthleteDashboard: React.FC<ViewAthleteDashboardProps> = ({ athlete, bl
                         >
                             <ChevronRight className="mr-3 h-5 w-5" />
                             <span>Return to Admin</span>
-                        </a>
-                        <a href="#" className="flex items-center rounded-lg px-4 py-3 text-[#a3c0e6] transition-colors hover:bg-[#1e3a5f]/50">
-                            <Calendar className="mr-3 h-5 w-5" />
-                            <span>View Training Blocks</span>
-                        </a>
-                        <a href="#" className="flex items-center rounded-lg px-4 py-3 text-[#a3c0e6] transition-colors hover:bg-[#1e3a5f]/50">
-                            <User className="mr-3 h-5 w-5" />
-                            <span>Athlete Profile</span>
                         </a>
                     </nav>
                 </div>
@@ -254,7 +265,7 @@ const ViewAthleteDashboard: React.FC<ViewAthleteDashboardProps> = ({ athlete, bl
                     </div>
 
                     {/* Stats Cards */}
-                    <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                    <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
                         <div className="rounded-xl border border-[#1e3a5f] bg-[#112845] p-4 shadow-lg transition-colors hover:bg-[#173356]">
                             <h3 className="mb-2 text-sm font-medium text-[#a3c0e6]">ATHLETE NAME</h3>
                             <p className="text-xl font-bold text-white">{athlete.username}</p>
@@ -289,18 +300,6 @@ const ViewAthleteDashboard: React.FC<ViewAthleteDashboardProps> = ({ athlete, bl
                                     ></div>
                                 </div>
                             </div>
-                        </div>
-
-                        <div className="rounded-xl border border-[#1e3a5f] bg-[#112845] p-4 shadow-lg transition-colors hover:bg-[#173356]">
-                            <h3 className="mb-2 text-sm font-medium text-[#a3c0e6]">QUICK ACTIONS</h3>
-                            <a
-                                href="#"
-                                onClick={() => router.get(`/admin/dashboard`)}
-                                className="mb-2 flex items-center rounded-lg bg-[#1e3a5f]/50 px-3 py-2 text-[#a3c0e6] transition-colors hover:bg-[#1e3a5f]"
-                            >
-                                <ChevronRight className="mr-1 h-4 w-4" />
-                                <span className="text-sm">Return to Admin</span>
-                            </a>
                         </div>
                     </div>
 
@@ -390,6 +389,81 @@ const ViewAthleteDashboard: React.FC<ViewAthleteDashboardProps> = ({ athlete, bl
                         </div>
                     </div>
 
+                    {/* Progress Charts */}
+                    <div className="mt-8 overflow-hidden rounded-xl border border-[#1e3a5f] bg-[#112845] shadow-lg">
+                        <div className="border-b border-[#1e3a5f] bg-[#0a1e3c] px-6 py-4">
+                            <h2 className="text-lg font-semibold text-white">Athlete Progress</h2>
+                        </div>
+                        <div className="p-6">
+                            {progressData && Object.keys(progressData).length > 0 ? (
+                                <div className="space-y-8">
+                                    {Object.entries(progressData).map(([testKey, data]) => (
+                                        <div key={testKey} className="rounded-lg border border-[#1e3a5f] bg-[#0a1e3c]/60 p-4">
+                                            <div className="mb-2 flex items-center justify-between">
+                                                <h3 className="text-md font-semibold text-white">{data.name}</h3>
+                                                {data.percentageIncrease !== null && (
+                                                    <span
+                                                        className={`rounded-full px-2 py-1 text-xs font-medium ${
+                                                            data.percentageIncrease > 0
+                                                                ? 'bg-green-600/20 text-green-400'
+                                                                : 'bg-red-600/20 text-red-400'
+                                                        }`}
+                                                    >
+                                                        {data.percentageIncrease > 0 ? '+' : ''}
+                                                        {data.percentageIncrease}%
+                                                    </span>
+                                                )}
+                                            </div>
+                                            <div className="h-64">
+                                                <ResponsiveContainer width="100%" height="100%">
+                                                    <LineChart data={data.sessions} margin={{ top: 5, right: 20, left: 10, bottom: 5 }}>
+                                                        <CartesianGrid strokeDasharray="3 3" stroke="#1e3a5f" />
+                                                        <XAxis
+                                                            dataKey="date"
+                                                            tick={{ fill: '#a3c0e6' }}
+                                                            tickFormatter={(date) =>
+                                                                new Date(date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+                                                            }
+                                                        />
+                                                        <YAxis tick={{ fill: '#a3c0e6' }} />
+                                                        <Tooltip
+                                                            contentStyle={{ backgroundColor: '#112845', borderColor: '#1e3a5f' }}
+                                                            labelStyle={{ color: '#a3c0e6' }}
+                                                            itemStyle={{ color: '#4a90e2' }}
+                                                            formatter={(value) => [`${value}`, data.name]}
+                                                            labelFormatter={(label) => {
+                                                                const date = new Date(label);
+                                                                return date.toLocaleDateString('en-US', {
+                                                                    year: 'numeric',
+                                                                    month: 'long',
+                                                                    day: 'numeric',
+                                                                });
+                                                            }}
+                                                        />
+                                                        <Legend />
+                                                        <Line
+                                                            type="monotone"
+                                                            dataKey="value"
+                                                            name={data.name}
+                                                            stroke="#4a90e2"
+                                                            strokeWidth={2}
+                                                            dot={{ r: 5, fill: '#4a90e2', stroke: '#4a90e2' }}
+                                                            activeDot={{ r: 8, fill: '#63b3ed', stroke: '#fff' }}
+                                                        />
+                                                    </LineChart>
+                                                </ResponsiveContainer>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            ) : (
+                                <div className="flex h-48 items-center justify-center">
+                                    <p className="text-center text-[#a3c0e6]">No progress data available for this athlete.</p>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+
                     {/* Mobile friendly table alternative for small screens */}
                     <div className="mt-6 block sm:hidden">
                         <h3 className="mb-4 text-lg font-semibold text-white">Training Blocks (Mobile View)</h3>
@@ -434,10 +508,6 @@ const ViewAthleteDashboard: React.FC<ViewAthleteDashboardProps> = ({ athlete, bl
                         <button onClick={() => (editing ? saveChanges() : setEditing(true))} className="flex flex-col items-center text-[#a3c0e6]">
                             {editing ? <Save className="h-6 w-6" /> : <Edit className="h-6 w-6" />}
                             <span className="mt-1 text-xs">{editing ? 'Save' : 'Edit'}</span>
-                        </button>
-                        <button className="flex flex-col items-center text-[#a3c0e6]">
-                            <User className="h-6 w-6" />
-                            <span className="mt-1 text-xs">Profile</span>
                         </button>
                     </div>
                 </main>

@@ -14,7 +14,8 @@ type Athlete = {
         single_leg_jump_right: number | null;
         single_leg_wall_sit_left: number | null;
         single_leg_wall_sit_right: number | null;
-        core_endurance: number | null;
+        core_endurance_left: number | null;
+        core_endurance_right: number | null;
         bent_arm_hang: number | null;
     };
 };
@@ -40,7 +41,8 @@ export default function AthleteDetail({ athlete, activePage, errors = {}, flash 
             single_leg_jump_right: athlete.training_results?.single_leg_jump_right || '',
             single_leg_wall_sit_left: athlete.training_results?.single_leg_wall_sit_left || '',
             single_leg_wall_sit_right: athlete.training_results?.single_leg_wall_sit_right || '',
-            core_endurance: athlete.training_results?.core_endurance || '',
+            core_endurance_left: athlete.training_results?.core_endurance_left || '',
+            core_endurance_right: athlete.training_results?.core_endurance_right || '',
             bent_arm_hang: athlete.training_results?.bent_arm_hang || '',
         },
     });
@@ -279,14 +281,28 @@ export default function AthleteDetail({ athlete, activePage, errors = {}, flash 
                                     </div>
 
                                     <div>
-                                        <label htmlFor="core_endurance" className="mb-1 block text-sm font-medium text-gray-300">
-                                            Core Endurance (sec)
+                                        <label htmlFor="core_endurance_left" className="mb-1 block text-sm font-medium text-gray-300">
+                                            Core Endurance - Left (sec)
                                         </label>
                                         <input
                                             type="number"
-                                            id="core_endurance"
-                                            name="training_results.core_endurance"
-                                            value={formData.training_results.core_endurance}
+                                            id="core_endurance_left"
+                                            name="training_results.core_endurance_left"
+                                            value={formData.training_results.core_endurance_left}
+                                            onChange={handleChange}
+                                            className="w-full rounded-lg border border-gray-600 bg-gray-700 p-2.5 text-white"
+                                        />
+                                    </div>
+
+                                    <div>
+                                        <label htmlFor="core_endurance_right" className="mb-1 block text-sm font-medium text-gray-300">
+                                            Core Endurance - Right (sec)
+                                        </label>
+                                        <input
+                                            type="number"
+                                            id="core_endurance_right"
+                                            name="training_results.core_endurance_right"
+                                            value={formData.training_results.core_endurance_right}
                                             onChange={handleChange}
                                             className="w-full rounded-lg border border-gray-600 bg-gray-700 p-2.5 text-white"
                                         />

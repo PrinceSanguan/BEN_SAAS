@@ -5,6 +5,8 @@ type Athlete = {
     id: number;
     username: string;
     email: string;
+    consistency_score?: number; // Add consistency score
+    strength_level?: number; // Add strength level
     training_results?: {
         standing_long_jump: number | null;
         single_leg_jump_left: number | null;
@@ -66,7 +68,14 @@ export default function AthleteTable({ athletes, onAddClick }: AthleteTableProps
     };
 
     return (
-        <div className="overflow-hidden rounded-lg border border-gray-800">
+        <div className="overflow-hidden rounded-lg border border-gray-800 bg-gray-900/50 shadow-xl">
+            {/* Header with stats summary */}
+            <div className="bg-gradient-to-r from-blue-900/70 to-indigo-900/70 p-4">
+                <h2 className="text-xl font-bold text-white">Athletes Dashboard</h2>
+                <p className="text-sm text-blue-300">Track performance and manage athlete progress</p>
+            </div>
+
+            {/* Table with improved styling */}
             <div className="overflow-x-auto">
                 <table className="min-w-full divide-y divide-gray-800">
                     <thead className="bg-gray-800/70">
@@ -75,186 +84,189 @@ export default function AthleteTable({ athletes, onAddClick }: AthleteTableProps
                                 Athlete
                             </th>
                             <th scope="col" className="px-4 py-3 text-left text-xs font-medium tracking-wider text-gray-400 uppercase">
+                                Strength
+                            </th>
+                            <th scope="col" className="px-4 py-3 text-left text-xs font-medium tracking-wider text-gray-400 uppercase">
+                                Consistency
+                            </th>
+                            <th scope="col" className="px-4 py-3 text-left text-xs font-medium tracking-wider text-gray-400 uppercase">
                                 Standing Jump
                             </th>
-                            <th scope="col" className="px-4 py-3 text-left text-xs font-medium tracking-wider text-gray-400 uppercase">
-                                Single Leg Jump (L)
+                            <th
+                                scope="col"
+                                className="hidden px-4 py-3 text-left text-xs font-medium tracking-wider text-gray-400 uppercase lg:table-cell"
+                            >
+                                SL Jump (L/R)
                             </th>
-                            <th scope="col" className="px-4 py-3 text-left text-xs font-medium tracking-wider text-gray-400 uppercase">
-                                Single Leg Jump (R)
+                            <th
+                                scope="col"
+                                className="hidden px-4 py-3 text-left text-xs font-medium tracking-wider text-gray-400 uppercase lg:table-cell"
+                            >
+                                Wall Sit (L/R)
                             </th>
-                            <th scope="col" className="px-4 py-3 text-left text-xs font-medium tracking-wider text-gray-400 uppercase">
-                                Wall Sit (L)
+                            <th
+                                scope="col"
+                                className="hidden px-4 py-3 text-left text-xs font-medium tracking-wider text-gray-400 uppercase lg:table-cell"
+                            >
+                                Core (L/R)
                             </th>
-                            <th scope="col" className="px-4 py-3 text-left text-xs font-medium tracking-wider text-gray-400 uppercase">
-                                Wall Sit (R)
-                            </th>
-                            <th scope="col" className="px-4 py-3 text-left text-xs font-medium tracking-wider text-gray-400 uppercase">
-                                Core (L)
-                            </th>
-                            <th scope="col" className="px-4 py-3 text-left text-xs font-medium tracking-wider text-gray-400 uppercase">
-                                Core (R)
-                            </th>
-                            <th scope="col" className="px-4 py-3 text-left text-xs font-medium tracking-wider text-gray-400 uppercase">
+                            <th
+                                scope="col"
+                                className="hidden px-4 py-3 text-left text-xs font-medium tracking-wider text-gray-400 uppercase lg:table-cell"
+                            >
                                 Bent Arm
-                            </th>
-                            <th scope="col" className="px-4 py-3 text-center text-xs font-medium tracking-wider text-gray-400 uppercase">
-                                Actions
                             </th>
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-800 bg-transparent">
                         {athletes.map((athlete) => (
-                            <tr key={athlete.id} className="cursor-pointer hover:bg-gray-800/30" onClick={() => handleEdit(athlete.id)}>
-                                <td className="px-4 py-3 whitespace-nowrap">
+                            <tr
+                                key={athlete.id}
+                                className="cursor-pointer transition-colors hover:bg-blue-900/20"
+                                onClick={() => handleEdit(athlete.id)}
+                            >
+                                <td className="px-4 py-4 whitespace-nowrap">
                                     <div>
-                                        <div className="text-sm font-medium text-white">{athlete.username}</div>
-                                        <div className="text-xs text-gray-400">{athlete.email}</div>
-                                    </div>
-                                </td>
-                                <td className="px-4 py-3 text-sm whitespace-nowrap text-gray-300">
-                                    {athlete.training_results?.standing_long_jump || '-'} cm
-                                </td>
-                                <td className="px-4 py-3 text-sm whitespace-nowrap text-gray-300">
-                                    {athlete.training_results?.single_leg_jump_left || '-'} cm
-                                </td>
-                                <td className="px-4 py-3 text-sm whitespace-nowrap text-gray-300">
-                                    {athlete.training_results?.single_leg_jump_right || '-'} cm
-                                </td>
-                                <td className="px-4 py-3 text-sm whitespace-nowrap text-gray-300">
-                                    {athlete.training_results?.single_leg_wall_sit_left || '-'} sec
-                                </td>
-                                <td className="px-4 py-3 text-sm whitespace-nowrap text-gray-300">
-                                    {athlete.training_results?.single_leg_wall_sit_right || '-'} sec
-                                </td>
-                                <td className="px-4 py-3 text-sm whitespace-nowrap text-gray-300">
-                                    {athlete.training_results?.core_endurance_left || '-'} sec
-                                </td>
-                                <td className="px-4 py-3 text-sm whitespace-nowrap text-gray-300">
-                                    {athlete.training_results?.core_endurance_right || '-'} sec
-                                </td>
-                                <td className="px-4 py-3 text-sm whitespace-nowrap text-gray-300">
-                                    {athlete.training_results?.bent_arm_hang || '-'} sec
-                                </td>
-                                <td className="px-4 py-3 text-center text-sm whitespace-nowrap">
-                                    <div className="relative inline-block text-left">
-                                        <button
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                setActionsMenu(actionsMenu === athlete.id ? null : athlete.id);
-                                            }}
-                                            className="rounded-full p-1 text-gray-400 transition-colors hover:bg-gray-700 hover:text-white"
-                                        >
-                                            <svg
-                                                xmlns="http://www.w3.org/2000/svg"
-                                                fill="none"
-                                                viewBox="0 0 24 24"
-                                                strokeWidth={1.5}
-                                                stroke="currentColor"
-                                                className="h-5 w-5"
-                                            >
-                                                <path
-                                                    strokeLinecap="round"
-                                                    strokeLinejoin="round"
-                                                    d="M12 6.75a.75.75 0 110-1.5.75.75 0 010 1.5zM12 12.75a.75.75 0 110-1.5.75.75 0 010 1.5zM12 18.75a.75.75 0 110-1.5.75.75 0 010 1.5z"
-                                                />
-                                            </svg>
-                                        </button>
-
-                                        {actionsMenu === athlete.id && (
-                                            <div
-                                                ref={menuRef}
-                                                className="ring-opacity-5 absolute right-0 z-10 mt-2 w-48 rounded-md bg-gray-800 shadow-lg ring-1 ring-black"
-                                            >
-                                                <div className="py-1" role="menu" aria-orientation="vertical">
-                                                    <button
-                                                        onClick={(e) => {
-                                                            e.stopPropagation();
-                                                            handleEdit(athlete.id);
-                                                        }}
-                                                        className="w-full px-4 py-2 text-left text-sm text-gray-300 hover:bg-gray-700 hover:text-white"
-                                                        role="menuitem"
-                                                    >
-                                                        <div className="flex items-center">
-                                                            <svg
-                                                                xmlns="http://www.w3.org/2000/svg"
-                                                                fill="none"
-                                                                viewBox="0 0 24 24"
-                                                                strokeWidth={1.5}
-                                                                stroke="currentColor"
-                                                                className="mr-2 h-4 w-4"
-                                                            >
-                                                                <path
-                                                                    strokeLinecap="round"
-                                                                    strokeLinejoin="round"
-                                                                    d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10"
-                                                                />
-                                                            </svg>
-                                                            Edit Athlete
-                                                        </div>
-                                                    </button>
-                                                    <button
-                                                        onClick={(e) => {
-                                                            e.stopPropagation();
-                                                            handleViewDashboard(athlete.id);
-                                                        }}
-                                                        className="w-full px-4 py-2 text-left text-sm text-gray-300 hover:bg-gray-700 hover:text-white"
-                                                        role="menuitem"
-                                                    >
-                                                        <div className="flex items-center">
-                                                            <svg
-                                                                xmlns="http://www.w3.org/2000/svg"
-                                                                fill="none"
-                                                                viewBox="0 0 24 24"
-                                                                strokeWidth={1.5}
-                                                                stroke="currentColor"
-                                                                className="mr-2 h-4 w-4"
-                                                            >
-                                                                <path
-                                                                    strokeLinecap="round"
-                                                                    strokeLinejoin="round"
-                                                                    d="M3.75 3v11.25A2.25 2.25 0 006 16.5h2.25M3.75 3h-1.5m1.5 0h16.5m0 0h1.5m-1.5 0v11.25A2.25 2.25 0 0118 16.5h-2.25m-7.5 0h7.5m-7.5 0l-1 3m8.5-3l1 3m0 0l.5 1.5m-.5-1.5h-9.5m0 0l-.5 1.5m.75-9l3-3 2.148 2.148A12.061 12.061 0 0116.5 7.605"
-                                                                />
-                                                            </svg>
-                                                            View Dashboard
-                                                        </div>
-                                                    </button>
-                                                    <button
-                                                        onClick={(e) => {
-                                                            e.stopPropagation();
-                                                            setDeleteConfirmation(athlete.id);
-                                                            setActionsMenu(null);
-                                                        }}
-                                                        className="w-full px-4 py-2 text-left text-sm text-red-400 hover:bg-red-700/30 hover:text-red-200"
-                                                        role="menuitem"
-                                                    >
-                                                        <div className="flex items-center">
-                                                            <svg
-                                                                xmlns="http://www.w3.org/2000/svg"
-                                                                fill="none"
-                                                                viewBox="0 0 24 24"
-                                                                strokeWidth={1.5}
-                                                                stroke="currentColor"
-                                                                className="mr-2 h-4 w-4"
-                                                            >
-                                                                <path
-                                                                    strokeLinecap="round"
-                                                                    strokeLinejoin="round"
-                                                                    d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"
-                                                                />
-                                                            </svg>
-                                                            Delete
-                                                        </div>
-                                                    </button>
-                                                </div>
+                                        <div className="flex items-center">
+                                            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-blue-600 to-indigo-500 text-white">
+                                                {athlete.username.charAt(0).toUpperCase()}
                                             </div>
-                                        )}
+                                            <div className="ml-3">
+                                                <div className="text-sm font-medium text-white">{athlete.username}</div>
+                                                <div className="text-xs text-gray-400">{athlete.email}</div>
+                                            </div>
+                                        </div>
                                     </div>
+                                </td>
+
+                                {/* Strength Level */}
+                                <td className="px-4 py-4 whitespace-nowrap">
+                                    <div className="flex items-center">
+                                        <div
+                                            className={`flex h-8 w-8 items-center justify-center rounded-md ${getStrengthLevelColor(athlete.strength_level || 1)}`}
+                                        >
+                                            <span className="text-xs font-bold text-white">{athlete.strength_level || 1}</span>
+                                        </div>
+                                        <span className="ml-2 text-sm text-gray-300">Level</span>
+                                    </div>
+                                </td>
+
+                                {/* Consistency Score */}
+                                <td className="px-4 py-4 whitespace-nowrap">
+                                    <div className="flex flex-col">
+                                        <div className="h-2 w-full rounded-full bg-gray-700">
+                                            <div
+                                                className={`h-2 rounded-full ${getConsistencyColor(athlete.consistency_score || 0)}`}
+                                                style={{ width: `${athlete.consistency_score || 0}%` }}
+                                            ></div>
+                                        </div>
+                                        <span className="mt-1 text-xs text-gray-400">{athlete.consistency_score || 0}%</span>
+                                    </div>
+                                </td>
+
+                                <td className="px-4 py-4 text-sm whitespace-nowrap text-gray-300">
+                                    {athlete.training_results?.standing_long_jump ? (
+                                        <span className="font-medium text-blue-400">{athlete.training_results.standing_long_jump}</span>
+                                    ) : (
+                                        <span className="text-gray-500">-</span>
+                                    )}{' '}
+                                    cm
+                                </td>
+
+                                <td className="hidden px-4 py-4 text-sm whitespace-nowrap text-gray-300 lg:table-cell">
+                                    <div className="flex space-x-2">
+                                        <span>
+                                            {athlete.training_results?.single_leg_jump_left ? (
+                                                <span className="font-medium text-blue-400">{athlete.training_results.single_leg_jump_left}</span>
+                                            ) : (
+                                                <span className="text-gray-500">-</span>
+                                            )}
+                                        </span>
+                                        <span className="text-gray-500">/</span>
+                                        <span>
+                                            {athlete.training_results?.single_leg_jump_right ? (
+                                                <span className="font-medium text-blue-400">{athlete.training_results.single_leg_jump_right}</span>
+                                            ) : (
+                                                <span className="text-gray-500">-</span>
+                                            )}
+                                        </span>
+                                    </div>
+                                </td>
+
+                                <td className="hidden px-4 py-4 text-sm whitespace-nowrap text-gray-300 lg:table-cell">
+                                    <div className="flex space-x-2">
+                                        <span>
+                                            {athlete.training_results?.single_leg_wall_sit_left ? (
+                                                <span className="font-medium text-blue-400">{athlete.training_results.single_leg_wall_sit_left}</span>
+                                            ) : (
+                                                <span className="text-gray-500">-</span>
+                                            )}
+                                        </span>
+                                        <span className="text-gray-500">/</span>
+                                        <span>
+                                            {athlete.training_results?.single_leg_wall_sit_right ? (
+                                                <span className="font-medium text-blue-400">
+                                                    {athlete.training_results.single_leg_wall_sit_right}
+                                                </span>
+                                            ) : (
+                                                <span className="text-gray-500">-</span>
+                                            )}
+                                        </span>
+                                    </div>
+                                </td>
+
+                                <td className="hidden px-4 py-4 text-sm whitespace-nowrap text-gray-300 lg:table-cell">
+                                    <div className="flex space-x-2">
+                                        <span>
+                                            {athlete.training_results?.core_endurance_left ? (
+                                                <span className="font-medium text-blue-400">{athlete.training_results.core_endurance_left}</span>
+                                            ) : (
+                                                <span className="text-gray-500">-</span>
+                                            )}
+                                        </span>
+                                        <span className="text-gray-500">/</span>
+                                        <span>
+                                            {athlete.training_results?.core_endurance_right ? (
+                                                <span className="font-medium text-blue-400">{athlete.training_results.core_endurance_right}</span>
+                                            ) : (
+                                                <span className="text-gray-500">-</span>
+                                            )}
+                                        </span>
+                                    </div>
+                                </td>
+
+                                <td className="hidden px-4 py-4 text-sm whitespace-nowrap text-gray-300 lg:table-cell">
+                                    {athlete.training_results?.bent_arm_hang ? (
+                                        <span className="font-medium text-blue-400">{athlete.training_results.bent_arm_hang}</span>
+                                    ) : (
+                                        <span className="text-gray-500">-</span>
+                                    )}{' '}
+                                    sec
                                 </td>
                             </tr>
                         ))}
                     </tbody>
                 </table>
+            </div>
+
+            {/* Add the "Add New Athlete" button at the bottom */}
+            <div className="border-t border-gray-800 bg-gray-900/30 p-4">
+                <button
+                    onClick={onAddClick}
+                    className="flex w-full items-center justify-center rounded-lg bg-gradient-to-r from-blue-600 to-indigo-600 px-4 py-2 text-white shadow-lg transition-all hover:from-blue-700 hover:to-indigo-700 sm:w-auto"
+                >
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        strokeWidth={1.5}
+                        stroke="currentColor"
+                        className="mr-2 h-5 w-5"
+                    >
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                    </svg>
+                    Add New Athlete
+                </button>
             </div>
 
             {/* Delete Confirmation Modal */}
@@ -321,4 +333,21 @@ export default function AthleteTable({ athletes, onAddClick }: AthleteTableProps
             `}</style>
         </div>
     );
+}
+
+// Helper functions for color coding
+function getStrengthLevelColor(level: number): string {
+    if (level >= 8) return 'bg-gradient-to-br from-purple-600 to-indigo-700';
+    if (level >= 6) return 'bg-gradient-to-br from-blue-600 to-blue-700';
+    if (level >= 4) return 'bg-gradient-to-br from-green-600 to-green-700';
+    if (level >= 2) return 'bg-gradient-to-br from-yellow-500 to-yellow-600';
+    return 'bg-gradient-to-br from-gray-500 to-gray-600';
+}
+
+function getConsistencyColor(score: number): string {
+    if (score >= 80) return 'bg-gradient-to-r from-green-500 to-green-600';
+    if (score >= 60) return 'bg-gradient-to-r from-blue-500 to-blue-600';
+    if (score >= 40) return 'bg-gradient-to-r from-yellow-500 to-yellow-600';
+    if (score >= 20) return 'bg-gradient-to-r from-orange-500 to-orange-600';
+    return 'bg-gradient-to-r from-red-500 to-red-600';
 }
