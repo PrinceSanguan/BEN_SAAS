@@ -10,7 +10,9 @@ const testColors: Record<string, string> = {
     single_leg_jump_right: '#2ca02c',
     single_leg_wall_sit_left: '#d62728',
     single_leg_wall_sit_right: '#9467bd',
-    bent_arm_hang_assessment: '#8c564b',
+    core_endurance_left: '#8c564b',
+    core_endurance_right: '#e377c2',
+    bent_arm_hang_assessment: '#7f7f7f',
 };
 
 // Define types for session data - updated to include date

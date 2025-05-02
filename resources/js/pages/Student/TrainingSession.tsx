@@ -122,12 +122,14 @@ const TrainingSession: React.FC<TrainingSessionProps> = ({ session = {}, existin
                   standing_long_jump: existingResult ? existingResult.standing_long_jump : '',
                   single_leg_jump_left: existingResult ? existingResult.single_leg_jump_left : '',
                   single_leg_jump_right: existingResult ? existingResult.single_leg_jump_right : '',
-                  // Change these field names to match the backend
-                  wall_sit_assessment: existingResult ? existingResult.wall_sit_assessment : '',
-                  high_plank_assessment: existingResult ? existingResult.high_plank_assessment : '',
+                  single_leg_wall_sit_left: existingResult ? existingResult.single_leg_wall_sit_left : '',
+                  single_leg_wall_sit_right: existingResult ? existingResult.single_leg_wall_sit_right : '',
+                  core_endurance_left: existingResult ? existingResult.core_endurance_left : '',
+                  core_endurance_right: existingResult ? existingResult.core_endurance_right : '',
                   bent_arm_hang_assessment: existingResult ? existingResult.bent_arm_hang_assessment : '',
               }
             : {
+                  // training form fields remain the same
                   warmup_completed: existingResult ? existingResult.warmup_completed : 'NO',
                   plyometrics_score: existingResult ? existingResult.plyometrics_score : '',
                   power_score: existingResult ? existingResult.power_score : '',
@@ -361,29 +363,60 @@ const TrainingSession: React.FC<TrainingSessionProps> = ({ session = {}, existin
                                     </div>
                                     <div>
                                         <label className="mb-2 block text-sm font-medium tracking-wider text-[#4a90e2] uppercase">
-                                            WALL SIT ASSESSMENT – What was your best score?
+                                            SINGLE LEG WALL SIT (LEFT) – What was your best score?
                                         </label>
                                         <input
                                             type="text"
-                                            value={data.wall_sit_assessment}
-                                            onChange={(e) => setData('wall_sit_assessment', e.target.value)}
+                                            value={data.single_leg_wall_sit_left}
+                                            onChange={(e) => setData('single_leg_wall_sit_left', e.target.value)}
                                             className="focus:ring-opacity-50 mt-1 block w-full rounded-md border-[#1e3a5f] bg-[#0a1e3c] text-white shadow-sm focus:border-[#4a90e2] focus:ring focus:ring-[#4a90e2]"
                                             placeholder="Enter your score"
                                         />
-                                        {errors.wall_sit_assessment && <p className="mt-1 text-sm text-red-400">{errors.wall_sit_assessment}</p>}
+                                        {errors.single_leg_wall_sit_left && (
+                                            <p className="mt-1 text-sm text-red-400">{errors.single_leg_wall_sit_left}</p>
+                                        )}
                                     </div>
                                     <div>
                                         <label className="mb-2 block text-sm font-medium tracking-wider text-[#4a90e2] uppercase">
-                                            HIGH PLANK ASSESSMENT – What was your best score?
+                                            SINGLE LEG WALL SIT (RIGHT) – What was your best score?
                                         </label>
                                         <input
                                             type="text"
-                                            value={data.high_plank_assessment}
-                                            onChange={(e) => setData('high_plank_assessment', e.target.value)}
+                                            value={data.single_leg_wall_sit_right}
+                                            onChange={(e) => setData('single_leg_wall_sit_right', e.target.value)}
                                             className="focus:ring-opacity-50 mt-1 block w-full rounded-md border-[#1e3a5f] bg-[#0a1e3c] text-white shadow-sm focus:border-[#4a90e2] focus:ring focus:ring-[#4a90e2]"
                                             placeholder="Enter your score"
                                         />
-                                        {errors.high_plank_assessment && <p className="mt-1 text-sm text-red-400">{errors.high_plank_assessment}</p>}
+                                        {errors.single_leg_wall_sit_right && (
+                                            <p className="mt-1 text-sm text-red-400">{errors.single_leg_wall_sit_right}</p>
+                                        )}
+                                    </div>
+
+                                    <div>
+                                        <label className="mb-2 block text-sm font-medium tracking-wider text-[#4a90e2] uppercase">
+                                            CORE ENDURANCE (LEFT) – What was your best score?
+                                        </label>
+                                        <input
+                                            type="text"
+                                            value={data.core_endurance_left}
+                                            onChange={(e) => setData('core_endurance_left', e.target.value)}
+                                            className="focus:ring-opacity-50 mt-1 block w-full rounded-md border-[#1e3a5f] bg-[#0a1e3c] text-white shadow-sm focus:border-[#4a90e2] focus:ring focus:ring-[#4a90e2]"
+                                            placeholder="Enter your score"
+                                        />
+                                        {errors.core_endurance_left && <p className="mt-1 text-sm text-red-400">{errors.core_endurance_left}</p>}
+                                    </div>
+                                    <div>
+                                        <label className="mb-2 block text-sm font-medium tracking-wider text-[#4a90e2] uppercase">
+                                            CORE ENDURANCE (RIGHT) – What was your best score?
+                                        </label>
+                                        <input
+                                            type="text"
+                                            value={data.core_endurance_right}
+                                            onChange={(e) => setData('core_endurance_right', e.target.value)}
+                                            className="focus:ring-opacity-50 mt-1 block w-full rounded-md border-[#1e3a5f] bg-[#0a1e3c] text-white shadow-sm focus:border-[#4a90e2] focus:ring focus:ring-[#4a90e2]"
+                                            placeholder="Enter your score"
+                                        />
+                                        {errors.core_endurance_right && <p className="mt-1 text-sm text-red-400">{errors.core_endurance_right}</p>}
                                     </div>
                                     <div>
                                         <label className="mb-2 block text-sm font-medium tracking-wider text-[#4a90e2] uppercase">

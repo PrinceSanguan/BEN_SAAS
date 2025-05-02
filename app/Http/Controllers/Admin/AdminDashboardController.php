@@ -64,7 +64,8 @@ class AdminDashboardController extends Controller
                 'single_leg_jump_right' => ['nullable', 'numeric'],
                 'single_leg_wall_sit_left' => ['nullable', 'numeric'],
                 'single_leg_wall_sit_right' => ['nullable', 'numeric'],
-                'core_endurance' => ['nullable', 'numeric'],
+                'core_endurance_left' => ['nullable', 'numeric'],
+                'core_endurance_right' => ['nullable', 'numeric'],
                 'bent_arm_hang' => ['nullable', 'numeric'],
             ], [
                 'parent_email.required' => 'The parent email field is required.',
@@ -73,6 +74,7 @@ class AdminDashboardController extends Controller
                 'username.unique' => 'This username is already taken.',
                 'password.required' => 'The password field is required.',
             ]);
+
 
             $trainingResults = $request->input('training_results', []);
 
@@ -96,7 +98,8 @@ class AdminDashboardController extends Controller
                 'single_leg_jump_right' => $trainingResults['single_leg_jump_right'] ?? null,
                 'single_leg_wall_sit_left' => $trainingResults['single_leg_wall_sit_left'] ?? null,
                 'single_leg_wall_sit_right' => $trainingResults['single_leg_wall_sit_right'] ?? null,
-                'core_endurance' => $trainingResults['core_endurance'] ?? null,
+                'core_endurance_left' => $trainingResults['core_endurance_left'] ?? null,
+                'core_endurance_right' => $trainingResults['core_endurance_right'] ?? null,
                 'bent_arm_hang' => $trainingResults['bent_arm_hang'] ?? null,
                 'tested_at' => now()
             ]);
@@ -158,10 +161,12 @@ class AdminDashboardController extends Controller
                     'single_leg_jump_right' => $preTrainingTest->single_leg_jump_right,
                     'single_leg_wall_sit_left' => $preTrainingTest->single_leg_wall_sit_left,
                     'single_leg_wall_sit_right' => $preTrainingTest->single_leg_wall_sit_right,
-                    'core_endurance' => $preTrainingTest->core_endurance,
+                    'core_endurance_left' => $preTrainingTest->core_endurance_left,
+                    'core_endurance_right' => $preTrainingTest->core_endurance_right,
                     'bent_arm_hang' => $preTrainingTest->bent_arm_hang,
                 ]
             ];
+
 
             return redirect()->back()->with('success', 'Athlete created successfully!')->with('newAthlete', $athleteData);
         } catch (\Illuminate\Validation\ValidationException $e) {
@@ -298,12 +303,14 @@ class AdminDashboardController extends Controller
                         'single_leg_jump_right' => $user->preTrainingTest->single_leg_jump_right,
                         'single_leg_wall_sit_left' => $user->preTrainingTest->single_leg_wall_sit_left,
                         'single_leg_wall_sit_right' => $user->preTrainingTest->single_leg_wall_sit_right,
-                        'core_endurance' => $user->preTrainingTest->core_endurance,
+                        'core_endurance_left' => $user->preTrainingTest->core_endurance_left,
+                        'core_endurance_right' => $user->preTrainingTest->core_endurance_right,
                         'bent_arm_hang' => $user->preTrainingTest->bent_arm_hang,
                     ] : null,
                 ];
             });
     }
+
 
 
     /**
@@ -378,7 +385,8 @@ class AdminDashboardController extends Controller
                     'single_leg_jump_right' => $athlete->preTrainingTest->single_leg_jump_right,
                     'single_leg_wall_sit_left' => $athlete->preTrainingTest->single_leg_wall_sit_left,
                     'single_leg_wall_sit_right' => $athlete->preTrainingTest->single_leg_wall_sit_right,
-                    'core_endurance' => $athlete->preTrainingTest->core_endurance,
+                    'core_endurance_left' => $athlete->preTrainingTest->core_endurance_left,
+                    'core_endurance_right' => $athlete->preTrainingTest->core_endurance_right,
                     'bent_arm_hang' => $athlete->preTrainingTest->bent_arm_hang,
                 ] : null,
             ];
@@ -392,6 +400,7 @@ class AdminDashboardController extends Controller
         }
     }
 
+
     /**
      * Update an athlete's information
      */
@@ -403,13 +412,14 @@ class AdminDashboardController extends Controller
                 'username' => ['required', 'string', 'max:255'],
                 'parent_email' => ['required', 'string', 'email', 'max:255'],
                 'password' => ['nullable', Password::defaults()],
-                'standing_long_jump' => ['nullable', 'numeric'],
-                'single_leg_jump_left' => ['nullable', 'numeric'],
-                'single_leg_jump_right' => ['nullable', 'numeric'],
-                'single_leg_wall_sit_left' => ['nullable', 'numeric'],
-                'single_leg_wall_sit_right' => ['nullable', 'numeric'],
-                'core_endurance' => ['nullable', 'numeric'],
-                'bent_arm_hang' => ['nullable', 'numeric'],
+                'training_results.standing_long_jump' => ['nullable', 'numeric'],
+                'training_results.single_leg_jump_left' => ['nullable', 'numeric'],
+                'training_results.single_leg_jump_right' => ['nullable', 'numeric'],
+                'training_results.single_leg_wall_sit_left' => ['nullable', 'numeric'],
+                'training_results.single_leg_wall_sit_right' => ['nullable', 'numeric'],
+                'training_results.core_endurance_left' => ['nullable', 'numeric'],
+                'training_results.core_endurance_right' => ['nullable', 'numeric'],
+                'training_results.bent_arm_hang' => ['nullable', 'numeric'],
             ]);
 
             DB::beginTransaction();
@@ -451,7 +461,8 @@ class AdminDashboardController extends Controller
             $preTrainingTest->single_leg_jump_right = $request->input('training_results.single_leg_jump_right');
             $preTrainingTest->single_leg_wall_sit_left = $request->input('training_results.single_leg_wall_sit_left');
             $preTrainingTest->single_leg_wall_sit_right = $request->input('training_results.single_leg_wall_sit_right');
-            $preTrainingTest->core_endurance = $request->input('training_results.core_endurance');
+            $preTrainingTest->core_endurance_left = $request->input('training_results.core_endurance_left');
+            $preTrainingTest->core_endurance_right = $request->input('training_results.core_endurance_right');
             $preTrainingTest->bent_arm_hang = $request->input('training_results.bent_arm_hang');
 
             // If test is new, set tested_at

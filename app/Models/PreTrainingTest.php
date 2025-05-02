@@ -29,7 +29,8 @@ class PreTrainingTest extends Model
         'single_leg_jump_right',
         'single_leg_wall_sit_left',
         'single_leg_wall_sit_right',
-        'core_endurance',
+        'core_endurance_left',
+        'core_endurance_right',
         'bent_arm_hang',
         'tested_at',
         'notes'
@@ -45,7 +46,8 @@ class PreTrainingTest extends Model
         'single_leg_jump_left' => 'float',
         'single_leg_jump_right' => 'float',
         'wall_sit' => 'float',
-        'core_endurance' => 'float',
+        'core_endurance_left' => 'float',
+        'core_endurance_right' => 'float',
         'bent_arm_hang' => 'float',
         'tested_at' => 'datetime',
     ];
