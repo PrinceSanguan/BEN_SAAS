@@ -1,6 +1,6 @@
 import { Link, router } from '@inertiajs/react';
 import gsap from 'gsap';
-import { Activity, Award, BarChart2, Calendar, ChevronRight, Clock, Home, LogOut, TrendingUp, Trophy, User } from 'lucide-react';
+import { Activity, Award, BarChart2, Calendar, Clock, Home, Lock, LogOut, TrendingUp, Trophy, User } from 'lucide-react';
 import type React from 'react';
 import { useEffect, useRef, useState } from 'react';
 
@@ -11,6 +11,7 @@ interface StudentDashboardProps {
     consistencyScore: number;
     currentRank?: number;
     blocks: Array<{
+        is_locked: any;
         id: number;
         block_number: number;
         start_date: string;
@@ -193,7 +194,26 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({
     }, [routes]);
 
     // Sequential block unlocking based on current block and remaining sessions
-    const visibleBlocks = blocks;
+    const visibleBlocks = blocks
+        .filter((block) => {
+            if (block.block_number === 1) {
+                return true; // Always show Block 1
+            } else if (block.block_number === 2) {
+                // Show Block 2 only if Block 1 is completed (has no remaining sessions)
+                const block1 = blocks.find((b) => b.block_number === 1);
+                return block1 && remainingSessions === 0;
+            } else if (block.block_number === 3) {
+                // Show Block 3 only if Block 2 is completed
+                const block1 = blocks.find((b) => b.block_number === 1);
+                const block2 = blocks.find((b) => b.block_number === 2);
+                return block1 && block2 && remainingSessions === 0;
+            }
+            return false;
+        })
+        .map((block) => ({
+            ...block,
+            is_locked: block.block_number > 1 && remainingSessions > 0,
+        }));
 
     // Check if using mobile
     useEffect(() => {
@@ -657,59 +677,46 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({
                         </div>
                     </div>
 
-                    {/* Training Blocks Section */}
-                    <div className="grid grid-cols-1">
-                        <div className="lg:col-span-2">
-                            <div className="mb-8 rounded-xl border border-[#1e3a5f] bg-[#112845] p-6 shadow-lg">
-                                <div className="mb-4 flex items-center justify-between">
-                                    <h3 className="text-lg font-semibold text-white">Training Blocks</h3>
-                                    <Link
-                                        href={getRoute('student.training')}
-                                        className="flex items-center rounded-md bg-[#1e3a5f]/50 px-3 py-1.5 text-sm text-[#a3c0e6] transition-colors hover:bg-[#1e3a5f]"
-                                    >
-                                        <span>View All</span>
-                                        <ChevronRight className="ml-1 h-4 w-4" />
-                                    </Link>
+                    {/* Block cards */}
+                    <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                        {blocks.map((block) => (
+                            <button
+                                key={block.id}
+                                onClick={() => !block.is_locked && handleBlockClick(block)}
+                                className={`rounded-lg p-4 text-left transition-colors ${
+                                    block.is_current
+                                        ? 'bg-[#1e3a5f] shadow-md'
+                                        : block.is_locked
+                                          ? 'cursor-not-allowed bg-[#1e3a5f]/10'
+                                          : 'bg-[#1e3a5f]/30 hover:bg-[#1e3a5f]/50'
+                                }`}
+                                disabled={block.is_locked}
+                            >
+                                <div className="flex items-center justify-between">
+                                    <div className="flex items-center">
+                                        {block.is_locked ? (
+                                            <Lock className="mr-2 h-5 w-5 text-[#a3c0e6]/50" />
+                                        ) : (
+                                            <Calendar className="mr-2 h-5 w-5 text-[#4a90e2]" />
+                                        )}
+                                        <span className="text-base font-medium text-white">Block {block.block_number}</span>
+                                        {block.is_current && (
+                                            <span className="ml-2 rounded-full bg-[#4a90e2]/20 px-2 py-0.5 text-xs text-[#63b3ed]">Current</span>
+                                        )}
+                                        {block.is_locked && (
+                                            <span className="ml-2 rounded-full bg-[#a3c0e6]/20 px-2 py-0.5 text-xs text-[#a3c0e6]">Locked</span>
+                                        )}
+                                    </div>
+                                    <div className="text-sm text-[#a3c0e6]">
+                                        {formatDate(block.start_date)} - {formatDate(block.end_date)}
+                                    </div>
                                 </div>
-
-                                {/* Block cards */}
-                                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                                    {visibleBlocks.map((block) => (
-                                        <button
-                                            key={block.id}
-                                            onClick={() => handleBlockClick(block)}
-                                            className={`rounded-lg p-4 text-left transition-colors ${
-                                                block.is_current ? 'bg-[#1e3a5f] shadow-md' : 'bg-[#1e3a5f]/30 hover:bg-[#1e3a5f]/50'
-                                            }`}
-                                        >
-                                            <div className="flex items-center justify-between">
-                                                <div className="flex items-center">
-                                                    <Calendar className="mr-2 h-5 w-5 text-[#4a90e2]" />
-                                                    <span className="text-base font-medium text-white">Block {block.block_number}</span>
-                                                    {block.is_current && (
-                                                        <span className="ml-2 rounded-full bg-[#4a90e2]/20 px-2 py-0.5 text-xs text-[#63b3ed]">
-                                                            Current
-                                                        </span>
-                                                    )}
-                                                    {block.block_number > 1 && remainingSessions <= 1 && (
-                                                        <span className="ml-2 rounded-full bg-[#2ecc71]/20 px-2 py-0.5 text-xs text-[#2ecc71]">
-                                                            Unlocked
-                                                        </span>
-                                                    )}
-                                                </div>
-                                                <div className="text-sm text-[#a3c0e6]">
-                                                    {formatDate(block.start_date)} - {formatDate(block.end_date)}
-                                                </div>
-                                            </div>
-                                            <div className="mt-2 flex items-center text-sm text-[#a3c0e6]">
-                                                <Clock className="mr-1 h-4 w-4" />
-                                                <span>14 weeks</span>
-                                            </div>
-                                        </button>
-                                    ))}
+                                <div className="mt-2 flex items-center text-sm text-[#a3c0e6]">
+                                    <Clock className="mr-1 h-4 w-4" />
+                                    <span>14 weeks</span>
                                 </div>
-                            </div>
-                        </div>
+                            </button>
+                        ))}
                     </div>
                 </main>
             </div>
@@ -720,8 +727,7 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({
                     <div className="w-full max-w-md rounded-xl border border-[#1e3a5f] bg-[#112845] p-6 shadow-xl">
                         <h3 className="mb-4 text-xl font-semibold text-white">Block {selectedBlock.block_number}</h3>
                         <p className="mb-4 text-[#a3c0e6]">
-                            This block runs from {formatDate(selectedBlock.start_date)} to {formatDate(selectedBlock.end_date)} (
-                            {selectedBlock.duration_weeks} weeks).
+                            This block runs from {formatDate(selectedBlock.start_date)} to {formatDate(selectedBlock.end_date)}.
                         </p>
                         <p className="mb-6 text-[#a3c0e6]">Would you like to view the training sessions for this block?</p>
                         <div className="flex space-x-4">

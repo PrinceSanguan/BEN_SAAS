@@ -44,24 +44,76 @@ class StudentDashboardController extends Controller
         $userRank = $this->calculateUserRank($user->id, $xpSummary['current_level'], $xpSummary['total_xp']);
 
         // Get all blocks
-        $blocks = Block::where('user_id', $user->id)
+        $allBlocks = Block::where('user_id', $user->id)
             ->orderBy('block_number')
-            ->get()
-            ->map(function ($block) {
-                $now = Carbon::now();
-                $startDate = Carbon::parse($block->start_date);
-                $endDate = Carbon::parse($block->end_date);
+            ->get();
 
-                return [
-                    'id' => $block->id,
-                    'block_number' => $block->block_number,
-                    'start_date' => $startDate->format('Y-m-d'),
-                    'end_date' => $endDate->format('Y-m-d'),
-                    'duration_weeks' => $startDate->diffInWeeks($endDate) + 1,
-                    'is_current' => $now->between($startDate, $endDate),
-                    'is_associated_with_user' => true // Always true since we're filtering by user_id
-                ];
-            });
+        // Check if Block 1 is completed (all sessions completed)
+        $block1 = $allBlocks->firstWhere('block_number', 1);
+        $isBlock1Completed = false;
+
+        if ($block1) {
+            // Get all training sessions for Block 1
+            $block1Sessions = TrainingSession::where('block_id', $block1->id)
+                ->where('session_type', 'training')
+                ->get();
+
+            // Get all completed training sessions for Block 1
+            $completedBlock1Sessions = TrainingResult::where('user_id', $user->id)
+                ->whereIn('session_id', $block1Sessions->pluck('id'))
+                ->pluck('session_id')
+                ->toArray();
+
+            // Block 1 is completed if all sessions are completed
+            $isBlock1Completed = count($completedBlock1Sessions) >= count($block1Sessions) && count($block1Sessions) > 0;
+        }
+
+        // Check if Block 2 is completed (all sessions completed)
+        $block2 = $allBlocks->firstWhere('block_number', 2);
+        $isBlock2Completed = false;
+
+        if ($block2 && $isBlock1Completed) {
+            // Get all training sessions for Block 2
+            $block2Sessions = TrainingSession::where('block_id', $block2->id)
+                ->where('session_type', 'training')
+                ->get();
+
+            // Get all completed training sessions for Block 2
+            $completedBlock2Sessions = TrainingResult::where('user_id', $user->id)
+                ->whereIn('session_id', $block2Sessions->pluck('id'))
+                ->pluck('session_id')
+                ->toArray();
+
+            // Block 2 is completed if all sessions are completed
+            $isBlock2Completed = count($completedBlock2Sessions) >= count($block2Sessions) && count($block2Sessions) > 0;
+        }
+
+        // Filter blocks based on completion status
+        $blocks = $allBlocks->filter(function ($block) use ($isBlock1Completed, $isBlock2Completed) {
+            if ($block->block_number === 1) {
+                return true; // Always show Block 1
+            } else if ($block->block_number === 2) {
+                return $isBlock1Completed; // Show Block 2 only if Block 1 is completed
+            } else if ($block->block_number === 3) {
+                return $isBlock1Completed && $isBlock2Completed; // Show Block 3 only if Block 1 and 2 are completed
+            }
+            return false;
+        })->map(function ($block) use ($isBlock1Completed, $isBlock2Completed, $currentDate) {
+            $now = Carbon::now();
+            $startDate = Carbon::parse($block->start_date);
+            $endDate = Carbon::parse($block->end_date);
+
+            return [
+                'id' => $block->id,
+                'block_number' => $block->block_number,
+                'start_date' => $startDate->format('Y-m-d'),
+                'end_date' => $endDate->format('Y-m-d'),
+                'duration_weeks' => $startDate->diffInWeeks($endDate) + 1,
+                'is_current' => $now->between($startDate, $endDate),
+                'is_locked' => ($block->block_number === 2 && !$isBlock1Completed) || ($block->block_number === 3 && !$isBlock2Completed),
+                'is_associated_with_user' => true // Always true since we're filtering by user_id
+            ];
+        });
 
         // Calculate remaining sessions in the current block
         $remainingSessions = 0;
