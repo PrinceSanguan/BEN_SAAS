@@ -2,32 +2,24 @@ import React from 'react';
 
 interface AddAthleteModalProps {
     showModal: boolean;
-    showConfirmation: boolean;
     form: any;
     error: string | null;
     isSubmitting: boolean;
-    formattedData: any;
     onClose: () => void;
     handleChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
     handleSubmit: (e: React.FormEvent<HTMLFormElement>) => void;
     handleCheckboxChange: (field: string, checked: boolean) => void;
-    confirmSubmit: () => void;
-    cancelSubmit: () => void;
 }
 
 export default function AddAthleteModal({
     showModal,
-    showConfirmation,
     form,
     error,
     isSubmitting,
-    formattedData,
     onClose,
     handleChange,
     handleSubmit,
     handleCheckboxChange,
-    confirmSubmit,
-    cancelSubmit,
 }: AddAthleteModalProps) {
     if (!showModal) return null;
 
@@ -290,98 +282,35 @@ export default function AddAthleteModal({
                                 </button>
                                 <button
                                     type="submit"
-                                    className="rounded-lg bg-blue-600 px-5 py-2.5 text-center text-sm font-medium text-white hover:bg-blue-700 focus:outline-none disabled:opacity-50"
+                                    className="rounded-lg bg-blue-600 px-5 py-2.5 text-center text-sm font-medium text-white hover:bg-blue-700 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
                                     disabled={isSubmitting}
                                 >
-                                    {isSubmitting ? 'Adding...' : 'Add Athlete'}
+                                    {isSubmitting ? (
+                                        <div className="flex items-center">
+                                            <svg
+                                                className="mr-3 -ml-1 h-5 w-5 animate-spin text-white"
+                                                xmlns="http://www.w3.org/2000/svg"
+                                                fill="none"
+                                                viewBox="0 0 24 24"
+                                            >
+                                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                                <path
+                                                    className="opacity-75"
+                                                    fill="currentColor"
+                                                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                                                ></path>
+                                            </svg>
+                                            Adding...
+                                        </div>
+                                    ) : (
+                                        'Add Athlete'
+                                    )}
                                 </button>
                             </div>
                         </form>
                     </div>
                 </div>
             </div>
-
-            {/* Confirmation Modal */}
-            {showConfirmation && formattedData && (
-                <div className="bg-opacity-70 fixed inset-0 z-[60] flex items-center justify-center overflow-x-hidden overflow-y-auto bg-black">
-                    <div className="relative max-h-full w-full max-w-md p-4">
-                        <div className="animate-fade-in-down relative rounded-lg bg-gradient-to-b from-[#112845] to-[#0a1e3c] shadow">
-                            {/* Modal header */}
-                            <div className="flex items-center justify-between rounded-t border-b border-gray-600 p-4 md:p-5">
-                                <h3 className="text-xl font-semibold text-white">Confirm Addition</h3>
-                            </div>
-
-                            {/* Modal body */}
-                            <div className="p-4 md:p-5">
-                                <div className="mb-4 text-center">
-                                    <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-blue-100 text-blue-600">
-                                        <svg
-                                            xmlns="http://www.w3.org/2000/svg"
-                                            fill="none"
-                                            viewBox="0 0 24 24"
-                                            strokeWidth={1.5}
-                                            stroke="currentColor"
-                                            className="h-6 w-6"
-                                        >
-                                            <path
-                                                strokeLinecap="round"
-                                                strokeLinejoin="round"
-                                                d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9 5.25h.008v.008H12v-.008z"
-                                            />
-                                        </svg>
-                                    </div>
-                                    <h3 className="mb-2 text-lg font-semibold text-white">Are you sure you want to add this athlete?</h3>
-                                    <p className="text-gray-400">
-                                        You are about to add <span className="font-semibold text-white">{formattedData.username}</span> with the email{' '}
-                                        <span className="font-semibold text-white">{formattedData.parent_email}</span>.
-                                    </p>
-                                </div>
-
-                                <div className="mb-4 rounded-lg bg-gray-800/50 p-3">
-                                    <h4 className="mb-2 text-sm font-medium text-blue-400">Pre-Training Results:</h4>
-                                    <div className="grid grid-cols-2 gap-2 text-xs">
-                                        <div className="rounded bg-gray-700/50 p-2">
-                                            <p className="font-medium text-gray-400">Standing Long Jump:</p>
-                                            <p className="text-white">{formattedData.training_results.standing_long_jump || '-'} cm</p>
-                                        </div>
-                                        <div className="rounded bg-gray-700/50 p-2">
-                                            <p className="font-medium text-gray-400">Single Leg Jump (L):</p>
-                                            <p className="text-white">{formattedData.training_results.single_leg_jump_left || '-'} cm</p>
-                                        </div>
-                                        <div className="rounded bg-gray-700/50 p-2">
-                                            <p className="font-medium text-gray-400">Single Leg Jump (R):</p>
-                                            <p className="text-white">{formattedData.training_results.single_leg_jump_right || '-'} cm</p>
-                                        </div>
-                                        <div className="rounded bg-gray-700/50 p-2">
-                                            <p className="font-medium text-gray-400">Bent Arm Hang:</p>
-                                            <p className="text-white">{formattedData.training_results.bent_arm_hang || '-'} sec</p>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div className="flex items-center justify-end space-x-3 pt-2">
-                                    <button
-                                        onClick={cancelSubmit}
-                                        type="button"
-                                        className="rounded-lg border border-gray-600 bg-gray-800 px-4 py-2 text-sm font-medium text-white hover:bg-gray-700"
-                                        disabled={isSubmitting}
-                                    >
-                                        Cancel
-                                    </button>
-                                    <button
-                                        onClick={confirmSubmit}
-                                        type="button"
-                                        className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 focus:outline-none disabled:opacity-50"
-                                        disabled={isSubmitting}
-                                    >
-                                        {isSubmitting ? 'Processing...' : 'Confirm'}
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            )}
         </>
     );
 }
