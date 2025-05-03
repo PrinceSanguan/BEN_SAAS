@@ -89,16 +89,12 @@ class StudentDashboardController extends Controller
         }
 
         // Filter blocks based on completion status
-        $blocks = $allBlocks->filter(function ($block) use ($isBlock1Completed, $isBlock2Completed) {
-            if ($block->block_number === 1) {
-                return true; // Always show Block 1
-            } else if ($block->block_number === 2) {
-                return $isBlock1Completed; // Show Block 2 only if Block 1 is completed
-            } else if ($block->block_number === 3) {
-                return $isBlock1Completed && $isBlock2Completed; // Show Block 3 only if Block 1 and 2 are completed
-            }
-            return false;
-        })->map(function ($block) use ($isBlock1Completed, $isBlock2Completed, $currentDate) {
+        $blocks = $allBlocks->map(function ($block) use ($currentDate) {
+            // Check if this block has any released sessions
+            $hasReleasedSessions = TrainingSession::where('block_id', $block->id)
+                ->where('release_date', '<=', $currentDate)
+                ->exists();
+
             $now = Carbon::now();
             $startDate = Carbon::parse($block->start_date);
             $endDate = Carbon::parse($block->end_date);
@@ -110,10 +106,14 @@ class StudentDashboardController extends Controller
                 'end_date' => $endDate->format('Y-m-d'),
                 'duration_weeks' => $startDate->diffInWeeks($endDate) + 1,
                 'is_current' => $now->between($startDate, $endDate),
-                'is_locked' => ($block->block_number === 2 && !$isBlock1Completed) || ($block->block_number === 3 && !$isBlock2Completed),
-                'is_associated_with_user' => true // Always true since we're filtering by user_id
+                'is_locked' => false, // Blocks are not locked if they have released sessions
+                'is_associated_with_user' => true,
+                'has_released_sessions' => $hasReleasedSessions
             ];
-        });
+        })->filter(function ($block) {
+            // Only show blocks that have released sessions
+            return $block['has_released_sessions'];
+        })->values();
 
         // Calculate remaining sessions in the current block
         $remainingSessions = 0;
