@@ -2,12 +2,15 @@ import AdminSidebar from '@/components/admin/AdminSidebar';
 import Notification from '@/components/admin/dashboard/Notification';
 import { Head, router } from '@inertiajs/react';
 import { useState } from 'react';
+import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 
 type Athlete = {
     id: number;
     username: string;
     email: string;
     created_at: string;
+    strength_level?: number;
+    consistency_score?: number;
     training_results?: {
         standing_long_jump: number | null;
         single_leg_jump_left: number | null;
@@ -28,9 +31,15 @@ type Props = {
         success?: string;
         error?: string;
     };
+    progressData?: { [key: string]: any };
+    xpInfo?: {
+        total_xp: number;
+        current_level: number;
+        next_level: number;
+    };
 };
 
-export default function AthleteDetail({ athlete, activePage, errors = {}, flash }: Props) {
+export default function AthleteDetail({ athlete, activePage, errors = {}, flash, progressData, xpInfo }: Props) {
     const [formData, setFormData] = useState({
         username: athlete.username,
         parent_email: athlete.email,
@@ -343,6 +352,102 @@ export default function AthleteDetail({ athlete, activePage, errors = {}, flash 
                             </div>
                         </form>
                     </div>
+
+                    {/* Progress Stats */}
+                    <div className="border-b border-gray-700 pb-6">
+                        <h2 className="mb-4 text-xl font-semibold text-white">Athlete Stats</h2>
+                        <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+                            <div className="rounded-lg border border-gray-600 bg-gray-700 p-4">
+                                <h3 className="mb-2 text-sm font-medium text-gray-300">Strength Level</h3>
+                                <div className="flex items-end">
+                                    <p className="text-2xl font-bold text-white">{athlete.strength_level || 1}</p>
+                                    {xpInfo?.next_level && <p className="ml-2 text-xs text-gray-400">Next: {xpInfo.next_level}</p>}
+                                </div>
+                                {xpInfo && (
+                                    <div className="mt-2">
+                                        <div className="h-1.5 w-full rounded-full bg-gray-600">
+                                            <div
+                                                className="h-1.5 rounded-full bg-blue-500"
+                                                style={{ width: `${(xpInfo.total_xp / (xpInfo.next_level * 5)) * 100}%` }}
+                                            ></div>
+                                        </div>
+                                        <p className="mt-1 text-xs text-gray-400">{xpInfo.total_xp} XP Total</p>
+                                    </div>
+                                )}
+                            </div>
+
+                            <div className="rounded-lg border border-gray-600 bg-gray-700 p-4">
+                                <h3 className="mb-2 text-sm font-medium text-gray-300">Consistency Score</h3>
+                                <p className="text-2xl font-bold text-white">{athlete.consistency_score || 0}%</p>
+                                <div className="mt-2">
+                                    <div className="h-1.5 w-full rounded-full bg-gray-600">
+                                        <div
+                                            className="h-1.5 rounded-full bg-green-500"
+                                            style={{ width: `${athlete.consistency_score || 0}%` }}
+                                        ></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="rounded-lg border border-gray-600 bg-gray-700 p-4">
+                                <h3 className="mb-2 text-sm font-medium text-gray-300">Total Tests Completed</h3>
+                                <p className="text-2xl font-bold text-white">{progressData ? Object.keys(progressData).length : 0}</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Progress Charts */}
+                    {progressData && Object.keys(progressData).length > 0 && (
+                        <div className="border-b border-gray-700 pb-6">
+                            <h2 className="mb-4 text-xl font-semibold text-white">Progress Charts</h2>
+                            <div className="space-y-8">
+                                {Object.entries(progressData).map(([testKey, data]) => (
+                                    <div key={testKey} className="rounded-lg border border-gray-600 bg-gray-700 p-4">
+                                        <div className="mb-2 flex items-center justify-between">
+                                            <h3 className="text-md font-semibold text-white">{data.name}</h3>
+                                            {data.percentageIncrease !== null && (
+                                                <span
+                                                    className={`rounded-full px-2 py-1 text-xs font-medium ${
+                                                        data.percentageIncrease > 0 ? 'bg-green-600/20 text-green-400' : 'bg-red-600/20 text-red-400'
+                                                    }`}
+                                                >
+                                                    {data.percentageIncrease > 0 ? '+' : ''}
+                                                    {data.percentageIncrease}%
+                                                </span>
+                                            )}
+                                        </div>
+                                        <div className="h-64">
+                                            <ResponsiveContainer width="100%" height="100%">
+                                                <LineChart data={data.sessions}>
+                                                    <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                                                    <XAxis
+                                                        dataKey="date"
+                                                        tick={{ fill: '#9CA3AF' }}
+                                                        tickFormatter={(date: string) =>
+                                                            new Date(date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+                                                        }
+                                                    />
+                                                    <YAxis tick={{ fill: '#9CA3AF' }} />
+                                                    <Tooltip
+                                                        contentStyle={{ backgroundColor: '#1F2937', borderColor: '#374151' }}
+                                                        labelStyle={{ color: '#9CA3AF' }}
+                                                    />
+                                                    <Line
+                                                        type="monotone"
+                                                        dataKey="value"
+                                                        name={data.name}
+                                                        stroke="#3B82F6"
+                                                        strokeWidth={2}
+                                                        dot={{ r: 5, fill: '#3B82F6' }}
+                                                    />
+                                                </LineChart>
+                                            </ResponsiveContainer>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
                 </div>
             </main>
         </div>

@@ -290,7 +290,7 @@ class AdminDashboardController extends Controller
     private function getAthletesWithTrainingResults()
     {
         return User::where('user_role', 'student')
-            ->with(['preTrainingTest', 'userStat']) // Include userStat relationship
+            ->with(['preTrainingTest', 'userStat'])
             ->get()
             ->map(function ($user) {
                 return [
@@ -370,10 +370,126 @@ class AdminDashboardController extends Controller
     public function getAthlete($id)
     {
         try {
-            $athlete = User::with('preTrainingTest')->findOrFail($id);
+            $athlete = User::with(['preTrainingTest', 'userStat'])->findOrFail($id);
 
             if ($athlete->user_role !== 'student') {
                 return redirect()->back()->with('error', 'User is not an athlete.');
+            }
+
+            // Get progress data
+            $xpService = app(XpService::class);
+            $xpSummary = $xpService->getUserXpSummary($athlete->id);
+
+            // Get test results and progress data
+            $blocks = Block::where('user_id', $athlete->id)->orderBy('block_number')->get();
+            $testResults = \App\Models\TestResult::where('user_id', $athlete->id)->get();
+            $preTrainingTest = \App\Models\PreTrainingTest::where('user_id', $athlete->id)->first();
+            $testSessions = \App\Models\TrainingSession::where('session_type', 'testing')
+                ->whereIn('block_id', $blocks->pluck('id'))
+                ->with('block')
+                ->get();
+
+            // Define test types
+            $testTypes = [
+                'standing_long_jump' => [
+                    'name' => 'Standing Long Jump',
+                    'pre_training_field' => 'standing_long_jump'
+                ],
+                'single_leg_jump_left' => [
+                    'name' => 'Single Leg Jump (LEFT)',
+                    'pre_training_field' => 'single_leg_jump_left'
+                ],
+                'single_leg_jump_right' => [
+                    'name' => 'Single Leg Jump (RIGHT)',
+                    'pre_training_field' => 'single_leg_jump_right'
+                ],
+                'single_leg_wall_sit_left' => [
+                    'name' => 'Single Leg Wall Sit (LEFT)',
+                    'pre_training_field' => 'single_leg_wall_sit_left'
+                ],
+                'single_leg_wall_sit_right' => [
+                    'name' => 'Single Leg Wall Sit (RIGHT)',
+                    'pre_training_field' => 'single_leg_wall_sit_right'
+                ],
+                'core_endurance_left' => [
+                    'name' => 'Core Endurance (LEFT)',
+                    'pre_training_field' => 'core_endurance_left'
+                ],
+                'core_endurance_right' => [
+                    'name' => 'Core Endurance (RIGHT)',
+                    'pre_training_field' => 'core_endurance_right'
+                ],
+                'bent_arm_hang_assessment' => [
+                    'name' => 'Bent Arm Hold',
+                    'pre_training_field' => 'bent_arm_hang'
+                ]
+            ];
+
+            $progressData = [];
+            foreach ($testTypes as $testKey => $testInfo) {
+                $sessionData = [];
+                $values = [];
+                $hasAnyData = false;
+
+                // Add pre-training test data as the first point if available
+                if ($preTrainingTest && isset($preTrainingTest->{$testInfo['pre_training_field']})) {
+                    $preTrainingValue = (float) $preTrainingTest->{$testInfo['pre_training_field']};
+
+                    if ($preTrainingValue > 0) {
+                        $sessionData[] = [
+                            'label' => 'PRE-TRAINING',
+                            'date' => $preTrainingTest->tested_at ? Carbon::parse($preTrainingTest->tested_at)->format('Y-m-d') : Carbon::now()->subMonths(3)->format('Y-m-d'),
+                            'value' => $preTrainingValue
+                        ];
+                        $values[] = $preTrainingValue;
+                        $hasAnyData = true;
+                    }
+                }
+
+                // Add test session results
+                foreach ($testSessions as $session) {
+                    $result = $testResults->where('session_id', $session->id)->first();
+
+                    if ($result && isset($result->$testKey) && $result->$testKey > 0) {
+                        $blockNumber = $session->block ? $session->block->block_number : '?';
+                        $label = "Block {$blockNumber} - Week {$session->week_number}";
+
+                        $sessionDate = $result->completed_at
+                            ? Carbon::parse($result->completed_at)->format('Y-m-d')
+                            : ($session->release_date
+                                ? Carbon::parse($session->release_date)->format('Y-m-d')
+                                : Carbon::now()->format('Y-m-d'));
+
+                        $sessionData[] = [
+                            'label' => $label,
+                            'date' => $sessionDate,
+                            'value' => (float) $result->$testKey
+                        ];
+
+                        $values[] = (float) $result->$testKey;
+                        $hasAnyData = true;
+                    }
+                }
+
+                // Calculate percentage increase
+                $percentageIncrease = null;
+                if (count($values) >= 2) {
+                    $first = $values[0];
+                    $last = end($values);
+
+                    if ($first > 0) {
+                        $percentageIncrease = round((($last - $first) / $first) * 100, 1);
+                    }
+                }
+
+                // Only add tests with data
+                if ($hasAnyData) {
+                    $progressData[$testKey] = [
+                        'name' => $testInfo['name'],
+                        'sessions' => $sessionData,
+                        'percentageIncrease' => $percentageIncrease
+                    ];
+                }
             }
 
             $athleteData = [
@@ -381,6 +497,8 @@ class AdminDashboardController extends Controller
                 'username' => $athlete->username,
                 'email' => $athlete->parent_email,
                 'created_at' => $athlete->created_at,
+                'strength_level' => $athlete->userStat ? $athlete->userStat->strength_level : 1,
+                'consistency_score' => $athlete->userStat ? round($athlete->userStat->consistency_score) : 0,
                 'training_results' => $athlete->preTrainingTest ? [
                     'standing_long_jump' => $athlete->preTrainingTest->standing_long_jump,
                     'single_leg_jump_left' => $athlete->preTrainingTest->single_leg_jump_left,
@@ -395,7 +513,13 @@ class AdminDashboardController extends Controller
 
             return Inertia::render('Admin/AthleteDetail', [
                 'athlete' => $athleteData,
-                'activePage' => 'dashboard'
+                'activePage' => 'dashboard',
+                'progressData' => $progressData,
+                'xpInfo' => [
+                    'total_xp' => $xpSummary['total_xp'],
+                    'current_level' => $xpSummary['current_level'],
+                    'next_level' => $xpSummary['next_level']
+                ]
             ]);
         } catch (ModelNotFoundException $e) {
             return redirect()->back()->with('error', 'Athlete not found.');
