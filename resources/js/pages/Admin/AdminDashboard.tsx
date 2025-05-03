@@ -10,10 +10,13 @@ import { Head, usePage } from '@inertiajs/react';
 import { useEffect, useState } from 'react';
 
 /** Athlete Type */
+/** Athlete Type */
 type Athlete = {
     id: number;
     username: string;
     email: string;
+    consistency_score?: number;
+    strength_level?: number;
     training_results?: {
         standing_long_jump: number | null;
         single_leg_jump_left: number | null;
@@ -177,17 +180,13 @@ export default function AdminDashboard({ athletes: initialAthletes = [] }: Props
                 {/* MODAL for Adding a New Athlete */}
                 <AddAthleteModal
                     showModal={showModal}
-                    showConfirmation={showConfirmation}
                     form={form}
                     error={error}
                     isSubmitting={isSubmitting}
-                    formattedData={formattedData}
                     onClose={() => setShowModal(false)}
                     handleChange={handleChange}
                     handleSubmit={handleSubmit}
                     handleCheckboxChange={handleCheckboxChange}
-                    confirmSubmit={confirmSubmit}
-                    cancelSubmit={cancelSubmit}
                 />
             </main>
         </div>

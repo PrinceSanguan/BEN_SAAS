@@ -173,12 +173,32 @@ export default function useAthleteForm(athletes: Athlete[], setAthletes: React.D
         e.preventDefault();
         setError(null);
 
-        // Format the data and store it for later use
+        // Format the data and submit immediately
         const data = formatFormData();
         setFormattedData(data);
 
-        // Show confirmation dialog
-        setShowConfirmation(true);
+        // Submit immediately without confirmation
+        submitFormData(data);
+    };
+
+    const submitFormData = (data: FormattedData) => {
+        if (isSubmitting) return; // Prevent double submission
+
+        setIsSubmitting(true);
+
+        router.post('/admin/athletes', data, {
+            onFinish: () => {
+                setIsSubmitting(false);
+            },
+            onSuccess: () => {
+                // Immediately reload without alert
+                window.location.reload();
+            },
+            onError: (errors: Record<string, string>) => {
+                const errorMessage = Object.values(errors)[0] || 'An error occurred';
+                setError(errorMessage);
+            },
+        });
     };
 
     // Step 2: Actual form submission after confirmation
