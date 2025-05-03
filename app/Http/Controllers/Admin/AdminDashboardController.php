@@ -500,8 +500,8 @@ class AdminDashboardController extends Controller
                 return redirect()->back()->with('error', 'User is not an athlete.');
             }
 
-            // Load all blocks with a single query instead of separate queries
-            $blocks = Block::orderBy('block_number')->get();
+            // Load ONLY blocks for this specific athlete
+            $blocks = Block::where('user_id', $athlete->id)->orderBy('block_number')->get();
 
             // Get XP information
             $xpService = app(XpService::class);
@@ -519,6 +519,7 @@ class AdminDashboardController extends Controller
             $testResults = \App\Models\TestResult::where('user_id', $athlete->id)->get();
             $preTrainingTest = \App\Models\PreTrainingTest::where('user_id', $athlete->id)->first();
             $testSessions = \App\Models\TrainingSession::where('session_type', 'testing')
+                ->whereIn('block_id', $blocks->pluck('id')) // Also filter test sessions to only those belonging to this athlete's blocks
                 ->with('block')
                 ->get();
 
