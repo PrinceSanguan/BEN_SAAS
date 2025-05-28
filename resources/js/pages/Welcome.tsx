@@ -8,6 +8,7 @@ import Features from '@/components/welcome/features';
 import Footer from '@/components/welcome/footer';
 import Hero from '@/components/welcome/hero';
 import About from '@/components/welcome/About';
+import Training from '@/components/welcome/Training';
 import HowItWorks from '@/components/welcome/howitworks';
 import Testimonials from '@/components/welcome/testimonials';
 
@@ -197,6 +198,9 @@ export default function Welcome() {
             <div className="bg-gray-950 text-white">
                 <Hero />
                 <About />
+                <Training />
+
+
                 <Features />
                 <HowItWorks />
                 <TopThreeLeaderboard />
