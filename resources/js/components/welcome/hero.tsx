@@ -1,202 +1,255 @@
 "use client"
 
-import React, { useRef, useEffect } from "react"
+import type React from "react"
 import { Button } from "@/components/ui/button"
-import { ArrowRight, Dumbbell, Medal, TrendingUp, BarChart2 } from 'lucide-react'
-import gsap from "gsap"
-import { ScrollTrigger } from "gsap/ScrollTrigger"
+import { ArrowRight, Play, Award, Users, BookOpen, Star, Activity } from "lucide-react"
+import { useEffect, useState } from "react"
 
 const Hero: React.FC = () => {
-  const heroRef = useRef<HTMLDivElement | null>(null)
-  const heroContentRef = useRef<HTMLDivElement | null>(null)
-  const heroTitleRef = useRef<HTMLHeadingElement | null>(null)
-  const heroSubtitleRef = useRef<HTMLParagraphElement | null>(null)
-  const ctaButtonsRef = useRef<HTMLDivElement | null>(null)
-  const statsRef = useRef<HTMLDivElement | null>(null)
-  const overlayRef = useRef<HTMLDivElement | null>(null)
+  // State to track the current background image
+  const [currentBg, setCurrentBg] = useState(0);
 
+  // Array of background images from Unsplash
+  const backgroundImages = [
+    "https://images.unsplash.com/photo-1599058917765-a780eda07a3e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2069&q=80",
+    "https://images.unsplash.com/photo-1475762544292-d2e0ab431798?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80",
+    "https://images.unsplash.com/photo-1588286840104-8957b019727f?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80"
+  ];
+
+  // Effect to change background image every 6 seconds
   useEffect(() => {
-    gsap.registerPlugin(ScrollTrigger)
+    const interval = setInterval(() => {
+      setCurrentBg(prev => (prev + 1) % backgroundImages.length);
+    }, 6000);
 
-    // Initial animations
-    const tl = gsap.timeline();
-
-    // Animate overlay
-    tl.from(overlayRef.current, {
-      opacity: 0,
-      duration: 1,
-      ease: "power2.inOut"
-    });
-
-    // Animate hero title with text reveal effect
-    tl.from(heroTitleRef.current, {
-      y: 50,
-      opacity: 0,
-      duration: 1,
-      ease: "power3.out"
-    }, "-=0.5");
-
-    // Animate hero subtitle
-    tl.from(heroSubtitleRef.current, {
-      y: 30,
-      opacity: 0,
-      duration: 0.8,
-      ease: "power3.out"
-    }, "-=0.7");
-
-    // Animate CTA buttons
-    tl.from(ctaButtonsRef.current, {
-      y: 30,
-      opacity: 0,
-      duration: 0.8,
-      ease: "back.out(1.7)"
-    }, "-=0.6");
-
-    // Animate stats
-    if (statsRef.current) {
-      const stats = statsRef.current.children;
-      tl.from(stats, {
-        y: 30,
-        opacity: 0,
-        duration: 0.5,
-        stagger: 0.1,
-        ease: "power3.out"
-      }, "-=0.4");
-    }
-
-    // Add parallax effect on scroll
-    gsap.to(heroContentRef.current, {
-      scrollTrigger: {
-        trigger: heroRef.current,
-        start: "top top",
-        end: "bottom top",
-        scrub: true
-      },
-      y: 100,
-      ease: "none"
-    });
-  }, [])
+    return () => clearInterval(interval);
+  }, []);
 
   return (
-    <section
-      ref={heroRef}
-      className="relative min-h-screen flex items-center justify-center overflow-hidden bg-black"
-    >
-      {/* Background Image */}
-      <div className="absolute inset-0 w-full h-full z-0">
-        <div
-          className="absolute inset-0 w-full h-full bg-cover bg-center bg-no-repeat"
-          style={{
-            backgroundImage: "url('https://images.unsplash.com/photo-1517838277536-f5f99be501cd?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80')"
-          }}
-        ></div>
-        <div
-          ref={overlayRef}
-          className="absolute inset-0 bg-gradient-to-r from-blue-900/90 to-black/90 z-10"
-        ></div>
-      </div>
-
-      {/* Hero Content */}
-      <div className="container relative z-20 mx-auto px-4 py-12 md:py-20">
-        <div ref={heroContentRef} className="max-w-4xl mx-auto">
-          <h1
-            ref={heroTitleRef}
-            className="mb-4 md:mb-6 text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold leading-tight tracking-tight text-white"
-          >
-            <span className="block">Unlock Your</span>
-            <span className="block mt-1 md:mt-2 bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">
-              Athletic Potential
-            </span>
-          </h1>
-
-          <p
-            ref={heroSubtitleRef}
-            className="mb-6 md:mb-8 text-base md:text-xl text-gray-300 max-w-3xl"
-          >
-            Track your progress, compete on leaderboards, and follow structured training programs
-            designed to help young athletes build strength, speed, and endurance.
-          </p>
-
-          <div
-            ref={ctaButtonsRef}
-            className="flex flex-col sm:flex-row gap-3 md:gap-4 mb-10 md:mb-16"
-          >
-            <Button
-              size="lg"
-              className="h-12 md:h-14 px-6 md:px-8 bg-blue-600 text-base md:text-lg font-semibold shadow-lg transition-all hover:bg-blue-700 hover:shadow-blue-500/40 group"
-            >
-              Start Your Journey
-              <ArrowRight className="ml-2 h-4 w-4 md:h-5 md:w-5 transition-transform group-hover:translate-x-1" />
-            </Button>
-
-            <Button
-              size="lg"
-              variant="outline"
-              className="h-12 md:h-14 px-6 md:px-8 border-2 border-white/30 text-white text-base md:text-lg font-semibold hover:bg-white/10 hover:border-white/50"
-            >
-              Watch Demo
-            </Button>
+    <div className="relative min-h-screen flex flex-col">
+      {/* Navigation Bar */}
+      <header className="w-full bg-slate-900/95 backdrop-blur-sm border-b border-slate-800 py-4 px-6 z-50">
+        <div className="container mx-auto flex items-center justify-between">
+          <div className="flex items-center">
+            <a href="/" className="flex items-center gap-2">
+              <Activity className="h-8 w-8 text-blue-500" />
+              <span className="text-white font-bold text-xl">AthleteTrack</span>
+            </a>
           </div>
 
-          {/* Stats */}
-          <div
-            ref={statsRef}
-            className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 md:gap-6"
-          >
-            <div className="bg-white/10 backdrop-blur-sm rounded-lg p-3 md:p-4 border border-white/20 transform transition-transform hover:scale-105">
-              <div className="flex items-center gap-2 md:gap-3 mb-1 md:mb-2">
-                <div className="rounded-full bg-blue-900/50 p-1.5 md:p-2">
-                  <Dumbbell className="h-4 w-4 md:h-5 md:w-5 text-blue-400" />
-                </div>
-                <h3 className="text-xl md:text-2xl font-bold text-white">14+</h3>
+          <nav className="hidden md:flex items-center space-x-8">
+            <a href="#features" className="text-white/80 hover:text-white text-sm font-medium transition-colors">
+              Features
+            </a>
+            <a href="#how-it-works" className="text-white/80 hover:text-white text-sm font-medium transition-colors">
+              How It Works
+            </a>
+            <a href="#rankings" className="text-white/80 hover:text-white text-sm font-medium transition-colors">
+              Rankings
+            </a>
+            <a href="#latest-news" className="text-white/80 hover:text-white text-sm font-medium transition-colors">
+              Latest News
+            </a>
+            <a href="#testimonials" className="text-white/80 hover:text-white text-sm font-medium transition-colors">
+              Testimonials
+            </a>
+            <a href="#faq" className="text-white/80 hover:text-white text-sm font-medium transition-colors">
+              FAQ
+            </a>
+          </nav>
+
+          <div>
+            <Button variant="ghost" className="text-white hover:bg-white/10">
+              Log In
+            </Button>
+          </div>
+        </div>
+      </header>
+
+      {/* Hero Section */}
+      <main className="flex-1 bg-gradient-to-br from-blue-950 to-slate-900 relative overflow-hidden">
+        {/* Background Image Slider with Overlay */}
+        <div className="absolute inset-0 z-0">
+          {backgroundImages.map((image, index) => (
+            <div
+              key={index}
+              className={`absolute inset-0 bg-cover bg-center transition-opacity duration-1500 ease-in-out ${
+                index === currentBg ? "opacity-60" : "opacity-0"
+              }`}
+              style={{
+                backgroundImage: `url('${image}')`,
+              }}
+            ></div>
+          ))}
+          <div className="absolute inset-0 bg-gradient-to-r from-blue-900/70 via-slate-900/75 to-slate-900/70"></div>
+
+          {/* Animated Gradient Overlay */}
+          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-slate-900/10 to-slate-900/60 opacity-50"></div>
+        </div>
+
+        {/* Decorative Elements */}
+        <div className="absolute top-20 left-10 w-64 h-64 rounded-full bg-blue-500/10 blur-3xl mix-blend-screen"></div>
+        <div className="absolute bottom-20 right-10 w-72 h-72 rounded-full bg-purple-500/10 blur-3xl mix-blend-screen"></div>
+
+        <div className="container mx-auto px-4 py-16 md:py-24 relative z-10">
+          <div className="max-w-4xl mx-auto text-center mb-16">
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-6 leading-tight tracking-tight">
+              Where Young Athletes
+              <span className="block mt-2 bg-gradient-to-r from-blue-400 via-purple-400 to-blue-500 bg-clip-text text-transparent">
+                Train Smarter — Not Just Harder
+              </span>
+            </h1>
+
+            <p className="text-lg md:text-xl text-gray-300 max-w-2xl mx-auto mb-10 leading-relaxed">
+              Expert guidance that builds performance, protects against injury, and brings out the best in your child.
+              Scientifically designed, individually delivered — and fully supported for parents.
+            </p>
+
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-16">
+              <Button
+                size="lg"
+                className="h-12 px-8 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-md w-full sm:w-auto flex items-center justify-center gap-2 group"
+              >
+                Start Your Journey
+                <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+              </Button>
+
+              <Button
+                size="lg"
+                variant="outline"
+                className="h-12 px-8 border-2 border-white/30 text-white font-semibold hover:bg-white/10 rounded-md w-full sm:w-auto flex items-center justify-center gap-2"
+              >
+                <Play className="h-4 w-4 fill-current" />
+                Watch Demo
+              </Button>
+            </div>
+          </div>
+
+          {/* Expert Profile Card - Perfectly Centered */}
+          <div className="max-w-3xl mx-auto mb-16">
+            <div className="bg-slate-800/80 backdrop-blur-md rounded-xl border border-amber-500/30 shadow-2xl overflow-hidden relative">
+              {/* Expert Badge */}
+              <div className="absolute top-4 right-4 bg-amber-500 text-black text-xs font-bold px-3 py-1 rounded-full">
+                EXPERT
               </div>
-              <p className="text-sm md:text-base text-gray-400">Weeks of structured training</p>
+
+              <div className="p-8">
+                <div className="flex flex-col md:flex-row items-center md:items-start gap-8">
+                  {/* Profile Image */}
+                  <div className="relative">
+                    <div className="w-32 h-32 rounded-full bg-gradient-to-r from-amber-400 to-amber-600 p-1">
+                      <div className="w-full h-full rounded-full overflow-hidden border-4 border-amber-500/30">
+                        <img
+                          src="https://images.unsplash.com/photo-1568602471122-7832951cc4c5?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80"
+                          alt="Dr Ben Pullen"
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                    </div>
+                    <div className="absolute -bottom-1 -right-1 bg-amber-500 rounded-full p-1.5">
+                      <Award className="h-5 w-5 text-slate-900" />
+                    </div>
+                  </div>
+
+                  {/* Profile Info */}
+                  <div className="text-center md:text-left flex-1">
+                    <div className="flex items-center justify-center md:justify-start gap-2 mb-1">
+                      <h2 className="text-2xl md:text-3xl font-bold text-white">Dr Ben Pullen</h2>
+                      <div className="flex gap-0.5">
+                        <Star className="h-4 w-4 text-amber-500 fill-amber-500" />
+                        <Star className="h-4 w-4 text-amber-500 fill-amber-500" />
+                        <Star className="h-4 w-4 text-amber-500 fill-amber-500" />
+                      </div>
+                    </div>
+                    <p className="text-lg text-amber-400 font-semibold mb-4">PhD in Paediatric Strength Training</p>
+
+                    {/* Badges */}
+                    <div className="flex flex-wrap gap-2 justify-center md:justify-start mb-4">
+                      <span className="bg-amber-500/20 text-amber-300 px-3 py-1 rounded-full text-xs font-medium border border-amber-500/30 flex items-center gap-1">
+                        <Award className="h-3 w-3" />
+                        Youth Expert
+                      </span>
+                      <span className="bg-blue-500/20 text-blue-300 px-3 py-1 rounded-full text-xs font-medium border border-blue-500/30 flex items-center gap-1">
+                        <BookOpen className="h-3 w-3" />
+                        Researcher
+                      </span>
+                      <span className="bg-green-500/20 text-green-300 px-3 py-1 rounded-full text-xs font-medium border border-green-500/30 flex items-center gap-1">
+                        <Star className="h-3 w-3" />
+                        Published Author
+                      </span>
+                    </div>
+
+                    <p className="text-gray-300 text-sm mb-4 flex items-center justify-center md:justify-start gap-2">
+                      <Award className="h-4 w-4 text-amber-500" />
+                      Leading Youth Strength & Conditioning Expert
+                    </p>
+                  </div>
+                </div>
+
+                {/* Stats Row */}
+                <div className="grid grid-cols-4 gap-4 mt-6 border-t border-slate-700/50 pt-6">
+                  <div className="text-center">
+                    <div className="text-xl font-bold text-amber-500">1000+</div>
+                    <div className="text-xs text-gray-400">Athletes Trained</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-xl font-bold text-blue-500">10+</div>
+                    <div className="text-xs text-gray-400">Years Experience</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-xl font-bold text-purple-500">PhD</div>
+                    <div className="text-xs text-gray-400">Qualified</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-xl font-bold text-green-500">0</div>
+                    <div className="text-xs text-gray-400">Injuries</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Additional Info Cards - Perfectly Aligned Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-3xl mx-auto mb-16">
+            <div className="bg-slate-800/60 backdrop-blur-sm rounded-lg p-6 border border-slate-700/50 flex items-start gap-4">
+              <div className="rounded-full bg-purple-900/50 p-3 flex-shrink-0">
+                <Users className="h-5 w-5 text-purple-400" />
+              </div>
+              <div>
+                <h3 className="text-xl font-bold text-white mb-2">10+ Years</h3>
+                <p className="text-gray-300">Coaching 1000+ youth athletes with proven results and methodologies.</p>
+              </div>
             </div>
 
-            <div className="bg-white/10 backdrop-blur-sm rounded-lg p-3 md:p-4 border border-white/20 transform transition-transform hover:scale-105">
-              <div className="flex items-center gap-2 md:gap-3 mb-1 md:mb-2">
-                <div className="rounded-full bg-purple-900/50 p-1.5 md:p-2">
-                  <Medal className="h-4 w-4 md:h-5 md:w-5 text-purple-400" />
-                </div>
-                <h3 className="text-xl md:text-2xl font-bold text-white">10+</h3>
+            <div className="bg-slate-800/60 backdrop-blur-sm rounded-lg p-6 border border-slate-700/50 flex items-start gap-4">
+              <div className="rounded-full bg-green-900/50 p-3 flex-shrink-0">
+                <BookOpen className="h-5 w-5 text-green-400" />
               </div>
-              <p className="text-sm md:text-base text-gray-400">Strength level achievements</p>
+              <div>
+                <h3 className="text-xl font-bold text-white mb-2">Published</h3>
+                <p className="text-gray-300">
+                  Youth strength & conditioning researcher with peer-reviewed publications.
+                </p>
+              </div>
             </div>
+          </div>
 
-            <div className="bg-white/10 backdrop-blur-sm rounded-lg p-3 md:p-4 border border-white/20 transform transition-transform hover:scale-105">
-              <div className="flex items-center gap-2 md:gap-3 mb-1 md:mb-2">
-                <div className="rounded-full bg-green-900/50 p-1.5 md:p-2">
-                  <TrendingUp className="h-4 w-4 md:h-5 md:w-5 text-green-400" />
-                </div>
-                <h3 className="text-xl md:text-2xl font-bold text-white">25%</h3>
-              </div>
-              <p className="text-sm md:text-base text-gray-400">Average performance increase</p>
-            </div>
-
-            <div className="bg-white/10 backdrop-blur-sm rounded-lg p-3 md:p-4 border border-white/20 transform transition-transform hover:scale-105">
-              <div className="flex items-center gap-2 md:gap-3 mb-1 md:mb-2">
-                <div className="rounded-full bg-yellow-900/50 p-1.5 md:p-2">
-                  <BarChart2 className="h-4 w-4 md:h-5 md:w-5 text-yellow-400" />
-                </div>
-                <h3 className="text-xl md:text-2xl font-bold text-white">5+</h3>
-              </div>
-              <p className="text-sm md:text-base text-gray-400">Performance metrics tracked</p>
+          {/* Bottom Section */}
+          <div className="max-w-3xl mx-auto">
+            <div className="bg-slate-800/40 backdrop-blur-sm rounded-lg p-8 border border-slate-700/50">
+              <h2 className="text-2xl md:text-3xl font-bold text-white mb-4 bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">
+                A Coaching Experience Your Child Will Love
+              </h2>
+              <p className="text-gray-300 leading-relaxed">
+                Our programme is more than reps and drills — it's a creative, positive environment where young athletes
+                feel supported, challenged, and excited to train. Every session is engaging, novel, and focused —
+                because when training is fun, commitment comes naturally.
+              </p>
             </div>
           </div>
         </div>
-      </div>
-
-      {/* Bottom wave */}
-      <div className="absolute bottom-0 left-0 right-0 z-10">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320" className="h-auto w-full">
-          <path
-            fill="#0f172a"
-            fillOpacity="1"
-            d="M0,96L48,112C96,128,192,160,288,160C384,160,480,128,576,122.7C672,117,768,139,864,149.3C960,160,1056,160,1152,138.7C1248,117,1344,75,1392,53.3L1440,32L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"
-          ></path>
-        </svg>
-      </div>
-    </section>
+      </main>
+    </div>
   )
 }
 

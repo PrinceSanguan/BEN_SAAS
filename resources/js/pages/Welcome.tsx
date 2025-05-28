@@ -7,6 +7,7 @@ import CTA from '@/components/welcome/cta';
 import Features from '@/components/welcome/features';
 import Footer from '@/components/welcome/footer';
 import Hero from '@/components/welcome/hero';
+import About from '@/components/welcome/About';
 import HowItWorks from '@/components/welcome/howitworks';
 import Testimonials from '@/components/welcome/testimonials';
 
@@ -195,6 +196,7 @@ export default function Welcome() {
             {/* Sub-components below */}
             <div className="bg-gray-950 text-white">
                 <Hero />
+                <About />
                 <Features />
                 <HowItWorks />
                 <TopThreeLeaderboard />
