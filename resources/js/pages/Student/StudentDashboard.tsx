@@ -196,23 +196,12 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({
     // Sequential block unlocking based on current block and remaining sessions
     const visibleBlocks = blocks
         .filter((block) => {
-            if (block.block_number === 1) {
-                return true; // Always show Block 1
-            } else if (block.block_number === 2) {
-                // Show Block 2 only if Block 1 is completed (has no remaining sessions)
-                const block1 = blocks.find((b) => b.block_number === 1);
-                return block1 && remainingSessions === 0;
-            } else if (block.block_number === 3) {
-                // Show Block 3 only if Block 2 is completed
-                const block1 = blocks.find((b) => b.block_number === 1);
-                const block2 = blocks.find((b) => b.block_number === 2);
-                return block1 && block2 && remainingSessions === 0;
-            }
-            return false;
+            // For now, return all blocks and let the backend handle the filtering
+            return true;
         })
         .map((block) => ({
             ...block,
-            is_locked: block.block_number > 1 && remainingSessions > 0,
+            is_locked: block.is_locked, // Keep the is_locked status from backend
         }));
 
     // Check if using mobile

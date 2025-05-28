@@ -75,105 +75,105 @@ class AdminDashboardController extends Controller
                 'password.required' => 'The password field is required.',
             ]);
 
-
             $trainingResults = $request->input('training_results', []);
 
             Log::info('Training results data:', $trainingResults);
 
-            DB::beginTransaction();
+            // Use a database transaction with proper isolation level
+            $result = DB::transaction(function () use ($validated, $trainingResults) {
+                // Create the user
+                $user = User::create([
+                    'username' => $validated['username'],
+                    'parent_email' => $validated['parent_email'],
+                    'password' => Hash::make($validated['password']),
+                    'user_role' => 'student',
+                ]);
 
-            // Create the user
-            $user = User::create([
-                'username' => $validated['username'],
-                'parent_email' => $validated['parent_email'],
-                'password' => Hash::make($validated['password']),
-                'user_role' => 'student',
-            ]);
+                // Create the pre-training test
+                $preTrainingTest = PreTrainingTest::create([
+                    'user_id' => $user->id,
+                    'standing_long_jump' => $trainingResults['standing_long_jump'] ?? null,
+                    'single_leg_jump_left' => $trainingResults['single_leg_jump_left'] ?? null,
+                    'single_leg_jump_right' => $trainingResults['single_leg_jump_right'] ?? null,
+                    'single_leg_wall_sit_left' => $trainingResults['single_leg_wall_sit_left'] ?? null,
+                    'single_leg_wall_sit_right' => $trainingResults['single_leg_wall_sit_right'] ?? null,
+                    'core_endurance_left' => $trainingResults['core_endurance_left'] ?? null,
+                    'core_endurance_right' => $trainingResults['core_endurance_right'] ?? null,
+                    'bent_arm_hang' => $trainingResults['bent_arm_hang'] ?? null,
+                    'tested_at' => now()
+                ]);
 
-            // Create the pre-training test instead of the training result
-            $preTrainingTest = PreTrainingTest::create([
-                'user_id' => $user->id,
-                'standing_long_jump' => $trainingResults['standing_long_jump'] ?? null,
-                'single_leg_jump_left' => $trainingResults['single_leg_jump_left'] ?? null,
-                'single_leg_jump_right' => $trainingResults['single_leg_jump_right'] ?? null,
-                'single_leg_wall_sit_left' => $trainingResults['single_leg_wall_sit_left'] ?? null,
-                'single_leg_wall_sit_right' => $trainingResults['single_leg_wall_sit_right'] ?? null,
-                'core_endurance_left' => $trainingResults['core_endurance_left'] ?? null,
-                'core_endurance_right' => $trainingResults['core_endurance_right'] ?? null,
-                'bent_arm_hang' => $trainingResults['bent_arm_hang'] ?? null,
-                'tested_at' => now()
-            ]);
+                // Create blocks with user_id to associate them with this specific user
+                $now = Carbon::now();
 
-            // Create blocks with user_id to associate them with this specific user
-            $now = Carbon::now();
+                // Check if blocks already exist for this user (defensive programming)
+                $existingBlocks = Block::where('user_id', $user->id)->count();
 
-            // Block 1: All 14 weeks (Training, Testing, Rest period)
-            $block1 = Block::create([
-                'block_number' => 1,
-                'start_date' => $now,
-                'end_date' => $now->copy()->addWeeks(14),
-                'user_id' => $user->id  // Associate this block with the user
-            ]);
+                if ($existingBlocks === 0) {
+                    // Block 1: All 14 weeks (Training, Testing, Rest period)
+                    $block1 = Block::create([
+                        'block_number' => 1,
+                        'start_date' => $now,
+                        'end_date' => $now->copy()->addWeeks(14),
+                        'user_id' => $user->id
+                    ]);
 
-            // Block 2: Complete reset, starting after Block 1
-            $block2 = Block::create([
-                'block_number' => 2,
-                'start_date' => $now->copy()->addWeeks(14)->addDay(),
-                'end_date' => $now->copy()->addWeeks(28), // 14 more weeks
-                'user_id' => $user->id  // Associate this block with the user
-            ]);
+                    // Block 2: Complete reset, starting after Block 1
+                    $block2 = Block::create([
+                        'block_number' => 2,
+                        'start_date' => $now->copy()->addWeeks(14)->addDay(),
+                        'end_date' => $now->copy()->addWeeks(28),
+                        'user_id' => $user->id
+                    ]);
 
-            // Block 3: Third block
-            $block3 = Block::create([
-                'block_number' => 3,
-                'start_date' => $now->copy()->addWeeks(28)->addDay(),
-                'end_date' => $now->copy()->addWeeks(42), // 14 more weeks
-                'user_id' => $user->id  // Associate this block with the user
-            ]);
+                    // Block 3: Third block
+                    $block3 = Block::create([
+                        'block_number' => 3,
+                        'start_date' => $now->copy()->addWeeks(28)->addDay(),
+                        'end_date' => $now->copy()->addWeeks(42),
+                        'user_id' => $user->id
+                    ]);
 
-            Log::info('Created blocks for user_id: ' . $user->id);
+                    Log::info('Created blocks for user_id: ' . $user->id);
 
-            // Use the direct many-to-many relationship from the Block model
-            if (method_exists($block1, 'users')) {
-                $block1->users()->attach($user->id);
-                $block2->users()->attach($user->id);
-                $block3->users()->attach($user->id);
-                Log::info('Attached user to blocks via many-to-many');
-            }
+                    // Create sessions for each block
+                    $this->createSessionsForBlock($block1);
+                    $this->createSessionsForBlock($block2);
+                    $this->createSessionsForBlock($block3);
 
-            // Create sessions for each block
-            $this->createSessionsForBlock($block1);
-            $this->createSessionsForBlock($block2);
-            $this->createSessionsForBlock($block3);
+                    Log::info('Created sessions for all blocks');
+                } else {
+                    Log::warning('Blocks already exist for user_id: ' . $user->id);
+                }
 
-            Log::info('Created sessions for all blocks');
-
-            DB::commit();
+                return [
+                    'user' => $user,
+                    'preTrainingTest' => $preTrainingTest
+                ];
+            }, 5); // Set isolation level to prevent concurrent issues
 
             // Prepare response data
             $athleteData = [
-                'id' => $user->id,
-                'username' => $user->username,
-                'email' => $user->parent_email,
+                'id' => $result['user']->id,
+                'username' => $result['user']->username,
+                'email' => $result['user']->parent_email,
                 'training_results' => [
-                    'standing_long_jump' => $preTrainingTest->standing_long_jump,
-                    'single_leg_jump_left' => $preTrainingTest->single_leg_jump_left,
-                    'single_leg_jump_right' => $preTrainingTest->single_leg_jump_right,
-                    'single_leg_wall_sit_left' => $preTrainingTest->single_leg_wall_sit_left,
-                    'single_leg_wall_sit_right' => $preTrainingTest->single_leg_wall_sit_right,
-                    'core_endurance_left' => $preTrainingTest->core_endurance_left,
-                    'core_endurance_right' => $preTrainingTest->core_endurance_right,
-                    'bent_arm_hang' => $preTrainingTest->bent_arm_hang,
+                    'standing_long_jump' => $result['preTrainingTest']->standing_long_jump,
+                    'single_leg_jump_left' => $result['preTrainingTest']->single_leg_jump_left,
+                    'single_leg_jump_right' => $result['preTrainingTest']->single_leg_jump_right,
+                    'single_leg_wall_sit_left' => $result['preTrainingTest']->single_leg_wall_sit_left,
+                    'single_leg_wall_sit_right' => $result['preTrainingTest']->single_leg_wall_sit_right,
+                    'core_endurance_left' => $result['preTrainingTest']->core_endurance_left,
+                    'core_endurance_right' => $result['preTrainingTest']->core_endurance_right,
+                    'bent_arm_hang' => $result['preTrainingTest']->bent_arm_hang,
                 ]
             ];
-
 
             return redirect()->back()->with('success', 'Athlete created successfully!')->with('newAthlete', $athleteData);
         } catch (\Illuminate\Validation\ValidationException $e) {
             Log::error('Validation error:', $e->errors());
             return redirect()->back()->withErrors($e->errors())->withInput();
         } catch (\Exception $e) {
-            DB::rollBack();
             Log::error('Error creating athlete: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
             return redirect()->back()->with('error', 'Failed to create athlete: ' . $e->getMessage())->withInput();
         }
@@ -290,7 +290,7 @@ class AdminDashboardController extends Controller
     private function getAthletesWithTrainingResults()
     {
         return User::where('user_role', 'student')
-            ->with(['preTrainingTest', 'userStat']) // Include userStat relationship
+            ->with(['preTrainingTest', 'userStat'])
             ->get()
             ->map(function ($user) {
                 return [
@@ -370,10 +370,126 @@ class AdminDashboardController extends Controller
     public function getAthlete($id)
     {
         try {
-            $athlete = User::with('preTrainingTest')->findOrFail($id);
+            $athlete = User::with(['preTrainingTest', 'userStat'])->findOrFail($id);
 
             if ($athlete->user_role !== 'student') {
                 return redirect()->back()->with('error', 'User is not an athlete.');
+            }
+
+            // Get progress data
+            $xpService = app(XpService::class);
+            $xpSummary = $xpService->getUserXpSummary($athlete->id);
+
+            // Get test results and progress data
+            $blocks = Block::where('user_id', $athlete->id)->orderBy('block_number')->get();
+            $testResults = \App\Models\TestResult::where('user_id', $athlete->id)->get();
+            $preTrainingTest = \App\Models\PreTrainingTest::where('user_id', $athlete->id)->first();
+            $testSessions = \App\Models\TrainingSession::where('session_type', 'testing')
+                ->whereIn('block_id', $blocks->pluck('id'))
+                ->with('block')
+                ->get();
+
+            // Define test types
+            $testTypes = [
+                'standing_long_jump' => [
+                    'name' => 'Standing Long Jump',
+                    'pre_training_field' => 'standing_long_jump'
+                ],
+                'single_leg_jump_left' => [
+                    'name' => 'Single Leg Jump (LEFT)',
+                    'pre_training_field' => 'single_leg_jump_left'
+                ],
+                'single_leg_jump_right' => [
+                    'name' => 'Single Leg Jump (RIGHT)',
+                    'pre_training_field' => 'single_leg_jump_right'
+                ],
+                'single_leg_wall_sit_left' => [
+                    'name' => 'Single Leg Wall Sit (LEFT)',
+                    'pre_training_field' => 'single_leg_wall_sit_left'
+                ],
+                'single_leg_wall_sit_right' => [
+                    'name' => 'Single Leg Wall Sit (RIGHT)',
+                    'pre_training_field' => 'single_leg_wall_sit_right'
+                ],
+                'core_endurance_left' => [
+                    'name' => 'Core Endurance (LEFT)',
+                    'pre_training_field' => 'core_endurance_left'
+                ],
+                'core_endurance_right' => [
+                    'name' => 'Core Endurance (RIGHT)',
+                    'pre_training_field' => 'core_endurance_right'
+                ],
+                'bent_arm_hang_assessment' => [
+                    'name' => 'Bent Arm Hold',
+                    'pre_training_field' => 'bent_arm_hang'
+                ]
+            ];
+
+            $progressData = [];
+            foreach ($testTypes as $testKey => $testInfo) {
+                $sessionData = [];
+                $values = [];
+                $hasAnyData = false;
+
+                // Add pre-training test data as the first point if available
+                if ($preTrainingTest && isset($preTrainingTest->{$testInfo['pre_training_field']})) {
+                    $preTrainingValue = (float) $preTrainingTest->{$testInfo['pre_training_field']};
+
+                    if ($preTrainingValue > 0) {
+                        $sessionData[] = [
+                            'label' => 'PRE-TRAINING',
+                            'date' => $preTrainingTest->tested_at ? Carbon::parse($preTrainingTest->tested_at)->format('Y-m-d') : Carbon::now()->subMonths(3)->format('Y-m-d'),
+                            'value' => $preTrainingValue
+                        ];
+                        $values[] = $preTrainingValue;
+                        $hasAnyData = true;
+                    }
+                }
+
+                // Add test session results
+                foreach ($testSessions as $session) {
+                    $result = $testResults->where('session_id', $session->id)->first();
+
+                    if ($result && isset($result->$testKey) && $result->$testKey > 0) {
+                        $blockNumber = $session->block ? $session->block->block_number : '?';
+                        $label = "Block {$blockNumber} - Week {$session->week_number}";
+
+                        $sessionDate = $result->completed_at
+                            ? Carbon::parse($result->completed_at)->format('Y-m-d')
+                            : ($session->release_date
+                                ? Carbon::parse($session->release_date)->format('Y-m-d')
+                                : Carbon::now()->format('Y-m-d'));
+
+                        $sessionData[] = [
+                            'label' => $label,
+                            'date' => $sessionDate,
+                            'value' => (float) $result->$testKey
+                        ];
+
+                        $values[] = (float) $result->$testKey;
+                        $hasAnyData = true;
+                    }
+                }
+
+                // Calculate percentage increase
+                $percentageIncrease = null;
+                if (count($values) >= 2) {
+                    $first = $values[0];
+                    $last = end($values);
+
+                    if ($first > 0) {
+                        $percentageIncrease = round((($last - $first) / $first) * 100, 1);
+                    }
+                }
+
+                // Only add tests with data
+                if ($hasAnyData) {
+                    $progressData[$testKey] = [
+                        'name' => $testInfo['name'],
+                        'sessions' => $sessionData,
+                        'percentageIncrease' => $percentageIncrease
+                    ];
+                }
             }
 
             $athleteData = [
@@ -381,6 +497,8 @@ class AdminDashboardController extends Controller
                 'username' => $athlete->username,
                 'email' => $athlete->parent_email,
                 'created_at' => $athlete->created_at,
+                'strength_level' => $athlete->userStat ? $athlete->userStat->strength_level : 1,
+                'consistency_score' => $athlete->userStat ? round($athlete->userStat->consistency_score) : 0,
                 'training_results' => $athlete->preTrainingTest ? [
                     'standing_long_jump' => $athlete->preTrainingTest->standing_long_jump,
                     'single_leg_jump_left' => $athlete->preTrainingTest->single_leg_jump_left,
@@ -395,7 +513,13 @@ class AdminDashboardController extends Controller
 
             return Inertia::render('Admin/AthleteDetail', [
                 'athlete' => $athleteData,
-                'activePage' => 'dashboard'
+                'activePage' => 'dashboard',
+                'progressData' => $progressData,
+                'xpInfo' => [
+                    'total_xp' => $xpSummary['total_xp'],
+                    'current_level' => $xpSummary['current_level'],
+                    'next_level' => $xpSummary['next_level']
+                ]
             ]);
         } catch (ModelNotFoundException $e) {
             return redirect()->back()->with('error', 'Athlete not found.');
@@ -500,8 +624,8 @@ class AdminDashboardController extends Controller
                 return redirect()->back()->with('error', 'User is not an athlete.');
             }
 
-            // Load all blocks with a single query instead of separate queries
-            $blocks = Block::orderBy('block_number')->get();
+            // Load ONLY blocks for this specific athlete
+            $blocks = Block::where('user_id', $athlete->id)->orderBy('block_number')->get();
 
             // Get XP information
             $xpService = app(XpService::class);
@@ -519,6 +643,7 @@ class AdminDashboardController extends Controller
             $testResults = \App\Models\TestResult::where('user_id', $athlete->id)->get();
             $preTrainingTest = \App\Models\PreTrainingTest::where('user_id', $athlete->id)->first();
             $testSessions = \App\Models\TrainingSession::where('session_type', 'testing')
+                ->whereIn('block_id', $blocks->pluck('id')) // Also filter test sessions to only those belonging to this athlete's blocks
                 ->with('block')
                 ->get();
 
