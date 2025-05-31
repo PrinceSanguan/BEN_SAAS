@@ -79,42 +79,54 @@ const Hero: React.FC = () => {
 
   return (
     <div ref={heroRef} className="relative min-h-screen flex flex-col">
-      {/* Enhanced Navigation Bar */}
-      <header className="w-full bg-slate-900/98 backdrop-blur-xl border-b border-slate-800/50 py-4 px-6 z-50 sticky top-0">
+      {/* Navigation Bar */}
+      <header className="w-full bg-slate-900/95 backdrop-blur-sm border-b border-slate-800 py-4 px-6 z-50 fixed top-0 left-0 right-0">
         <div className="container mx-auto flex items-center justify-between">
           <div className="flex items-center">
-            <a href="/" className="flex items-center gap-3 group">
-              <div className="relative">
-                <Activity className="h-8 w-8 text-blue-500 transition-transform group-hover:scale-110" />
-                <div className="absolute inset-0 bg-blue-500/20 rounded-full blur-lg group-hover:blur-xl transition-all"></div>
-              </div>
-              <span className="text-white font-bold text-xl tracking-tight">AthleteTrack</span>
+            <a href="/" className="flex items-center gap-2">
+              <Activity className="h-8 w-8 text-blue-500" />
+              <span className="text-white font-bold text-xl">AthleteTrack</span>
             </a>
           </div>
 
           <nav className="hidden md:flex items-center space-x-8">
-            {["Features", "How It Works", "Rankings", "Latest News", "Testimonials", "FAQ"].map((item) => (
-              <a
-                key={item}
-                href={`#${item.toLowerCase().replace(" ", "-")}`}
-                className="text-white/80 hover:text-white text-sm font-medium transition-all hover:scale-105 relative group"
-              >
-                {item}
-                <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-blue-500 transition-all group-hover:w-full"></span>
-              </a>
-            ))}
+            <a href="/" className="text-white/80 hover:text-white text-sm font-medium transition-colors">
+              Home
+            </a>
+            <a href="#about" className="text-white/80 hover:text-white text-sm font-medium transition-colors">
+              About Us
+            </a>
+            <a href="#training" className="text-white/80 hover:text-white text-sm font-medium transition-colors">
+              Our Training
+            </a>
+            <a href="#apply" className="text-white/80 hover:text-white text-sm font-medium transition-colors">
+              Apply
+            </a>
+            <a href="#testimonials" className="text-white/80 hover:text-white text-sm font-medium transition-colors">
+              Testimonials
+            </a>
           </nav>
 
-          <div className="flex items-center gap-4">
-            <Button variant="ghost" className="text-white hover:bg-white/10 transition-all hover:scale-105">
-              Log In
-            </Button>
-            <Button size="sm" className="bg-blue-600 hover:bg-blue-700 hidden sm:flex">
-              Get Started
-            </Button>
+          <div>
+            <a href={typeof window !== 'undefined' ? window.route('login') : '#'}>
+              <Button
+                variant="outline"
+                className="text-white border border-blue-500/50 hover:bg-blue-500/20 flex items-center gap-1.5 rounded-lg"
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="text-blue-400">
+                  <path d="M15 3H19C19.5304 3 20.0391 3.21071 20.4142 3.58579C20.7893 3.96086 21 4.46957 21 5V19C21 19.5304 20.7893 20.0391 20.4142 20.4142C20.0391 20.7893 19.5304 21 19 21H15" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  <path d="M10 17L15 12L10 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  <path d="M15 12H3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+                Log in
+              </Button>
+            </a>
           </div>
         </div>
       </header>
+
+      {/* Add padding to account for fixed header */}
+      <div className="pt-16"></div>
 
       {/* Enhanced Hero Section */}
       <main className="flex-1 bg-gradient-to-br from-slate-950 via-blue-950 to-slate-900 relative overflow-hidden">
