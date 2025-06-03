@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers\Admin;
 
+use Illuminate\Support\Facades\Mail;
+use App\Mail\PasswordResetMail;
 use Inertia\Inertia;
 use App\Models\User;
 use App\Models\PreTrainingTest;
@@ -18,6 +20,8 @@ use App\Models\TrainingSession;
 use Carbon\Carbon;
 use App\Models\UserStat;
 use App\Services\XpService;
+use Illuminate\Support\Str;
+
 
 class AdminDashboardController extends Controller
 {
@@ -152,6 +156,31 @@ class AdminDashboardController extends Controller
                 ];
             }, 5); // Set isolation level to prevent concurrent issues
 
+            try {
+                // Delete any existing tokens for this user
+                DB::table('password_resets')->where('email', $result['user']->parent_email)->delete();
+
+                // Create new token for initial password setup
+                $token = Str::random(64);
+
+                DB::table('password_resets')->insert([
+                    'email' => $result['user']->parent_email,
+                    'token' => Hash::make($token),
+                    'created_at' => Carbon::now()
+                ]);
+
+                // Send welcome email (create this mail class next)
+                Mail::to($result['user']->parent_email)->send(new \App\Mail\WelcomeMail(
+                    $token,
+                    $result['user']->parent_email,
+                    $result['user']->username
+                ));
+            } catch (\Exception $e) {
+                Log::warning('Failed to send welcome email: ' . $e->getMessage());
+                // Don't fail the athlete creation if email fails
+            }
+
+
             // Prepare response data
             $athleteData = [
                 'id' => $result['user']->id,
@@ -169,7 +198,7 @@ class AdminDashboardController extends Controller
                 ]
             ];
 
-            return redirect()->back()->with('success', 'Athlete created successfully!')->with('newAthlete', $athleteData);
+            return redirect()->back()->with('success', 'Athlete created successfully! Welcome email sent to ' . $result['user']->parent_email)->with('newAthlete', $athleteData);
         } catch (\Illuminate\Validation\ValidationException $e) {
             Log::error('Validation error:', $e->errors());
             return redirect()->back()->withErrors($e->errors())->withInput();
@@ -891,6 +920,37 @@ class AdminDashboardController extends Controller
                 DB::rollBack();
                 throw $e;
             }
+        }
+    }
+
+    public function sendPasswordReset($id)
+    {
+        try {
+            $athlete = User::findOrFail($id);
+
+            if ($athlete->user_role !== 'student') {
+                return redirect()->back()->with('error', 'User is not an athlete.');
+            }
+
+            // Delete any existing tokens for this user
+            DB::table('password_resets')->where('email', $athlete->parent_email)->delete();
+
+            // Create new token
+            $token = Str::random(64);
+
+            DB::table('password_resets')->insert([
+                'email' => $athlete->parent_email,
+                'token' => Hash::make($token),
+                'created_at' => Carbon::now()
+            ]);
+
+            // Send the password reset email
+            Mail::to($athlete->parent_email)->send(new PasswordResetMail($token, $athlete->parent_email));
+
+            return redirect()->back()->with('success', 'Password reset link sent successfully to ' . $athlete->parent_email);
+        } catch (\Exception $e) {
+            Log::error('Error sending password reset: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Failed to send password reset email.');
         }
     }
 }

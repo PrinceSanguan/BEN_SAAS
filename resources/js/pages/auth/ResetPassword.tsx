@@ -128,7 +128,7 @@ export default function ResetPassword({ token, errors }: ResetPasswordProps) {
                                     Updating...
                                 </span>
                             ) : (
-                                'Reset Password'
+                                'Confirm Password'
                             )}
                         </Button>
                     </form>

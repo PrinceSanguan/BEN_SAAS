@@ -73,6 +73,8 @@ Route::middleware([AdminMiddleware::class])->group(function () {
     Route::get('/admin/settings', [AdminDashboardController::class, 'settings'])->name('admin.settings');
 
     Route::post('/admin/update-block-dates', [AdminDashboardController::class, 'updateBlockDates'])->name('admin.update.block.dates');
+
+    Route::post('/admin/athletes/{id}/send-reset', [AdminDashboardController::class, 'sendPasswordReset'])->name('admin.athletes.send-reset');
 });
 
 Route::post('/admin/logout', [LoginController::class, 'logout'])->name('admin.logout');
