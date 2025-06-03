@@ -26,6 +26,9 @@ interface AthleteCardsProps {
 export default function AthleteCards({ athletes, onAddClick }: AthleteCardsProps) {
     const [deleteConfirmation, setDeleteConfirmation] = useState<number | null>(null);
     const [menuOpen, setMenuOpen] = useState<number | null>(null);
+    const [sendingResetFor, setSendingResetFor] = useState<number | null>(null);
+    const [successMessage, setSuccessMessage] = useState<string | null>(null);
+    const [errorMessage, setErrorMessage] = useState<string | null>(null);
     const menuRef = useRef<HTMLDivElement>(null);
 
     // Close the menu when clicking outside
@@ -42,14 +45,22 @@ export default function AthleteCards({ athletes, onAddClick }: AthleteCardsProps
         };
     }, []);
 
+    // Auto-hide success/error messages after 3 seconds
+    useEffect(() => {
+        if (successMessage || errorMessage) {
+            const timer = setTimeout(() => {
+                setSuccessMessage(null);
+                setErrorMessage(null);
+            }, 3000);
+            return () => clearTimeout(timer);
+        }
+    }, [successMessage, errorMessage]);
+
     // Function to handle the deletion
     const handleDelete = (id: number) => {
         router.delete(`/admin/athletes/${id}`, {
             onSuccess: () => {
-                // Close the confirmation modal
                 setDeleteConfirmation(null);
-
-                // Refresh the page
                 window.location.reload();
             },
         });
@@ -62,27 +73,57 @@ export default function AthleteCards({ athletes, onAddClick }: AthleteCardsProps
 
     // Function to view athlete dashboard
     const handleViewDashboard = (id: number) => {
-        // Use the updated route that will log in as student
         router.get(`/admin/athletes/${id}/dashboard`);
+    };
+
+    // Function to send password reset
+    const handleSendReset = (athlete: Athlete) => {
+        setSendingResetFor(athlete.id);
+        setMenuOpen(null);
+
+        router.post(
+            `/admin/athletes/${athlete.id}/send-reset`,
+            {},
+            {
+                onSuccess: () => {
+                    setSendingResetFor(null);
+                    setSuccessMessage(`Password reset link sent successfully to ${athlete.email}!`);
+                },
+                onError: () => {
+                    setSendingResetFor(null);
+                    setErrorMessage('Failed to send password reset link. Please try again.');
+                },
+            },
+        );
     };
 
     if (athletes.length === 0) {
         return (
-            <div className="flex flex-col items-center justify-center rounded-lg bg-gray-900/50 p-12 text-center">
-                <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-blue-500/20">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" strokeWidth="2" className="h-8 w-8">
+            <div className="flex flex-col items-center justify-center rounded-xl border border-slate-700/50 bg-gradient-to-br from-slate-900/50 to-slate-800/50 p-16 text-center shadow-2xl backdrop-blur-sm">
+                <div className="mb-6 flex h-20 w-20 items-center justify-center rounded-full border border-blue-500/30 bg-gradient-to-br from-blue-500/20 to-purple-500/20">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" strokeWidth="2" className="h-10 w-10">
                         <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
                         <circle cx="9" cy="7" r="4"></circle>
                         <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
                         <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
                     </svg>
                 </div>
-                <h2 className="mb-2 text-xl font-semibold text-white">No Athletes Found</h2>
-                <p className="mb-6 text-gray-400">Get started by adding a new athlete to your team.</p>
+                <h2 className="mb-3 text-2xl font-bold text-white">No Athletes Found</h2>
+                <p className="mb-8 max-w-md text-slate-400">Start building your training program by adding your first athlete to the platform.</p>
                 <button
                     onClick={onAddClick}
-                    className="inline-flex items-center justify-center rounded-md bg-blue-500 px-4 py-2 text-sm font-medium text-white hover:bg-blue-600 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none"
+                    className="inline-flex items-center justify-center rounded-xl bg-gradient-to-r from-blue-600 to-purple-600 px-8 py-3 text-sm font-semibold text-white shadow-lg transition-all duration-300 hover:scale-105 hover:from-blue-700 hover:to-purple-700 hover:shadow-xl focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none"
                 >
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        strokeWidth={2}
+                        stroke="currentColor"
+                        className="mr-2 h-5 w-5"
+                    >
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                    </svg>
                     Add Your First Athlete
                 </button>
             </div>
@@ -90,80 +131,158 @@ export default function AthleteCards({ athletes, onAddClick }: AthleteCardsProps
     }
 
     return (
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {/* Add Athlete Card */}
-            <div
-                onClick={onAddClick}
-                className="flex h-64 cursor-pointer flex-col items-center justify-center rounded-lg border border-gray-700 bg-gray-900/50 p-6 transition-colors hover:bg-gray-800/70"
-            >
-                <div className="flex h-14 w-14 items-center justify-center rounded-full bg-blue-500/20 text-blue-500">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="h-8 w-8">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-                    </svg>
-                </div>
-                <h3 className="mt-3 text-lg font-medium text-white">Add Athlete</h3>
-                <p className="mt-1 text-sm text-gray-400">Add a new athlete to your team</p>
-            </div>
-
-            {/* Athlete Cards */}
-            {athletes.map((athlete) => (
-                <Card
-                    key={athlete.id}
-                    className="group cursor-pointer overflow-hidden rounded-lg border-gray-700 bg-gray-900/50 shadow-lg transition-all hover:shadow-blue-500/10"
-                    onClick={() => handleEdit(athlete.id)}
-                >
-                    <CardHeader className="relative border-b border-gray-700 bg-gray-800/50 pt-3 pb-3">
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <CardTitle className="text-white">{athlete.username}</CardTitle>
-                                <p className="text-sm text-gray-400">{athlete.email}</p>
-                            </div>
-                            <div className="relative">
-                                <button
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        setMenuOpen(menuOpen === athlete.id ? null : athlete.id);
-                                    }}
-                                    className="rounded-full p-1 text-gray-400 transition-colors hover:bg-gray-700 hover:text-white"
+        <>
+            {/* Loading Screen Overlay */}
+            {sendingResetFor !== null && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+                    <div className="mx-4 w-full max-w-sm rounded-xl border border-slate-700 bg-gradient-to-br from-slate-900 to-slate-800 p-8 shadow-2xl">
+                        <div className="text-center">
+                            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full border border-blue-500/30 bg-gradient-to-br from-blue-500/20 to-purple-500/20">
+                                <svg
+                                    className="h-8 w-8 animate-spin text-blue-500"
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
                                 >
-                                    <svg
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        fill="none"
-                                        viewBox="0 0 24 24"
-                                        strokeWidth={1.5}
-                                        stroke="currentColor"
-                                        className="h-5 w-5"
-                                    >
-                                        <path
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                            d="M12 6.75a.75.75 0 110-1.5.75.75 0 010 1.5zM12 12.75a.75.75 0 110-1.5.75.75 0 010 1.5zM12 18.75a.75.75 0 110-1.5.75.75 0 010 1.5z"
-                                        />
-                                    </svg>
-                                </button>
+                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                    <path
+                                        className="opacity-75"
+                                        fill="currentColor"
+                                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                                    ></path>
+                                </svg>
+                            </div>
+                            <h3 className="mb-2 text-xl font-semibold text-white">Sending Reset Link</h3>
+                            <p className="text-slate-400">Please wait while we send the password reset email...</p>
+                        </div>
+                    </div>
+                </div>
+            )}
 
-                                {menuOpen === athlete.id && (
-                                    <div
-                                        ref={menuRef}
-                                        className="ring-opacity-5 absolute right-0 z-10 mt-2 w-48 rounded-md bg-gray-800 shadow-lg ring-1 ring-black"
+            {/* Success Message */}
+            {successMessage && (
+                <div className="animate-slide-in-right fixed top-4 right-4 z-40 rounded-xl border border-green-500/30 bg-gradient-to-r from-green-600 to-emerald-600 px-6 py-4 text-white shadow-2xl backdrop-blur-sm">
+                    <div className="flex items-center">
+                        <svg className="mr-3 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                        </svg>
+                        <span className="font-medium">{successMessage}</span>
+                        <button onClick={() => setSuccessMessage(null)} className="ml-4 text-green-200 transition-colors hover:text-white">
+                            <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            )}
+
+            {/* Error Message */}
+            {errorMessage && (
+                <div className="animate-slide-in-right fixed top-4 right-4 z-40 rounded-xl border border-red-500/30 bg-gradient-to-r from-red-600 to-rose-600 px-6 py-4 text-white shadow-2xl backdrop-blur-sm">
+                    <div className="flex items-center">
+                        <svg className="mr-3 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                            />
+                        </svg>
+                        <span className="font-medium">{errorMessage}</span>
+                        <button onClick={() => setErrorMessage(null)} className="ml-4 text-red-200 transition-colors hover:text-white">
+                            <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            )}
+
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+                {/* Add Athlete Card */}
+                <div
+                    onClick={onAddClick}
+                    className="group flex h-72 cursor-pointer flex-col items-center justify-center rounded-xl border border-slate-700/50 bg-gradient-to-br from-slate-900/50 to-slate-800/50 p-8 backdrop-blur-sm transition-all duration-300 hover:scale-105 hover:border-blue-500/50 hover:from-slate-800/70 hover:to-slate-700/70 hover:shadow-2xl"
+                >
+                    <div className="flex h-16 w-16 items-center justify-center rounded-full border border-blue-500/30 bg-gradient-to-br from-blue-500/20 to-purple-500/20 text-blue-400 transition-all duration-300 group-hover:from-blue-500/30 group-hover:to-purple-500/30">
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            strokeWidth={2}
+                            stroke="currentColor"
+                            className="h-8 w-8"
+                        >
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                        </svg>
+                    </div>
+                    <h3 className="mt-4 text-xl font-semibold text-white transition-colors group-hover:text-blue-400">Add Athlete</h3>
+                    <p className="mt-2 text-sm text-slate-400">Create a new athlete profile</p>
+                </div>
+
+                {/* Athlete Cards */}
+                {athletes.map((athlete) => (
+                    <Card
+                        key={athlete.id}
+                        className="group cursor-pointer overflow-hidden rounded-xl border border-slate-700/50 bg-gradient-to-br from-slate-900/50 to-slate-800/50 shadow-xl backdrop-blur-sm transition-all duration-300 hover:scale-105 hover:border-blue-500/50 hover:shadow-2xl"
+                        onClick={() => handleEdit(athlete.id)}
+                    >
+                        <CardHeader className="relative border-b border-slate-700/50 bg-gradient-to-r from-slate-800/50 to-slate-700/50 pt-4 pb-4">
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-center space-x-3">
+                                    <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-purple-600 text-lg font-bold text-white shadow-lg">
+                                        {athlete.username.charAt(0).toUpperCase()}
+                                    </div>
+                                    <div>
+                                        <CardTitle className="text-lg text-white">{athlete.username}</CardTitle>
+                                        <p className="text-sm text-slate-400">{athlete.email}</p>
+                                    </div>
+                                </div>
+                                <div className="relative">
+                                    <button
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            setMenuOpen(menuOpen === athlete.id ? null : athlete.id);
+                                        }}
+                                        className="rounded-full p-2 text-slate-400 transition-all duration-200 hover:bg-slate-700 hover:text-white"
                                     >
-                                        <div className="py-1" role="menu" aria-orientation="vertical">
-                                            <button
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    handleEdit(athlete.id);
-                                                }}
-                                                className="w-full px-4 py-2 text-left text-sm text-gray-300 hover:bg-gray-700 hover:text-white"
-                                                role="menuitem"
-                                            >
-                                                <div className="flex items-center">
+                                        <svg
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            fill="none"
+                                            viewBox="0 0 24 24"
+                                            strokeWidth={1.5}
+                                            stroke="currentColor"
+                                            className="h-5 w-5"
+                                        >
+                                            <path
+                                                strokeLinecap="round"
+                                                strokeLinejoin="round"
+                                                d="M12 6.75a.75.75 0 110-1.5.75.75 0 010 1.5zM12 12.75a.75.75 0 110-1.5.75.75 0 010 1.5zM12 18.75a.75.75 0 110-1.5.75.75 0 010 1.5z"
+                                            />
+                                        </svg>
+                                    </button>
+
+                                    {menuOpen === athlete.id && (
+                                        <div
+                                            ref={menuRef}
+                                            className="absolute right-0 z-20 mt-2 w-56 rounded-xl border border-slate-600 bg-slate-800 shadow-2xl ring-1 ring-slate-700 backdrop-blur-sm"
+                                        >
+                                            <div className="py-2" role="menu" aria-orientation="vertical">
+                                                <button
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        handleEdit(athlete.id);
+                                                    }}
+                                                    className="group flex w-full items-center px-4 py-3 text-sm text-slate-300 transition-all duration-200 hover:bg-slate-700 hover:text-white"
+                                                    role="menuitem"
+                                                >
                                                     <svg
                                                         xmlns="http://www.w3.org/2000/svg"
                                                         fill="none"
                                                         viewBox="0 0 24 24"
                                                         strokeWidth={1.5}
                                                         stroke="currentColor"
-                                                        className="mr-2 h-4 w-4"
+                                                        className="mr-3 h-5 w-5 text-blue-400"
                                                     >
                                                         <path
                                                             strokeLinecap="round"
@@ -172,24 +291,22 @@ export default function AthleteCards({ athletes, onAddClick }: AthleteCardsProps
                                                         />
                                                     </svg>
                                                     Edit Athlete
-                                                </div>
-                                            </button>
-                                            <button
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    handleViewDashboard(athlete.id);
-                                                }}
-                                                className="w-full px-4 py-2 text-left text-sm text-gray-300 hover:bg-gray-700 hover:text-white"
-                                                role="menuitem"
-                                            >
-                                                <div className="flex items-center">
+                                                </button>
+                                                <button
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        handleViewDashboard(athlete.id);
+                                                    }}
+                                                    className="group flex w-full items-center px-4 py-3 text-sm text-slate-300 transition-all duration-200 hover:bg-slate-700 hover:text-white"
+                                                    role="menuitem"
+                                                >
                                                     <svg
                                                         xmlns="http://www.w3.org/2000/svg"
                                                         fill="none"
                                                         viewBox="0 0 24 24"
                                                         strokeWidth={1.5}
                                                         stroke="currentColor"
-                                                        className="mr-2 h-4 w-4"
+                                                        className="mr-3 h-5 w-5 text-green-400"
                                                     >
                                                         <path
                                                             strokeLinecap="round"
@@ -198,25 +315,47 @@ export default function AthleteCards({ athletes, onAddClick }: AthleteCardsProps
                                                         />
                                                     </svg>
                                                     View Dashboard
-                                                </div>
-                                            </button>
-                                            <button
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    setDeleteConfirmation(athlete.id);
-                                                    setMenuOpen(null);
-                                                }}
-                                                className="w-full px-4 py-2 text-left text-sm text-red-400 hover:bg-red-700/30 hover:text-red-200"
-                                                role="menuitem"
-                                            >
-                                                <div className="flex items-center">
+                                                </button>
+                                                <button
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        handleSendReset(athlete);
+                                                    }}
+                                                    className="group flex w-full items-center px-4 py-3 text-sm text-slate-300 transition-all duration-200 hover:bg-slate-700 hover:text-white"
+                                                    role="menuitem"
+                                                >
                                                     <svg
                                                         xmlns="http://www.w3.org/2000/svg"
                                                         fill="none"
                                                         viewBox="0 0 24 24"
                                                         strokeWidth={1.5}
                                                         stroke="currentColor"
-                                                        className="mr-2 h-4 w-4"
+                                                        className="mr-3 h-5 w-5 text-orange-400"
+                                                    >
+                                                        <path
+                                                            strokeLinecap="round"
+                                                            strokeLinejoin="round"
+                                                            d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75"
+                                                        />
+                                                    </svg>
+                                                    Send Reset Link
+                                                </button>
+                                                <button
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        setDeleteConfirmation(athlete.id);
+                                                        setMenuOpen(null);
+                                                    }}
+                                                    className="group flex w-full items-center px-4 py-3 text-sm text-red-400 transition-all duration-200 hover:bg-red-900/50 hover:text-red-300"
+                                                    role="menuitem"
+                                                >
+                                                    <svg
+                                                        xmlns="http://www.w3.org/2000/svg"
+                                                        fill="none"
+                                                        viewBox="0 0 24 24"
+                                                        strokeWidth={1.5}
+                                                        stroke="currentColor"
+                                                        className="mr-3 h-5 w-5"
                                                     >
                                                         <path
                                                             strokeLinecap="round"
@@ -225,67 +364,77 @@ export default function AthleteCards({ athletes, onAddClick }: AthleteCardsProps
                                                         />
                                                     </svg>
                                                     Delete
-                                                </div>
-                                            </button>
+                                                </button>
+                                            </div>
                                         </div>
-                                    </div>
-                                )}
+                                    )}
+                                </div>
                             </div>
-                        </div>
-                    </CardHeader>
-                    <CardContent className="p-4">
-                        <h3 className="mb-3 font-semibold text-blue-400">Pre-Training Results</h3>
-                        <div className="grid grid-cols-2 gap-3 text-sm">
-                            <div className="rounded-md bg-gray-800/50 p-2">
-                                <p className="font-medium text-gray-400">Standing Long Jump:</p>
-                                <p className="text-white">{athlete.training_results?.standing_long_jump || '-'} cm</p>
+                        </CardHeader>
+                        <CardContent className="p-6">
+                            <h3 className="mb-4 flex items-center font-semibold text-blue-400">
+                                <svg className="mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        strokeWidth={2}
+                                        d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+                                    />
+                                </svg>
+                                Pre-Training Results
+                            </h3>
+                            <div className="grid grid-cols-2 gap-3 text-sm">
+                                <div className="rounded-lg border border-slate-700/50 bg-slate-800/50 p-3">
+                                    <p className="text-xs font-medium text-slate-400">Standing Long Jump</p>
+                                    <p className="font-semibold text-white">{athlete.training_results?.standing_long_jump || '-'} cm</p>
+                                </div>
+                                <div className="rounded-lg border border-slate-700/50 bg-slate-800/50 p-3">
+                                    <p className="text-xs font-medium text-slate-400">Single Leg Jump (L)</p>
+                                    <p className="font-semibold text-white">{athlete.training_results?.single_leg_jump_left || '-'} cm</p>
+                                </div>
+                                <div className="rounded-lg border border-slate-700/50 bg-slate-800/50 p-3">
+                                    <p className="text-xs font-medium text-slate-400">Single Leg Jump (R)</p>
+                                    <p className="font-semibold text-white">{athlete.training_results?.single_leg_jump_right || '-'} cm</p>
+                                </div>
+                                <div className="rounded-lg border border-slate-700/50 bg-slate-800/50 p-3">
+                                    <p className="text-xs font-medium text-slate-400">Wall Sit (L)</p>
+                                    <p className="font-semibold text-white">{athlete.training_results?.single_leg_wall_sit_left || '-'} sec</p>
+                                </div>
+                                <div className="rounded-lg border border-slate-700/50 bg-slate-800/50 p-3">
+                                    <p className="text-xs font-medium text-slate-400">Wall Sit (R)</p>
+                                    <p className="font-semibold text-white">{athlete.training_results?.single_leg_wall_sit_right || '-'} sec</p>
+                                </div>
+                                <div className="rounded-lg border border-slate-700/50 bg-slate-800/50 p-3">
+                                    <p className="text-xs font-medium text-slate-400">Core End. (L)</p>
+                                    <p className="font-semibold text-white">{athlete.training_results?.core_endurance_left || '-'} sec</p>
+                                </div>
+                                <div className="rounded-lg border border-slate-700/50 bg-slate-800/50 p-3">
+                                    <p className="text-xs font-medium text-slate-400">Core End. (R)</p>
+                                    <p className="font-semibold text-white">{athlete.training_results?.core_endurance_right || '-'} sec</p>
+                                </div>
+                                <div className="rounded-lg border border-slate-700/50 bg-slate-800/50 p-3">
+                                    <p className="text-xs font-medium text-slate-400">Bent Arm Hang</p>
+                                    <p className="font-semibold text-white">{athlete.training_results?.bent_arm_hang || '-'} sec</p>
+                                </div>
                             </div>
-                            <div className="rounded-md bg-gray-800/50 p-2">
-                                <p className="font-medium text-gray-400">Single Leg Jump (L):</p>
-                                <p className="text-white">{athlete.training_results?.single_leg_jump_left || '-'} cm</p>
-                            </div>
-                            <div className="rounded-md bg-gray-800/50 p-2">
-                                <p className="font-medium text-gray-400">Single Leg Jump (R):</p>
-                                <p className="text-white">{athlete.training_results?.single_leg_jump_right || '-'} cm</p>
-                            </div>
-                            <div className="rounded-md bg-gray-800/50 p-2">
-                                <p className="font-medium text-gray-400">Single Leg Wall Sit (L):</p>
-                                <p className="text-white">{athlete.training_results?.single_leg_wall_sit_left || '-'} sec</p>
-                            </div>
-                            <div className="rounded-md bg-gray-800/50 p-2">
-                                <p className="font-medium text-gray-400">Single Leg Wall Sit (R):</p>
-                                <p className="text-white">{athlete.training_results?.single_leg_wall_sit_right || '-'} sec</p>
-                            </div>
-                            <div className="rounded-md bg-gray-800/50 p-2">
-                                <p className="font-medium text-gray-400">Core Endurance (L):</p>
-                                <p className="text-white">{athlete.training_results?.core_endurance_left || '-'} sec</p>
-                            </div>
-                            <div className="rounded-md bg-gray-800/50 p-2">
-                                <p className="font-medium text-gray-400">Core Endurance (R):</p>
-                                <p className="text-white">{athlete.training_results?.core_endurance_right || '-'} sec</p>
-                            </div>
-                            <div className="rounded-md bg-gray-800/50 p-2">
-                                <p className="font-medium text-gray-400">Bent Arm Hang:</p>
-                                <p className="text-white">{athlete.training_results?.bent_arm_hang || '-'} sec</p>
-                            </div>
-                        </div>
-                    </CardContent>
-                </Card>
-            ))}
+                        </CardContent>
+                    </Card>
+                ))}
+            </div>
 
             {/* Delete Confirmation Modal */}
             {deleteConfirmation !== null && (
-                <div className="bg-opacity-70 fixed inset-0 z-50 flex items-center justify-center bg-black">
-                    <div className="animate-fade-in-down w-full max-w-md rounded-lg border border-gray-700 bg-gradient-to-b from-[#112845] to-[#0a1e3c] p-6 shadow-xl">
-                        <div className="mb-5 text-center">
-                            <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-red-100 text-red-600">
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+                    <div className="mx-4 w-full max-w-md rounded-xl border border-slate-700 bg-gradient-to-br from-slate-900 to-slate-800 p-8 shadow-2xl">
+                        <div className="mb-6 text-center">
+                            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full border border-red-500/30 bg-red-500/20">
                                 <svg
                                     xmlns="http://www.w3.org/2000/svg"
                                     fill="none"
                                     viewBox="0 0 24 24"
                                     strokeWidth={2}
                                     stroke="currentColor"
-                                    className="h-8 w-8"
+                                    className="h-8 w-8 text-red-400"
                                 >
                                     <path
                                         strokeLinecap="round"
@@ -294,23 +443,23 @@ export default function AthleteCards({ athletes, onAddClick }: AthleteCardsProps
                                     />
                                 </svg>
                             </div>
-                            <h3 className="mb-2 text-xl font-bold text-white">Delete Athlete</h3>
-                            <p className="text-gray-300">
+                            <h3 className="mb-3 text-2xl font-bold text-white">Delete Athlete</h3>
+                            <p className="leading-relaxed text-slate-300">
                                 Are you sure you want to delete this athlete? This action cannot be undone and all associated training data will be
                                 permanently removed.
                             </p>
                         </div>
 
-                        <div className="flex justify-end space-x-3 border-t border-gray-700 pt-3">
+                        <div className="flex justify-end space-x-3 border-t border-slate-700 pt-6">
                             <button
                                 onClick={() => setDeleteConfirmation(null)}
-                                className="rounded-md border border-gray-600 bg-gray-800 px-4 py-2 text-white transition-colors hover:bg-gray-700"
+                                className="rounded-lg border border-slate-600 bg-slate-800 px-6 py-3 text-white transition-all duration-200 hover:bg-slate-700"
                             >
                                 Cancel
                             </button>
                             <button
                                 onClick={() => handleDelete(deleteConfirmation)}
-                                className="rounded-md bg-gradient-to-r from-red-600 to-red-800 px-4 py-2 text-white transition-colors hover:from-red-700 hover:to-red-900"
+                                className="rounded-lg bg-gradient-to-r from-red-600 to-red-700 px-6 py-3 text-white shadow-lg transition-all duration-200 hover:from-red-700 hover:to-red-800"
                             >
                                 Yes, Delete
                             </button>
@@ -320,21 +469,21 @@ export default function AthleteCards({ athletes, onAddClick }: AthleteCardsProps
             )}
 
             <style>{`
-                @keyframes fade-in-down {
+                @keyframes slide-in-right {
                     from {
                         opacity: 0;
-                        transform: translateY(-20px);
+                        transform: translateX(100%);
                     }
                     to {
                         opacity: 1;
-                        transform: translateY(0);
+                        transform: translateX(0);
                     }
                 }
 
-                .animate-fade-in-down {
-                    animation: fade-in-down 0.3s ease-out;
+                .animate-slide-in-right {
+                    animation: slide-in-right 0.3s ease-out;
                 }
             `}</style>
-        </div>
+        </>
     );
 }
