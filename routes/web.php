@@ -30,9 +30,16 @@ Route::get('register', [RegisteredUserController::class, 'index'])->name('regist
 */
 
 use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\Auth\PasswordResetController;
 
 Route::get('login', [LoginController::class, 'index'])->name('login');
 Route::post('login', [LoginController::class, 'store'])->name('login.submit');
+
+// Add Password Reset Routes
+Route::get('forgot-password', [PasswordResetController::class, 'create'])->name('password.request');
+Route::post('forgot-password', [PasswordResetController::class, 'store'])->name('password.email');
+Route::get('reset-password/{token}', [PasswordResetController::class, 'edit'])->name('password.reset');
+Route::post('reset-password', [PasswordResetController::class, 'update'])->name('password.update');
 
 /*
 |--------------------------------------------------------------------------
@@ -66,6 +73,8 @@ Route::middleware([AdminMiddleware::class])->group(function () {
     Route::get('/admin/settings', [AdminDashboardController::class, 'settings'])->name('admin.settings');
 
     Route::post('/admin/update-block-dates', [AdminDashboardController::class, 'updateBlockDates'])->name('admin.update.block.dates');
+
+    Route::post('/admin/athletes/{id}/send-reset', [AdminDashboardController::class, 'sendPasswordReset'])->name('admin.athletes.send-reset');
 });
 
 Route::post('/admin/logout', [LoginController::class, 'logout'])->name('admin.logout');
