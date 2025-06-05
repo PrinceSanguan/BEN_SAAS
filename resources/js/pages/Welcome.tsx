@@ -40,7 +40,7 @@ export default function Welcome() {
             </Head>
 
             {/* Sub-components below */}
-            <div className="bg-gray-950 text-white">
+            <div className="bg-gray-960 text-white">
                 <Hero />
                 <About />
                 <Training />
