@@ -75,6 +75,9 @@ Route::middleware([AdminMiddleware::class])->group(function () {
     Route::post('/admin/update-block-dates', [AdminDashboardController::class, 'updateBlockDates'])->name('admin.update.block.dates');
 
     Route::post('/admin/athletes/{id}/send-reset', [AdminDashboardController::class, 'sendPasswordReset'])->name('admin.athletes.send-reset');
+
+    Route::get('/admin/email-templates', [AdminDashboardController::class, 'emailTemplates'])->name('admin.email-templates');
+    Route::put('/admin/email-templates/{name}', [AdminDashboardController::class, 'updateEmailTemplate'])->name('admin.email-templates.update');
 });
 
 Route::post('/admin/logout', [LoginController::class, 'logout'])->name('admin.logout');

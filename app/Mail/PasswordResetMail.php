@@ -21,13 +21,12 @@ class PasswordResetMail extends Mailable
 
     public function build()
     {
+        $template = \App\Models\EmailTemplate::where('name', 'password_reset')->first();
         $resetUrl = url(route('password.reset', $this->token, false));
 
-        return $this->subject('Reset Your Password - Young Athlete Training')
-            ->view('emails.password-reset')
-            ->with([
-                'resetUrl' => $resetUrl,
-                'email' => $this->email,
-            ]);
+        $content = str_replace(['{{ $resetUrl }}', '{{ $email }}'], [$resetUrl, $this->email], $template->content);
+
+        return $this->subject($template->subject)
+            ->html($content);
     }
 }

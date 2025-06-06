@@ -21,6 +21,7 @@ use Carbon\Carbon;
 use App\Models\UserStat;
 use App\Services\XpService;
 use Illuminate\Support\Str;
+use App\Models\EmailTemplate;
 
 
 class AdminDashboardController extends Controller
@@ -952,5 +953,28 @@ class AdminDashboardController extends Controller
             Log::error('Error sending password reset: ' . $e->getMessage());
             return redirect()->back()->with('error', 'Failed to send password reset email.');
         }
+    }
+
+    public function emailTemplates()
+    {
+        $templates = EmailTemplate::all();
+
+        return Inertia::render('Admin/EmailTemplates', [
+            'templates' => $templates,
+            'activePage' => 'email-templates'
+        ]);
+    }
+
+    public function updateEmailTemplate(Request $request, $name)
+    {
+        $validated = $request->validate([
+            'subject' => 'required|string|max:255',
+            'content' => 'required|string',
+        ]);
+
+        $template = EmailTemplate::where('name', $name)->firstOrFail();
+        $template->update($validated);
+
+        return redirect()->back()->with('success', 'Email template updated successfully!');
     }
 }

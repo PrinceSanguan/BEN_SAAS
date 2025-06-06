@@ -4,7 +4,7 @@ import { HomeIcon, LogOut as LogOutIcon } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 
 interface AdminSidebarProps {
-    activePage: 'dashboard';
+    activePage: 'dashboard' | 'email-templates';
     isMobile?: boolean;
     onClose?: () => void;
 }
@@ -204,31 +204,24 @@ export default function AdminSidebar({ activePage, isMobile = false, onClose }: 
                         </Link>
                     </li>
                     <li>
-                        {/* <Link
-                            href={safeRoute('admin.athletes')}
+                        <Link
+                            href={safeRoute('admin.email-templates')}
                             className={`flex items-center rounded-lg px-4 py-3 transition-colors ${
-                                activePage === 'athletes'
-                                    ? 'bg-[#1e3a5f] text-[#4a90e2] border-l-4 border-[#4a90e2]'
+                                activePage === 'email-templates'
+                                    ? 'border-l-4 border-[#4a90e2] bg-[#1e3a5f] text-[#4a90e2]'
                                     : 'text-[#a3c0e6] hover:bg-[#112845] hover:text-white'
                             }`}
                         >
-                            <UsersIcon className="mr-3 h-5 w-5 flex-shrink-0" />
-                            <span>Athletes</span>
-                        </Link> */}
-                    </li>
-
-                    <li>
-                        {/* <Link
-                            href={safeRoute('admin.settings')}
-                            className={`flex items-center rounded-lg px-4 py-3 transition-colors ${
-                                activePage === 'settings'
-                                    ? 'bg-[#1e3a5f] text-[#4a90e2] border-l-4 border-[#4a90e2]'
-                                    : 'text-[#a3c0e6] hover:bg-[#112845] hover:text-white'
-                            }`}
-                        >
-                            <SettingsIcon className="mr-3 h-5 w-5 flex-shrink-0" />
-                            <span>Settings</span>
-                        </Link> */}
+                            <svg className="mr-3 h-5 w-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                                />
+                            </svg>
+                            <span>Email Templates</span>
+                        </Link>
                     </li>
                 </ul>
             </nav>
