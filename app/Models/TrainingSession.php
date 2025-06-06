@@ -112,12 +112,81 @@ class TrainingSession extends Model
     }
 
     /**
+     * Determine if this session is a rest session.
+     * 
+     * @return bool
+     */
+    public function isRestSession(): bool
+    {
+        return $this->session_type === 'rest';
+    }
+
+    /**
+     * Check if this week is a rest week (weeks 7 and 14).
+     * 
+     * @return bool
+     */
+    public function isRestWeek(): bool
+    {
+        return in_array($this->week_number, [7, 14]);
+    }
+
+    /**
+     * Check if this week has testing sessions (weeks 6 and 13).
+     * 
+     * @return bool
+     */
+    public function isTestingWeek(): bool
+    {
+        return in_array($this->week_number, [6, 13]);
+    }
+
+    /**
      * Get the session name (e.g., "Week 3 - Session 5").
      * 
      * @return string
      */
     public function getSessionName(): string
     {
+        if ($this->session_type === 'rest') {
+            return "Week {$this->week_number} - Rest Week";
+        }
+
         return "Week {$this->week_number} - Session {$this->session_number}";
+    }
+
+    /**
+     * Get the display label for this session.
+     * 
+     * @return string
+     */
+    public function getDisplayLabel(): string
+    {
+        switch ($this->session_type) {
+            case 'testing':
+                return 'TESTING';
+            case 'rest':
+                return 'REST WEEK';
+            default:
+                return "Session {$this->session_number}";
+        }
+    }
+
+    /**
+     * Scope to get sessions for new schedule structure.
+     * 
+     * @param \Illuminate\Database\Eloquent\Builder $query
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
+    public function scopeNewSchedule($query)
+    {
+        return $query->where(function ($q) {
+            // Weeks 6 and 13 have testing
+            $q->whereIn('week_number', [6, 13])->where('session_type', 'testing')
+                // Weeks 7 and 14 are rest weeks
+                ->orWhereIn('week_number', [7, 14])->where('session_type', 'rest')
+                // All other weeks have training only
+                ->orWhereNotIn('week_number', [6, 7, 13, 14])->where('session_type', 'training');
+        });
     }
 }

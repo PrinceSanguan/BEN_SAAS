@@ -61,6 +61,7 @@ const StudentTraining: React.FC<StudentTrainingProps> = ({ blocks, username = 'A
     const headerRef = useRef<HTMLDivElement>(null);
     const sidebarRef = useRef<HTMLDivElement>(null);
     const mainContentRef = useRef<HTMLDivElement>(null);
+    const navRef = useRef<HTMLElement>(null);
 
     // Responsive check
     useEffect(() => {
@@ -203,6 +204,11 @@ const StudentTraining: React.FC<StudentTrainingProps> = ({ blocks, username = 'A
 
     // Get week status for visual indicator
     const getWeekStatus = (week: Week) => {
+        // Check if this is a rest week (weeks 7 and 14)
+        const isRestWeek = week.week_number === 7 || week.week_number === 14;
+
+        if (isRestWeek) return 'rest';
+
         const allCompleted = week.sessions.length > 0 && week.sessions.every((s) => s.is_completed);
         const someCompleted = week.sessions.some((s) => s.is_completed);
 
@@ -213,6 +219,23 @@ const StudentTraining: React.FC<StudentTrainingProps> = ({ blocks, username = 'A
 
     // Function to render the session content with release date information
     const renderSessionContent = (session: Session) => {
+        if (session.session_type === 'rest') {
+            return (
+                <div className="flex flex-col space-y-2">
+                    <div className="flex items-center justify-between">
+                        <span className="font-medium text-white">REST WEEK</span>
+                        <span className="inline-flex items-center rounded-full bg-blue-200/70 px-2 py-1 text-xs font-medium text-blue-700">
+                            Recovery
+                        </span>
+                    </div>
+                    <div className="flex items-center text-xs text-[#a3c0e6]">
+                        <Calendar className="mr-1 h-3 w-3" />
+                        <span>Week: {session.release_date}</span>
+                    </div>
+                </div>
+            );
+        }
+
         if (session.is_locked) {
             return (
                 <div className="flex flex-col space-y-2">
@@ -228,43 +251,24 @@ const StudentTraining: React.FC<StudentTrainingProps> = ({ blocks, username = 'A
             );
         }
 
-        if (session.session_type !== 'rest') {
-            return (
-                <a href={getRoute('training.session.show', { sessionId: session.id })} className="flex flex-col space-y-2">
-                    <div className="flex items-center justify-between">
-                        <span className="font-medium text-white">{getSessionDisplayLabel(session)}</span>
-                        {session.is_completed ? (
-                            <span className="inline-flex items-center rounded-full bg-green-200 px-2 py-1 text-xs font-medium text-green-700">
-                                Completed
-                            </span>
-                        ) : isToday(session.release_date) ? (
-                            <span className="inline-flex items-center rounded-full bg-blue-200 px-2 py-1 text-xs font-medium text-blue-700">
-                                Today
-                            </span>
-                        ) : null}
-                    </div>
-                    <div className="flex items-center text-xs text-[#a3c0e6]">
-                        <Calendar className="mr-1 h-3 w-3" />
-                        <span>Released: {session.release_date}</span>
-                    </div>
-                </a>
-            );
-        } else {
-            return (
-                <div className="flex flex-col space-y-2">
-                    <div className="flex items-center justify-between">
-                        <span className="font-medium text-white">{getSessionDisplayLabel(session)}</span>
-                        <span className="inline-flex items-center rounded-full bg-green-200/70 px-2 py-1 text-xs font-medium text-green-700">
-                            Recovery
+        return (
+            <a href={getRoute('training.session.show', { sessionId: session.id })} className="flex flex-col space-y-2">
+                <div className="flex items-center justify-between">
+                    <span className="font-medium text-white">{getSessionDisplayLabel(session)}</span>
+                    {session.is_completed ? (
+                        <span className="inline-flex items-center rounded-full bg-green-200 px-2 py-1 text-xs font-medium text-green-700">
+                            Completed
                         </span>
-                    </div>
-                    <div className="flex items-center text-xs text-[#a3c0e6]">
-                        <Calendar className="mr-1 h-3 w-3" />
-                        <span>Released: {session.release_date}</span>
-                    </div>
+                    ) : isToday(session.release_date) ? (
+                        <span className="inline-flex items-center rounded-full bg-blue-200 px-2 py-1 text-xs font-medium text-blue-700">Today</span>
+                    ) : null}
                 </div>
-            );
-        }
+                <div className="flex items-center text-xs text-[#a3c0e6]">
+                    <Calendar className="mr-1 h-3 w-3" />
+                    <span>Released: {session.release_date}</span>
+                </div>
+            </a>
+        );
     };
 
     return (
@@ -290,41 +294,53 @@ const StudentTraining: React.FC<StudentTrainingProps> = ({ blocks, username = 'A
                         </div>
                     </div>
                 </div>
-                <nav className="flex-1 space-y-1 px-2 py-4">
-                    <a
+                <nav ref={navRef} className="space-y-1 p-4">
+                    <Link
                         href={getRoute('student.dashboard')}
-                        className="group flex items-center rounded-md px-4 py-3 text-[#a3c0e6] hover:bg-[#1e3a5f]/50"
+                        className="flex items-center rounded-md bg-[#1e3a5f] px-4 py-3 text-white transition-colors hover:bg-[#1e3a5f]/80"
                     >
-                        <Home className="mr-3 h-5 w-5 text-[#4a90e2] group-hover:text-white" />
-                        <span className="group-hover:text-white">Dashboard</span>
-                    </a>
-                    <a href={getRoute('student.training')} className="group flex items-center rounded-md bg-[#1e3a5f] px-4 py-3 text-white">
-                        <Activity className="mr-3 h-5 w-5 text-[#4a90e2]" />
-                        <span>Training</span>
-                    </a>
+                        <Home className="mr-3 h-5 w-5 text-[#4a90e2]" />
+                        <span>Dashboard</span>
+                    </Link>
                     <a
+                        href="https://youngathletetraining.co.uk"
+                        target="_blank"
+                        className="flex items-center rounded-md px-4 py-3 text-[#a3c0e6] transition-colors hover:bg-[#1e3a5f]/40 hover:text-white"
+                    >
+                        <Activity className="mr-3 h-5 w-5 text-[#4a90e2]" />
+                        <span>Training Sessions</span>
+                    </a>
+                    <Link
+                        href={getRoute('student.training')}
+                        className="flex items-center rounded-md px-4 py-3 text-[#a3c0e6] transition-colors hover:bg-[#1e3a5f]/40 hover:text-white"
+                    >
+                        <Activity className="mr-3 h-5 w-5 text-[#4a90e2]" />
+                        <span>Training Diary</span>
+                    </Link>
+                    <Link
                         href={getRoute('student.progress')}
                         className="flex items-center rounded-md px-4 py-3 text-[#a3c0e6] transition-colors hover:bg-[#1e3a5f]/40 hover:text-white"
                     >
                         <TrendingUp className="mr-3 h-5 w-5 text-[#4a90e2]" />
                         <span>Progress</span>
-                    </a>
-                    <div className="mt-4 border-t border-[#1e3a5f] pt-4">
-                        <h3 className="mb-2 px-4 text-xs font-semibold tracking-wider text-[#a3c0e6] uppercase">Leaderboards</h3>
-                        <a
+                    </Link>
+
+                    <div className="pt-4">
+                        <h3 className="px-4 py-2 text-xs font-semibold tracking-wider text-[#63b3ed] uppercase">Leaderboards</h3>
+                        <Link
                             href={getRoute('leaderboard.strength')}
-                            className="group flex items-center rounded-md px-4 py-3 text-[#a3c0e6] hover:bg-[#1e3a5f]/50"
+                            className="flex items-center rounded-md px-4 py-3 text-[#a3c0e6] transition-colors hover:bg-[#1e3a5f]/40 hover:text-white"
                         >
-                            <Award className="mr-3 h-5 w-5 text-[#4a90e2] group-hover:text-white" />
-                            <span className="group-hover:text-white">Strength</span>
-                        </a>
-                        <a
+                            <Award className="mr-3 h-5 w-5 text-[#4a90e2]" />
+                            <span>Strength</span>
+                        </Link>
+                        <Link
                             href={getRoute('leaderboard.consistency')}
-                            className="group flex items-center rounded-md px-4 py-3 text-[#a3c0e6] hover:bg-[#1e3a5f]/50"
+                            className="flex items-center rounded-md px-4 py-3 text-[#a3c0e6] transition-colors hover:bg-[#1e3a5f]/40 hover:text-white"
                         >
-                            <BarChart2 className="mr-3 h-5 w-5 text-[#4a90e2] group-hover:text-white" />
-                            <span className="group-hover:text-white">Consistency</span>
-                        </a>
+                            <BarChart2 className="mr-3 h-5 w-5 text-[#4a90e2]" />
+                            <span>Consistency</span>
+                        </Link>
                     </div>
                 </nav>
                 <div className="border-t border-[#1e3a5f] p-4">
@@ -461,6 +477,7 @@ const StudentTraining: React.FC<StudentTrainingProps> = ({ blocks, username = 'A
 
                                                 if (weekStatus === 'complete') statusColor = 'bg-green-500';
                                                 else if (weekStatus === 'in-progress') statusColor = 'bg-yellow-500';
+                                                else if (weekStatus === 'rest') statusColor = 'bg-blue-500';
                                                 else statusColor = 'bg-gray-500';
 
                                                 return (
