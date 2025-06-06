@@ -312,14 +312,13 @@ class XpService
             ->where('session_type', 'training')
             ->pluck('id');
 
-        if ($trainingSessions->count() < 2) {
+        // Updated logic for new schedule:
+        // Weeks 6 and 13 have only 1 training session, others have 2
+        $requiredTrainingSessions = in_array($weekNumber, [6, 13]) ? 1 : 2;
+
+        if ($trainingSessions->count() < $requiredTrainingSessions) {
             return 0;
         }
-
-        // Check if user completed at least 2 training sessions
-        $completedCount = TrainingResult::where('user_id', $userId)
-            ->whereIn('session_id', $trainingSessions)
-            ->count();
 
         // Check if all completed sessions have all fields filled
         $allFieldsFilled = true;
@@ -334,8 +333,8 @@ class XpService
             }
         }
 
-        // If user completed at least 2 training sessions with all fields filled
-        if ($completedCount >= 2 && $allFieldsFilled) {
+        // If user completed required training sessions with all fields filled
+        if ($trainingSessions->count() >= $requiredTrainingSessions && $allFieldsFilled) {
             // Check if this bonus was already awarded
             $existingBonus = XpTransaction::where('user_id', $userId)
                 ->where('xp_source', 'week_complete')
@@ -372,11 +371,14 @@ class XpService
             ->where('session_type', 'testing')
             ->pluck('id');
 
-        if ($trainingSessions->count() < 2 || $testingSessions->count() < 1) {
+        // Updated logic: weeks 6 and 13 have 1 training + 1 testing
+        $requiredTrainingSessions = in_array($weekNumber, [6, 13]) ? 1 : 2;
+
+        if ($trainingSessions->count() < $requiredTrainingSessions || $testingSessions->count() < 1) {
             return 0;
         }
 
-        // Check if user has completed at least 2 training sessions
+        // Check if user has completed required training sessions
         $completedTrainingCount = TrainingResult::where('user_id', $userId)
             ->whereIn('session_id', $trainingSessions)
             ->count();
@@ -413,7 +415,7 @@ class XpService
 
         // If user completed both training and testing with all fields filled
         if (
-            $completedTrainingCount >= 2 && $completedTestingCount >= 1 &&
+            $completedTrainingCount >= $requiredTrainingSessions && $completedTestingCount >= 1 &&
             $allTrainingFieldsFilled && $allTestingFieldsFilled
         ) {
             // Check if this bonus was already awarded

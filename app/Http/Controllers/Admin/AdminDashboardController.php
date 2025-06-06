@@ -223,43 +223,57 @@ class AdminDashboardController extends Controller
         for ($week = 1; $week <= 14; $week++) {
             $weekStartDate = Carbon::parse($block->start_date ?: now())->addWeeks($week - 1);
 
-            // Week 7 is a REST week
-            if ($week == 7) {
-                // Create a special REST session with a special session number (0)
+            // Weeks 7 and 14 are REST weeks
+            if (in_array($week, [7, 14])) {
                 TrainingSession::create([
                     'block_id'       => $block->id,
                     'week_number'    => $week,
-                    'session_number' => 0, // Use 0 for rest sessions instead of null
+                    'session_number' => 0,
                     'session_type'   => 'rest',
                     'release_date'   => $weekStartDate,
                 ]);
-
-                // Do not increment session count for rest week
             }
-            // Special weeks with testing (5, 10, 14)
-            elseif (in_array($week, [5, 10, 14])) {
-                // First create the testing session with a special session number (-1)
+            // Week 6: 1 training + 1 testing
+            elseif ($week == 6) {
+                // Training session
                 TrainingSession::create([
                     'block_id'       => $block->id,
                     'week_number'    => $week,
-                    'session_number' => -1, // Use -1 for testing sessions instead of null
-                    'session_type'   => 'testing',
+                    'session_number' => $sessionCount,
+                    'session_type'   => 'training',
                     'release_date'   => $weekStartDate,
                 ]);
+                $sessionCount++;
 
-                // For weeks 5 and 10, also create 2 training sessions
-                if ($week != 14) {
-                    for ($i = 1; $i <= 2; $i++) {
-                        TrainingSession::create([
-                            'block_id'       => $block->id,
-                            'week_number'    => $week,
-                            'session_number' => $sessionCount,
-                            'session_type'   => 'training',
-                            'release_date'   => $weekStartDate->copy()->addDays($i),
-                        ]);
-                        $sessionCount++;
-                    }
-                }
+                // Testing session
+                TrainingSession::create([
+                    'block_id'       => $block->id,
+                    'week_number'    => $week,
+                    'session_number' => -1,
+                    'session_type'   => 'testing',
+                    'release_date'   => $weekStartDate->copy()->addDays(1),
+                ]);
+            }
+            // Week 13: 1 training + 1 testing
+            elseif ($week == 13) {
+                // Training session
+                TrainingSession::create([
+                    'block_id'       => $block->id,
+                    'week_number'    => $week,
+                    'session_number' => $sessionCount,
+                    'session_type'   => 'training',
+                    'release_date'   => $weekStartDate,
+                ]);
+                $sessionCount++;
+
+                // Testing session
+                TrainingSession::create([
+                    'block_id'       => $block->id,
+                    'week_number'    => $week,
+                    'session_number' => -1,
+                    'session_type'   => 'testing',
+                    'release_date'   => $weekStartDate->copy()->addDays(1),
+                ]);
             }
             // Regular weeks with 2 training sessions each
             else {

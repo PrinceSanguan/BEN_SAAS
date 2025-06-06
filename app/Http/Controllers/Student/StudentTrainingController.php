@@ -42,16 +42,13 @@ class StudentTrainingController extends Controller
         $user = Auth::user();
         $currentDate = Carbon::now();
 
-        // 1) Get all blocks + sessions with proper eager loading including session's block
         $blocks = Block::with(['sessions' => function ($query) {
             $query->orderBy('week_number')->orderBy('session_number');
-        }, 'sessions.block']) // Add block relationship to avoid n+1 on block access
-            ->where('user_id', $user->id) // Filter blocks by user_id
+        }, 'sessions.block'])
+            ->where('user_id', $user->id)
             ->orderBy('block_number')
             ->get();
 
-
-        // 2) Find which sessions this user has completed in a single query
         $completedTrainingResults = TrainingResult::where('user_id', $user->id)
             ->pluck('session_id')
             ->toArray();
@@ -62,89 +59,87 @@ class StudentTrainingController extends Controller
 
         $completedSessions = array_merge($completedTrainingResults, $completedTestResults);
 
-        // 3) Format blocks with date-based unlocking logic
         $formattedBlocks = $blocks->map(function ($block) use ($completedSessions, $user, $currentDate) {
-            // Group sessions by week
             $sessionsByWeek = collect($block->sessions)->groupBy('week_number');
 
-            // Process weeks
             $weeks = $sessionsByWeek->map(function ($sessions, $weekNumber) use ($completedSessions, $currentDate) {
-                // We'll separate training vs. testing sessions
-                $training = $sessions->where('session_type', 'training');
-                $testing  = $sessions->where('session_type', 'testing');
-                $rest = $sessions->where('session_type', 'rest');
+                // Check if this is a rest week (weeks 7 and 14)
+                $isRestWeek = in_array($weekNumber, [7, 14]);
 
-                // Convert each session into appropriate label format
-                $trainLabels = $training->map(fn($s) => "TRAINING #{$s->session_number}")->toArray();
-                $testLabels  = $testing->map(fn($s) => "TESTING")->toArray();
-                $restLabels  = $rest->map(fn($s) => "REST WEEK")->toArray();
+                if ($isRestWeek) {
+                    $restSessions = $sessions->where('session_type', 'rest');
+                    $weekLabel = "Week {$weekNumber}: ✅ REST WEEK";
 
-                // Combine into a single label string
-                $labelTrain = $trainLabels ? "✅ " . implode(" & ", $trainLabels) : '';
-                $labelTest  = $testLabels  ? "✅ " . implode(" & ", $testLabels) : '';
-                $labelRest  = $restLabels  ? "✅ " . implode(" & ", $restLabels) : '';
+                    $mappedSessions = $restSessions->map(function ($session) use ($completedSessions, $currentDate) {
+                        return [
+                            'id' => $session->id,
+                            'session_number' => $session->session_number,
+                            'session_type' => $session->session_type,
+                            'is_completed' => true,
+                            'is_locked' => false,
+                            'label' => 'REST WEEK',
+                            'release_date' => $session->release_date ? Carbon::parse($session->release_date)->format('F j, Y') : 'Not scheduled',
+                            'raw_release_date' => $session->release_date,
+                        ];
+                    })->values();
+                } else {
+                    $training = $sessions->where('session_type', 'training');
+                    $testing = $sessions->where('session_type', 'testing');
 
-                $weekLabelParts = array_filter([$labelTrain, $labelTest, $labelRest]);
-                $weekLabel = implode(", ", $weekLabelParts);
+                    $trainLabels = $training->map(fn($s) => "TRAINING #{$s->session_number}")->toArray();
+                    $testLabels = $testing->map(fn($s) => "TESTING")->toArray();
 
-                if (!$weekLabel) {
-                    $weekLabel = "No sessions for this week (unexpected)";
+                    $labelTrain = $trainLabels ? "✅ " . implode(" & ", $trainLabels) : '';
+                    $labelTest = $testLabels ? "✅ " . implode(" & ", $testLabels) : '';
+
+                    $weekLabelParts = array_filter([$labelTrain, $labelTest]);
+                    $weekLabel = $weekLabelParts ? "Week {$weekNumber}: " . implode(", ", $weekLabelParts) : "Week {$weekNumber}: No sessions";
+
+                    $mappedSessions = $sessions->map(function ($session) use ($completedSessions, $currentDate) {
+                        $displayLabel = '';
+                        if ($session->session_type === 'testing') {
+                            $displayLabel = 'TESTING';
+                        } else {
+                            $displayLabel = "Session {$session->session_number}";
+                        }
+
+                        $releaseDate = $session->release_date ? Carbon::parse($session->release_date) : null;
+                        $isCompleted = in_array($session->id, $completedSessions);
+                        $isLocked = $releaseDate ? $currentDate->lt($releaseDate) : true;
+                        $formattedReleaseDate = $releaseDate ? $releaseDate->format('F j, Y') : 'Not scheduled';
+
+                        return [
+                            'id' => $session->id,
+                            'session_number' => $session->session_number,
+                            'session_type' => $session->session_type,
+                            'is_completed' => $isCompleted,
+                            'is_locked' => $isLocked,
+                            'label' => $displayLabel,
+                            'release_date' => $formattedReleaseDate,
+                            'raw_release_date' => $session->release_date,
+                        ];
+                    })->values();
                 }
-
-                // Map each session's details
-                $mappedSessions = $sessions->map(function ($session) use ($completedSessions, $currentDate) {
-                    // For display label in frontend
-                    $displayLabel = '';
-                    if ($session->session_type === 'testing') {
-                        $displayLabel = 'TESTING';
-                    } elseif ($session->session_type === 'rest') {
-                        $displayLabel = 'REST WEEK';
-                    } else {
-                        $displayLabel = "Session {$session->session_number}";
-                    }
-
-                    // Determine if this session is locked based on release date
-                    $releaseDate = $session->release_date ? Carbon::parse($session->release_date) : null;
-                    $isCompleted = in_array($session->id, $completedSessions);
-
-                    // Session is locked if the release date is in the future or null
-                    $isLocked = $releaseDate ? $currentDate->lt($releaseDate) : true;
-
-                    // Format release date for frontend display
-                    $formattedReleaseDate = $releaseDate ? $releaseDate->format('F j, Y') : 'Not scheduled';
-
-                    return [
-                        'id'             => $session->id,
-                        'session_number' => $session->session_number,
-                        'session_type'   => $session->session_type,
-                        'is_completed'   => $isCompleted,
-                        'is_locked'      => $isLocked,
-                        'label'          => $displayLabel,
-                        'release_date'   => $formattedReleaseDate,
-                        'raw_release_date' => $session->release_date,
-                    ];
-                })->values();
 
                 return [
                     'week_number' => $weekNumber,
-                    'label'       => "Week {$weekNumber}: {$weekLabel}",
-                    'sessions'    => $mappedSessions,
+                    'label' => $weekLabel,
+                    'sessions' => $mappedSessions,
                 ];
             })->sortBy('week_number')->values();
 
             return [
-                'id'           => $block->id,
+                'id' => $block->id,
                 'block_number' => $block->block_number,
-                'block_label'  => "Block {$block->block_number}",
-                'weeks'        => $weeks,
+                'block_label' => "Block {$block->block_number}",
+                'weeks' => $weeks,
             ];
         });
 
-        // Get XP information
         $xpSummary = $this->xpService->getUserXpSummary($user->id);
 
         return Inertia::render('Student/StudentTraining', [
-            'blocks' => $formattedBlocks, // Use all formatted blocks without filtering
+            'blocks' => $formattedBlocks,
             'xp' => [
                 'total' => $xpSummary['total_xp'],
                 'level' => $xpSummary['current_level'],
