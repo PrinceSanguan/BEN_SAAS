@@ -61,6 +61,7 @@ const StudentTraining: React.FC<StudentTrainingProps> = ({ blocks, username = 'A
     const headerRef = useRef<HTMLDivElement>(null);
     const sidebarRef = useRef<HTMLDivElement>(null);
     const mainContentRef = useRef<HTMLDivElement>(null);
+    const navRef = useRef<HTMLElement>(null);
 
     // Responsive check
     useEffect(() => {
@@ -293,41 +294,53 @@ const StudentTraining: React.FC<StudentTrainingProps> = ({ blocks, username = 'A
                         </div>
                     </div>
                 </div>
-                <nav className="flex-1 space-y-1 px-2 py-4">
-                    <a
+                <nav ref={navRef} className="space-y-1 p-4">
+                    <Link
                         href={getRoute('student.dashboard')}
-                        className="group flex items-center rounded-md px-4 py-3 text-[#a3c0e6] hover:bg-[#1e3a5f]/50"
+                        className="flex items-center rounded-md bg-[#1e3a5f] px-4 py-3 text-white transition-colors hover:bg-[#1e3a5f]/80"
                     >
-                        <Home className="mr-3 h-5 w-5 text-[#4a90e2] group-hover:text-white" />
-                        <span className="group-hover:text-white">Dashboard</span>
-                    </a>
-                    <a href={getRoute('student.training')} className="group flex items-center rounded-md bg-[#1e3a5f] px-4 py-3 text-white">
-                        <Activity className="mr-3 h-5 w-5 text-[#4a90e2]" />
-                        <span>Training</span>
-                    </a>
+                        <Home className="mr-3 h-5 w-5 text-[#4a90e2]" />
+                        <span>Dashboard</span>
+                    </Link>
                     <a
+                        href="https://youngathletetraining.co.uk"
+                        target="_blank"
+                        className="flex items-center rounded-md px-4 py-3 text-[#a3c0e6] transition-colors hover:bg-[#1e3a5f]/40 hover:text-white"
+                    >
+                        <Activity className="mr-3 h-5 w-5 text-[#4a90e2]" />
+                        <span>Training Sessions</span>
+                    </a>
+                    <Link
+                        href={getRoute('student.training')}
+                        className="flex items-center rounded-md px-4 py-3 text-[#a3c0e6] transition-colors hover:bg-[#1e3a5f]/40 hover:text-white"
+                    >
+                        <Activity className="mr-3 h-5 w-5 text-[#4a90e2]" />
+                        <span>Training Diary</span>
+                    </Link>
+                    <Link
                         href={getRoute('student.progress')}
                         className="flex items-center rounded-md px-4 py-3 text-[#a3c0e6] transition-colors hover:bg-[#1e3a5f]/40 hover:text-white"
                     >
                         <TrendingUp className="mr-3 h-5 w-5 text-[#4a90e2]" />
                         <span>Progress</span>
-                    </a>
-                    <div className="mt-4 border-t border-[#1e3a5f] pt-4">
-                        <h3 className="mb-2 px-4 text-xs font-semibold tracking-wider text-[#a3c0e6] uppercase">Leaderboards</h3>
-                        <a
+                    </Link>
+
+                    <div className="pt-4">
+                        <h3 className="px-4 py-2 text-xs font-semibold tracking-wider text-[#63b3ed] uppercase">Leaderboards</h3>
+                        <Link
                             href={getRoute('leaderboard.strength')}
-                            className="group flex items-center rounded-md px-4 py-3 text-[#a3c0e6] hover:bg-[#1e3a5f]/50"
+                            className="flex items-center rounded-md px-4 py-3 text-[#a3c0e6] transition-colors hover:bg-[#1e3a5f]/40 hover:text-white"
                         >
-                            <Award className="mr-3 h-5 w-5 text-[#4a90e2] group-hover:text-white" />
-                            <span className="group-hover:text-white">Strength</span>
-                        </a>
-                        <a
+                            <Award className="mr-3 h-5 w-5 text-[#4a90e2]" />
+                            <span>Strength</span>
+                        </Link>
+                        <Link
                             href={getRoute('leaderboard.consistency')}
-                            className="group flex items-center rounded-md px-4 py-3 text-[#a3c0e6] hover:bg-[#1e3a5f]/50"
+                            className="flex items-center rounded-md px-4 py-3 text-[#a3c0e6] transition-colors hover:bg-[#1e3a5f]/40 hover:text-white"
                         >
-                            <BarChart2 className="mr-3 h-5 w-5 text-[#4a90e2] group-hover:text-white" />
-                            <span className="group-hover:text-white">Consistency</span>
-                        </a>
+                            <BarChart2 className="mr-3 h-5 w-5 text-[#4a90e2]" />
+                            <span>Consistency</span>
+                        </Link>
                     </div>
                 </nav>
                 <div className="border-t border-[#1e3a5f] p-4">
