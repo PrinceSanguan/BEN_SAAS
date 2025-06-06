@@ -10,7 +10,6 @@ import { Head, usePage } from '@inertiajs/react';
 import { useEffect, useState } from 'react';
 
 /** Athlete Type */
-/** Athlete Type */
 type Athlete = {
     id: number;
     username: string;
