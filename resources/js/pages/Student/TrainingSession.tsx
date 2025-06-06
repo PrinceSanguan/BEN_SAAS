@@ -2,6 +2,7 @@ import { Head, useForm } from '@inertiajs/react';
 import gsap from 'gsap';
 import { Activity, ArrowLeft, Award, BarChart2, Home, LogOut, Menu, TrendingUp, Trophy, User, X } from 'lucide-react';
 import React, { useEffect, useRef, useState } from 'react';
+import Sidebar from '@/components/Student/Sidebar';
 
 interface SessionData {
     session_number?: string | number;
@@ -188,116 +189,11 @@ const TrainingSession: React.FC<TrainingSessionProps> = ({ session = {}, existin
         <div ref={pageRef} className="flex min-h-screen bg-gradient-to-b from-[#0a1e3c] to-[#0f2a4a]">
             <Head title={`Training Session ${sessionNumber}`} />
 
-            {/* Sidebar - Desktop Only */}
-            <div ref={sidebarRef} className="fixed z-30 hidden h-full border-r border-[#1e3a5f] bg-[#0a1e3c] lg:flex lg:w-64 lg:flex-col">
-                <div className="flex h-16 items-center border-b border-[#1e3a5f] px-6">
-                    <div className="mr-3 flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-[#4a90e2] to-[#63b3ed]">
-                        <Trophy className="h-5 w-5 text-white" />
-                    </div>
-                    <h1 className="text-xl font-bold text-white">AthleteTrack</h1>
-                </div>
-                <div className="border-b border-[#1e3a5f] p-4">
-                    <div className="flex items-center">
-                        <div className="mr-3 flex h-10 w-10 items-center justify-center rounded-full bg-[#1e3a5f]">
-                            <User className="h-5 w-5 text-[#4a90e2]" />
-                        </div>
-                        <div>
-                            <h2 className="text-sm font-medium text-white">{username}</h2>
-                            <p className="text-xs text-[#a3c0e6]">Athlete</p>
-                        </div>
-                    </div>
-                </div>
-                <nav className="flex-1 space-y-1 px-2 py-4">
-                    <a
-                        href={getRoute('student.dashboard')}
-                        className="group flex items-center rounded-md px-4 py-3 text-[#a3c0e6] transition-colors hover:bg-[#1e3a5f]/50"
-                    >
-                        <Home className="mr-3 h-5 w-5 text-[#4a90e2] group-hover:text-white" />
-                        <span className="group-hover:text-white">Dashboard</span>
-                    </a>
-                    <a href={getRoute('student.training')} className="group flex items-center rounded-md bg-[#1e3a5f] px-4 py-3 text-white">
-                        <Activity className="mr-3 h-5 w-5 text-[#4a90e2]" />
-                        <span>Training</span>
-                    </a>
-                    <a
-                        href={getRoute('student.progress')}
-                        className="flex items-center rounded-md px-4 py-3 text-[#a3c0e6] transition-colors hover:bg-[#1e3a5f]/40 hover:text-white"
-                    >
-                        <TrendingUp className="mr-3 h-5 w-5 text-[#4a90e2]" />
-                        <span>Progress</span>
-                    </a>
-                    <div className="mt-4 border-t border-[#1e3a5f] pt-4">
-                        <h3 className="mb-2 px-4 text-xs font-semibold tracking-wider text-[#a3c0e6] uppercase">Leaderboards</h3>
-                        <a
-                            href={getRoute('leaderboard.strength')}
-                            className="group flex items-center rounded-md px-4 py-3 text-[#a3c0e6] transition-colors hover:bg-[#1e3a5f]/50"
-                        >
-                            <Award className="mr-3 h-5 w-5 text-[#4a90e2] group-hover:text-white" />
-                            <span className="group-hover:text-white">Strength</span>
-                        </a>
-                        <a
-                            href={getRoute('leaderboard.consistency')}
-                            className="group flex items-center rounded-md px-4 py-3 text-[#a3c0e6] transition-colors hover:bg-[#1e3a5f]/50"
-                        >
-                            <BarChart2 className="mr-3 h-5 w-5 text-[#4a90e2] group-hover:text-white" />
-                            <span className="group-hover:text-white">Consistency</span>
-                        </a>
-                    </div>
-                </nav>
-                <div className="border-t border-[#1e3a5f] p-4">
-                    <a href="#" className="flex items-center px-4 py-2 text-[#a3c0e6] transition-colors hover:text-white">
-                        <LogOut className="mr-3 h-5 w-5 text-[#4a90e2]" />
-                        <span>Logout</span>
-                    </a>
-                </div>
-            </div>
-
-            {sidebarOpen && <div className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm lg:hidden" onClick={toggleSidebar}></div>}
-
-            <div
-                className={`fixed inset-y-0 left-0 z-50 w-64 transform border-r border-[#1e3a5f] bg-[#0a1e3c] transition-transform duration-300 ease-in-out lg:hidden ${
-                    sidebarOpen ? 'translate-x-0' : '-translate-x-full'
-                }`}
-            >
-                <div className="flex h-16 items-center justify-between border-b border-[#1e3a5f] px-6">
-                    <div className="flex items-center">
-                        <div className="mr-2 flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-[#4a90e2] to-[#63b3ed]">
-                            <Trophy className="h-4 w-4 text-white" />
-                        </div>
-                        <h1 className="text-lg font-bold text-white">AthleteTrack</h1>
-                    </div>
-                    <button onClick={toggleSidebar} className="text-[#a3c0e6] hover:text-white">
-                        <X className="h-5 w-5" />
-                    </button>
-                </div>
-                <nav className="flex-1 space-y-1 px-2 py-4">
-                    <a href={getRoute('student.dashboard')} className="flex items-center rounded-md px-4 py-3 text-[#a3c0e6] hover:bg-[#1e3a5f]/50">
-                        <Home className="mr-3 h-5 w-5 text-[#4a90e2]" />
-                        <span>Dashboard</span>
-                    </a>
-                    <a href={getRoute('student.training')} className="flex items-center rounded-md bg-[#1e3a5f] px-4 py-3 text-white">
-                        <Activity className="mr-3 h-5 w-5 text-[#4a90e2]" />
-                        <span>Training</span>
-                    </a>
-                    <div className="mt-4 border-t border-[#1e3a5f] pt-4">
-                        <h3 className="mb-2 px-4 text-xs font-semibold tracking-wider text-[#a3c0e6] uppercase">Leaderboards</h3>
-                        <a
-                            href={getRoute('leaderboard.strength')}
-                            className="flex items-center rounded-md px-4 py-3 text-[#a3c0e6] hover:bg-[#1e3a5f]/50"
-                        >
-                            <Award className="mr-3 h-5 w-5 text-[#4a90e2]" />
-                            <span>Strength</span>
-                        </a>
-                        <a
-                            href={getRoute('leaderboard.consistency')}
-                            className="flex items-center rounded-md px-4 py-3 text-[#a3c0e6] hover:bg-[#1e3a5f]/50"
-                        >
-                            <BarChart2 className="mr-3 h-5 w-5 text-[#4a90e2]" />
-                            <span>Consistency</span>
-                        </a>
-                    </div>
-                </nav>
-            </div>
+            <Sidebar
+                username={username}
+                routes={routes}
+                currentRoute={window.location.pathname}
+            />
 
             <div className="flex-1 lg:ml-64">
                 <header ref={headerRef} className="sticky top-0 z-10 border-b border-[#1e3a5f] bg-[#0a1e3c]/80 px-4 py-4 backdrop-blur-md">
