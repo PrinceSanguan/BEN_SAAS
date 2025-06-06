@@ -3,6 +3,7 @@
 import type React from "react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
+import { Link } from "@inertiajs/react"
 import {
   ArrowRight,
   Play,
@@ -44,6 +45,32 @@ const Hero: React.FC = () => {
     "https://images.unsplash.com/photo-1544717297-fa95b6ee9643?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80",
     "https://images.unsplash.com/photo-1566351810-2b3c8b5b0c7a?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80",
   ]
+
+  // Handle smooth scrolling for navigation links
+  const handleNavClick = (e: React.MouseEvent<HTMLAnchorElement>, sectionId: string) => {
+    e.preventDefault();
+
+    if (sectionId === "") {
+      // For the Home link, scroll to top
+      window.scrollTo({
+        top: 0,
+        behavior: "smooth"
+      });
+    } else {
+      // For other section links
+      const element = document.getElementById(sectionId);
+      if (element) {
+        element.scrollIntoView({
+          behavior: "smooth"
+        });
+      }
+    }
+
+    // Close mobile menu if open
+    if (isMenuOpen) {
+      setIsMenuOpen(false);
+    }
+  };
 
   // Enhanced scroll effect
   useEffect(() => {
@@ -213,8 +240,9 @@ const Hero: React.FC = () => {
             {["Home", "About Us", "Our Training", "Apply", "Testimonials"].map((item, index) => (
               <a
                 key={item}
-                href={`#${item.toLowerCase().replace(" ", "-")}`}
+                href={item === "Home" ? "#" : `#${item.toLowerCase().replace(/ /g, "-")}`}
                 className="text-white/80 hover:text-white text-sm font-medium transition-all hover:scale-105 relative group"
+                onClick={(e) => handleNavClick(e, item === "Home" ? "" : item.toLowerCase().replace(/ /g, "-"))}
               >
                 {item}
                 <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-blue-500 transition-all group-hover:w-full"></span>
@@ -223,36 +251,38 @@ const Hero: React.FC = () => {
           </nav>
 
           <div className="flex items-center gap-4">
-            <Button
-              variant="outline"
-              className="hidden sm:flex text-white border border-blue-500/50 hover:bg-blue-500/20 items-center gap-2 rounded-lg transition-all hover:scale-105"
-            >
-              <svg
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-                className="text-blue-400"
+            <Link href={route('login')}>
+              <Button
+                variant="outline"
+                className="hidden sm:flex text-white border border-blue-500/50 hover:bg-blue-500/20 items-center gap-2 rounded-lg transition-all hover:scale-105"
               >
-                <path
-                  d="M15 3H19C19.5304 3 20.0391 3.21071 20.4142 3.58579C20.7893 3.96086 21 4.46957 21 5V19C21 19.5304 20.7893 20.0391 20.4142 20.4142C20.0391 20.7893 19.5304 21 19 21H15"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-                <path
-                  d="M10 17L15 12L10 7"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-                <path d="M15 12H3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-              Log in
-            </Button>
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="text-blue-400"
+                >
+                  <path
+                    d="M15 3H19C19.5304 3 20.0391 3.21071 20.4142 3.58579C20.7893 3.96086 21 4.46957 21 5V19C21 19.5304 20.7893 20.0391 20.4142 20.4142C20.0391 20.7893 19.5304 21 19 21H15"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                  <path
+                    d="M10 17L15 12L10 7"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                  <path d="M15 12H3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+                Log in
+              </Button>
+            </Link>
 
             {/* Mobile Menu Button */}
             <Button
@@ -274,19 +304,21 @@ const Hero: React.FC = () => {
               {["Home", "About Us", "Our Training", "Apply", "Testimonials"].map((item) => (
                 <a
                   key={item}
-                  href={`#${item.toLowerCase().replace(" ", "-")}`}
+                  href={item === "Home" ? "#" : `#${item.toLowerCase().replace(/ /g, "-")}`}
                   className="block text-white/80 hover:text-white text-lg font-medium transition-colors py-2"
-                  onClick={() => setIsMenuOpen(false)}
+                  onClick={(e) => handleNavClick(e, item === "Home" ? "" : item.toLowerCase().replace(/ /g, "-"))}
                 >
                   {item}
                 </a>
               ))}
-              <Button
-                variant="outline"
-                className="w-full text-white border border-blue-500/50 hover:bg-blue-500/20 mt-4"
-              >
-                Log in
-              </Button>
+              <Link href={route('login')}>
+                <Button
+                  variant="outline"
+                  className="w-full text-white border border-blue-500/50 hover:bg-blue-500/20 mt-4"
+                >
+                  Log in
+                </Button>
+              </Link>
             </nav>
           </div>
         )}
