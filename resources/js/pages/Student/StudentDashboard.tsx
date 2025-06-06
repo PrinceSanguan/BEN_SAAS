@@ -1,8 +1,9 @@
-import { Link, router } from '@inertiajs/react';
+import { Link, router, usePage } from '@inertiajs/react';
 import gsap from 'gsap';
-import { Activity, Award, BarChart2, Calendar, Clock, Home, Lock, LogOut, TrendingUp, Trophy, User } from 'lucide-react';
+import { Activity, Award, BarChart2, Calendar, Clock, Home, Lock, User } from 'lucide-react';
 import type React from 'react';
 import { useEffect, useRef, useState } from 'react';
+import Layout from '@/components/Student/Layout';
 
 // TypeScript interface for component props
 interface StudentDashboardProps {
@@ -11,7 +12,7 @@ interface StudentDashboardProps {
     consistencyScore: number;
     currentRank?: number;
     blocks: Array<{
-        is_locked: any;
+        is_locked: boolean;
         id: number;
         block_number: number;
         start_date: string;
@@ -41,8 +42,8 @@ const CircularProgress: React.FC<{
     max?: number;
     size?: number;
     strokeWidth?: number;
-    xpInfo?: any;
-}> = ({ value, max, size = 120, strokeWidth = 8, xpInfo }) => {
+    xpInfo?: StudentDashboardProps['xpInfo'];
+}> = ({ value, size = 120, strokeWidth = 8, xpInfo }) => {
     const radius = (size - strokeWidth) / 2;
     const circumference = radius * 2 * Math.PI;
 
@@ -102,8 +103,12 @@ const CircularProgress: React.FC<{
 };
 
 // Mobile-only Circular Avatar component with unranked support
-const CircularAvatar: React.FC<{ value: number; size?: number; strokeWidth?: number; xpInfo?: any }> = ({
-    value,
+const CircularAvatar: React.FC<{
+    value: number;
+    size?: number;
+    strokeWidth?: number;
+    xpInfo?: StudentDashboardProps['xpInfo'];
+}> = ({
     size = 120,
     strokeWidth = 3,
     xpInfo,
@@ -168,10 +173,10 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({
     strengthLevel,
     consistencyScore,
     currentRank = 0,
-    blocks = [], // Provide default empty array to prevent issues
-    remainingSessions = 0, // Default to 0 if not provided
-    routes = {}, // Default to empty object if routes is not provided
-    xpInfo, // Add xpInfo to the destructured props
+    blocks = [],
+    remainingSessions = 0,
+    routes = {},
+    xpInfo,
 }) => {
     const [showPrompt, setShowPrompt] = useState(false);
     const [selectedBlock, setSelectedBlock] = useState<{
@@ -184,7 +189,9 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({
         is_associated_with_user?: boolean;
     } | null>(null);
     const [isMobile, setIsMobile] = useState(false);
-    const [sidebarOpen, setSidebarOpen] = useState(false);
+
+    // Get current URL path to determine active route
+    const { url } = usePage();
 
     // Debug routes in development
     useEffect(() => {
@@ -193,13 +200,11 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({
         }
     }, [routes]);
 
-    // Sequential block unlocking based on current block and remaining sessions
-    const visibleBlocks = blocks
-        .filter((block) => {
+    // Keep blocks as they are, but don't store in visibleBlocks variable since we're using the original blocks array
+    blocks.filter(() => {
             // For now, return all blocks and let the backend handle the filtering
             return true;
-        })
-        .map((block) => ({
+    }).map((block) => ({
             ...block,
             is_locked: block.is_locked, // Keep the is_locked status from backend
         }));
@@ -250,12 +255,9 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({
     // Refs for GSAP animations
     const pageRef = useRef<HTMLDivElement>(null);
     const headerRef = useRef<HTMLDivElement>(null);
-    const profileRef = useRef<HTMLDivElement>(null);
     const statsRef = useRef<HTMLDivElement>(null);
     const strengthRef = useRef<SVGCircleElement>(null);
     const consistencyRef = useRef<HTMLDivElement>(null);
-    const navRef = useRef<HTMLDivElement>(null);
-    const sidebarRef = useRef<HTMLDivElement>(null);
     const mainContentRef = useRef<HTMLDivElement>(null);
     const mobileCardRef = useRef<HTMLDivElement>(null);
     const mobileAvatarRef = useRef<HTMLDivElement>(null);
@@ -326,20 +328,6 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({
                         opacity: 0,
                         duration: 0.4,
                         ease: 'back.out(1.7)',
-                    },
-                    '-=0.2',
-                );
-            }
-
-            // Sidebar animation
-            if (sidebarRef.current) {
-                tl.from(
-                    sidebarRef.current,
-                    {
-                        x: -30,
-                        opacity: 0,
-                        duration: 0.4,
-                        ease: 'power2.out',
                     },
                     '-=0.2',
                 );
@@ -429,11 +417,6 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({
 
     // Get current block if any
     const currentBlock = blocks.find((block) => block.is_current);
-
-    // Toggle sidebar for mobile
-    const toggleSidebar = () => {
-        setSidebarOpen(!sidebarOpen);
-    };
 
     // Check if player has XP
     const hasXp = xpInfo && xpInfo.total_xp > 0;
@@ -534,98 +517,12 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({
         );
     }
 
-    // Desktop Layout - Keep the original layout but modify for unranked players
+    // Desktop Layout - Updated to use the Layout component
     return (
-        <div ref={pageRef} className="flex min-h-screen bg-gradient-to-b from-[#0a1e3c] to-[#0f2a4a]">
-            {/* Sidebar (Desktop) */}
-            <div ref={sidebarRef} className="fixed z-10 h-full w-64 border-r border-[#1e3a5f] bg-[#0a1e3c]">
-                <div className="flex h-16 items-center border-b border-[#1e3a5f] px-6">
-                    <div className="mr-3 flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-[#4a90e2] to-[#63b3ed]">
-                        <Trophy className="h-5 w-5 text-white" />
-                    </div>
-                    <h1 className="text-xl font-bold text-white">AthleteTrack</h1>
-                </div>
-                <div className="border-b border-[#1e3a5f] p-4">
-                    <div className="flex items-center">
-                        <div className="mr-3 flex h-10 w-10 items-center justify-center rounded-full bg-[#1e3a5f]">
-                            <User className="h-5 w-5 text-[#4a90e2]" />
-                        </div>
-                        <div>
-                            <h2 className="text-sm font-medium text-white">{username}</h2>
-                            <p className="text-xs text-[#a3c0e6]">Athlete</p>
-                        </div>
-                    </div>
-                </div>
-                <nav ref={navRef} className="space-y-1 p-4">
-                    <Link
-                        href={getRoute('student.dashboard')}
-                        className="flex items-center rounded-md bg-[#1e3a5f] px-4 py-3 text-white transition-colors hover:bg-[#1e3a5f]/80"
-                    >
-                        <Home className="mr-3 h-5 w-5 text-[#4a90e2]" />
-                        <span>Dashboard</span>
-                    </Link>
-                    <a
-                        href="https://youngathletetraining.co.uk"
-                        target="_blank"
-                        className="flex items-center rounded-md px-4 py-3 text-[#a3c0e6] transition-colors hover:bg-[#1e3a5f]/40 hover:text-white"
-                    >
-                        <Activity className="mr-3 h-5 w-5 text-[#4a90e2]" />
-                        <span>Training Sessions</span>
-                    </a>
-                    <Link
-                        href={getRoute('student.training')}
-                        className="flex items-center rounded-md px-4 py-3 text-[#a3c0e6] transition-colors hover:bg-[#1e3a5f]/40 hover:text-white"
-                    >
-                        <Activity className="mr-3 h-5 w-5 text-[#4a90e2]" />
-                        <span>Training Diary</span>
-                    </Link>
-                    <Link
-                        href={getRoute('student.progress')}
-                        className="flex items-center rounded-md px-4 py-3 text-[#a3c0e6] transition-colors hover:bg-[#1e3a5f]/40 hover:text-white"
-                    >
-                        <TrendingUp className="mr-3 h-5 w-5 text-[#4a90e2]" />
-                        <span>Progress</span>
-                    </Link>
-
-                    <div className="pt-4">
-                        <h3 className="px-4 py-2 text-xs font-semibold tracking-wider text-[#63b3ed] uppercase">Leaderboards</h3>
-                        <Link
-                            href={getRoute('leaderboard.strength')}
-                            className="flex items-center rounded-md px-4 py-3 text-[#a3c0e6] transition-colors hover:bg-[#1e3a5f]/40 hover:text-white"
-                        >
-                            <Award className="mr-3 h-5 w-5 text-[#4a90e2]" />
-                            <span>Strength</span>
-                        </Link>
-                        <Link
-                            href={getRoute('leaderboard.consistency')}
-                            className="flex items-center rounded-md px-4 py-3 text-[#a3c0e6] transition-colors hover:bg-[#1e3a5f]/40 hover:text-white"
-                        >
-                            <BarChart2 className="mr-3 h-5 w-5 text-[#4a90e2]" />
-                            <span>Consistency</span>
-                        </Link>
-                    </div>
-                </nav>
-                <div className="absolute bottom-0 w-full border-t border-[#1e3a5f] p-4">
-                    <Link
-                        href={getRoute('admin.logout')}
-                        method="post"
-                        as="button"
-                        className="flex w-full items-center rounded-lg px-4 py-3 text-[#a3c0e6] transition-colors hover:bg-[#112845] hover:text-white"
-                        preserveScroll
-                    >
-                        <LogOut className="mr-3 h-5 w-5" />
-                        Logout
-                    </Link>
-                </div>
-            </div>
-
-            {/* Main Content */}
-            <div ref={mainContentRef} className="ml-64 flex-1">
-                <header ref={headerRef} className="sticky top-0 z-10 border-b border-[#1e3a5f] bg-[#0a1e3c]/80 px-8 py-4 backdrop-blur-md">
-                    <div className="flex items-center justify-between">
-                        <h1 className="text-2xl font-bold text-white">Dashboard</h1>
+        <Layout username={username} routes={routes} pageTitle="Dashboard">
+            {/* Display current block info in header */}
                         {currentBlock && (
-                            <div className="flex items-center rounded-lg bg-[#1e3a5f]/50 px-4 py-2">
+                <div className="mb-6 flex items-center justify-end rounded-lg bg-[#1e3a5f]/50 px-4 py-2">
                                 <Calendar className="mr-2 h-5 w-5 text-[#4a90e2]" />
                                 <span className="text-sm text-[#a3c0e6]">Current: Block {currentBlock.block_number}</span>
                                 {remainingSessions <= 1 && (
@@ -635,10 +532,7 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({
                                 )}
                             </div>
                         )}
-                    </div>
-                </header>
 
-                <main className="mx-auto max-w-6xl px-8 py-6">
                     {/* Stats Grid */}
                     <div ref={statsRef} className="lg:grid-cols- mb-8 grid grid-cols-1 gap-6 md:grid-cols-2">
                         {/* Strength Level Card */}
@@ -743,33 +637,7 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({
                             </button>
                         ))}
                     </div>
-                </main>
-            </div>
-
-            {/* Block selection prompt */}
-            {showPrompt && selectedBlock && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
-                    <div className="w-full max-w-md rounded-xl border border-[#1e3a5f] bg-[#112845] p-6 shadow-xl">
-                        <h3 className="mb-4 text-xl font-semibold text-white">Block {selectedBlock.block_number}</h3>
-                        <p className="mb-4 text-[#a3c0e6]">
-                            This block runs from {formatDate(selectedBlock.start_date)} to {formatDate(selectedBlock.end_date)}.
-                        </p>
-                        <p className="mb-6 text-[#a3c0e6]">Would you like to view the training sessions for this block?</p>
-                        <div className="flex space-x-4">
-                            <button
-                                onClick={closePrompt}
-                                className="flex-1 rounded-lg border border-[#1e3a5f] px-4 py-2 text-[#a3c0e6] hover:bg-[#1e3a5f]/30"
-                            >
-                                Cancel
-                            </button>
-                            <button onClick={goToTraining} className="flex-1 rounded-lg bg-[#2ecc71] px-4 py-2 text-white hover:bg-[#27ae60]">
-                                View Training
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
-        </div>
+        </Layout>
     );
 };
 
