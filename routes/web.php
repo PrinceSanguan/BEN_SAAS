@@ -78,6 +78,8 @@ Route::middleware([AdminMiddleware::class])->group(function () {
 
     Route::get('/admin/email-templates', [AdminDashboardController::class, 'emailTemplates'])->name('admin.email-templates');
     Route::put('/admin/email-templates/{name}', [AdminDashboardController::class, 'updateEmailTemplate'])->name('admin.email-templates.update');
+
+    Route::get('/admin/athletes/{id}/summary', [AdminDashboardController::class, 'showAthleteSummary'])->name('admin.athletes.summary');
 });
 
 Route::post('/admin/logout', [LoginController::class, 'logout'])->name('admin.logout');

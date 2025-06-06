@@ -4,7 +4,7 @@ import { HomeIcon, LogOut as LogOutIcon } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 
 interface AdminSidebarProps {
-    activePage: 'dashboard' | 'email-templates';
+    activePage: 'dashboard' | 'email-templates' | 'summaries';
     isMobile?: boolean;
     onClose?: () => void;
 }
