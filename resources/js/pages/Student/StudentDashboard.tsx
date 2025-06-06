@@ -474,6 +474,18 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({
                         </div>
                     </div>
 
+                    {/* Training Sessions Button */}
+                    <div className="mb-6">
+                        <a
+                            href="https://youngathletetraining.co.uk"
+                            target="_blank"
+                            className="flex w-full items-center justify-center rounded-md bg-[#2ecc71] py-4 text-center text-lg font-medium text-white shadow-md hover:bg-[#27ae60]"
+                        >
+                            <Activity className="mr-3 h-6 w-6" />
+                            Go to Training Sessions
+                        </a>
+                    </div>
+
                     {/* Leaderboard links */}
                     <div className="mb-8 space-y-3">
                         <Link
@@ -493,7 +505,7 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({
                     </div>
 
                     {/* Bottom navigation */}
-                    <div className="grid grid-cols-2 gap-2">
+                    <div className="grid grid-cols-3 gap-2">
                         <Link
                             href={getRoute('student.dashboard')}
                             className="flex flex-col items-center rounded-md bg-[#1e3a5f] p-3 text-center text-white hover:bg-[#1e3a5f]/80"
@@ -501,12 +513,20 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({
                             <Home className="mb-1 h-6 w-6 text-[#4a90e2]" />
                             <span className="text-xs">Home</span>
                         </Link>
+                        <a
+                            href="https://youngathletetraining.co.uk"
+                            target="_blank"
+                            className="flex flex-col items-center rounded-md bg-[#0a1e3c]/70 p-3 text-center text-[#a3c0e6] hover:bg-[#1e3a5f]/50 hover:text-white"
+                        >
+                            <Activity className="mb-1 h-6 w-6 text-[#4a90e2]" />
+                            <span className="text-xs">Sessions</span>
+                        </a>
                         <Link
                             href={getRoute('student.training')}
                             className="flex flex-col items-center rounded-md bg-[#0a1e3c]/70 p-3 text-center text-[#a3c0e6] hover:bg-[#1e3a5f]/50 hover:text-white"
                         >
                             <Activity className="mb-1 h-6 w-6 text-[#4a90e2]" />
-                            <span className="text-xs">Your Training</span>
+                            <span className="text-xs">Diary</span>
                         </Link>
                     </div>
                 </div>
@@ -544,12 +564,20 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({
                         <Home className="mr-3 h-5 w-5 text-[#4a90e2]" />
                         <span>Dashboard</span>
                     </Link>
+                    <a
+                        href="https://youngathletetraining.co.uk"
+                        target="_blank"
+                        className="flex items-center rounded-md px-4 py-3 text-[#a3c0e6] transition-colors hover:bg-[#1e3a5f]/40 hover:text-white"
+                    >
+                        <Activity className="mr-3 h-5 w-5 text-[#4a90e2]" />
+                        <span>Training Sessions</span>
+                    </a>
                     <Link
                         href={getRoute('student.training')}
                         className="flex items-center rounded-md px-4 py-3 text-[#a3c0e6] transition-colors hover:bg-[#1e3a5f]/40 hover:text-white"
                     >
                         <Activity className="mr-3 h-5 w-5 text-[#4a90e2]" />
-                        <span>Training</span>
+                        <span>Training Diary</span>
                     </Link>
                     <Link
                         href={getRoute('student.progress')}
@@ -648,12 +676,20 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({
                         <div className="rounded-xl border border-[#1e3a5f] bg-[#0a1e3c] p-6 shadow-lg">
                             <h3 className="mb-4 text-sm font-medium tracking-wider text-[#4a90e2] uppercase">Quick Navigation</h3>
                             <div className="grid grid-cols-1 gap-4">
+                                <a
+                                    href="https://youngathletetraining.co.uk"
+                                    target="_blank"
+                                    className="flex items-center rounded-lg bg-[#2ecc71] px-4 py-3 text-white transition-colors hover:bg-[#27ae60]"
+                                >
+                                    <Activity className="mr-3 h-5 w-5" />
+                                    <span>Go to Training Sessions</span>
+                                </a>
                                 <Link
                                     href={getRoute('student.training')}
                                     className="flex items-center rounded-lg bg-[#1e3a5f]/80 px-4 py-3 text-white transition-colors hover:bg-[#1e3a5f]"
                                 >
                                     <Activity className="mr-3 h-5 w-5 text-[#4a90e2]" />
-                                    <span>Go to Training</span>
+                                    <span>Training Diary</span>
                                 </Link>
                                 <Link
                                     href={getRoute('leaderboard.strength')}

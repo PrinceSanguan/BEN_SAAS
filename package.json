@@ -11,6 +11,7 @@
     },
     "devDependencies": {
         "@eslint/js": "^9.19.0",
+        "@types/jspdf": "^2.0.0",
         "@types/node": "^22.13.11",
         "eslint": "^9.17.0",
         "eslint-config-prettier": "^10.0.1",
@@ -47,6 +48,8 @@
         "concurrently": "^9.0.1",
         "globals": "^15.14.0",
         "gsap": "^3.12.7",
+        "html2canvas": "^1.4.1",
+        "jspdf": "^3.0.1",
         "laravel-vite-plugin": "^1.0",
         "lucide-react": "^0.475.0",
         "react": "^19.0.0",

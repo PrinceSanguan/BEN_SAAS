@@ -195,6 +195,13 @@ export default function AthleteDetail({ athlete, activePage, errors = {}, flash,
                                     'Send Reset Link'
                                 )}
                             </button>
+
+                            <button
+                                onClick={() => router.get(`/admin/athletes/${athlete.id}/summary`)}
+                                className="rounded-lg border border-purple-600 bg-purple-600 px-4 py-2 font-medium text-white transition-all hover:bg-purple-700"
+                            >
+                                View Summary
+                            </button>
                         </div>
                     </div>
 

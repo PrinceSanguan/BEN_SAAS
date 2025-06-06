@@ -23,14 +23,16 @@ class WelcomeMail extends Mailable
 
     public function build()
     {
+        $template = \App\Models\EmailTemplate::where('name', 'welcome')->first();
         $resetUrl = url('/reset-password/' . $this->token);
 
-        return $this->view('emails.welcome')
-            ->subject('Welcome to Young Athlete Training - Set Up Your Password')
-            ->with([
-                'resetUrl' => $resetUrl,
-                'username' => $this->username,
-                'email' => $this->email,
-            ]);
+        $content = str_replace(
+            ['{{ $resetUrl }}', '{{ $username }}', '{{ $email }}'],
+            [$resetUrl, $this->username, $this->email],
+            $template->content
+        );
+
+        return $this->subject($template->subject)
+            ->html($content);
     }
 }
