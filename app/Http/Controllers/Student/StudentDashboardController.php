@@ -104,7 +104,7 @@ class StudentDashboardController extends Controller
                 'block_number' => $block->block_number,
                 'start_date' => $startDate->format('Y-m-d'),
                 'end_date' => $endDate->format('Y-m-d'),
-                'duration_weeks' => $startDate->diffInWeeks($endDate) + 1,
+                'duration_weeks' => 12,
                 'is_current' => $now->between($startDate, $endDate),
                 'is_locked' => false, // Blocks are not locked if they have released sessions
                 'is_associated_with_user' => true,

@@ -128,7 +128,7 @@ class TrainingSession extends Model
      */
     public function isRestWeek(): bool
     {
-        return in_array($this->week_number, [7, 14]);
+        return in_array($this->week_number, [6, 12]);
     }
 
     /**
@@ -138,7 +138,7 @@ class TrainingSession extends Model
      */
     public function isTestingWeek(): bool
     {
-        return in_array($this->week_number, [6, 13]);
+        return in_array($this->week_number, [5, 11]);
     }
 
     /**

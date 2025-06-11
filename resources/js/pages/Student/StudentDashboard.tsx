@@ -632,7 +632,7 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({
                                 </div>
                                 <div className="mt-2 flex items-center text-sm text-[#a3c0e6]">
                                     <Clock className="mr-1 h-4 w-4" />
-                                    <span>14 weeks</span>
+                                    <span>12 weeks</span>
                                 </div>
                             </button>
                         ))}

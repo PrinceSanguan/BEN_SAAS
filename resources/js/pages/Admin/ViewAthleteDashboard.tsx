@@ -1,5 +1,5 @@
 import { Head, router } from '@inertiajs/react';
-import { Calendar, ChevronRight, Edit, Menu, Save, Trophy, User, X } from 'lucide-react';
+import { Calendar, ChevronRight, Clock, Edit, Menu, Save, Trophy, User, X } from 'lucide-react';
 import { useState } from 'react';
 import { CartesianGrid, Legend, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 
@@ -485,7 +485,10 @@ const ViewAthleteDashboard: React.FC<ViewAthleteDashboardProps> = ({
                                         </div>
                                         <div className="col-span-2 mt-1">
                                             <p className="text-xs text-[#a3c0e6]">DURATION</p>
-                                            <p className="text-white">{block.duration_weeks} weeks</p>
+                                            <div className="text-sm text-[#a3c0e6]">
+                                                <Clock className="mr-1 h-4 w-4" />
+                                                <span>12 weeks</span>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>

@@ -115,27 +115,27 @@ class AdminDashboardController extends Controller
                 $existingBlocks = Block::where('user_id', $user->id)->count();
 
                 if ($existingBlocks === 0) {
-                    // Block 1: All 14 weeks (Training, Testing, Rest period)
+                    // Block 1: All 12 weeks (Training, Testing, Rest period)
                     $block1 = Block::create([
                         'block_number' => 1,
                         'start_date' => $now,
-                        'end_date' => $now->copy()->addWeeks(14),
+                        'end_date' => $now->copy()->addWeeks(12),
                         'user_id' => $user->id
                     ]);
 
                     // Block 2: Complete reset, starting after Block 1
                     $block2 = Block::create([
                         'block_number' => 2,
-                        'start_date' => $now->copy()->addWeeks(14)->addDay(),
-                        'end_date' => $now->copy()->addWeeks(28),
+                        'start_date' => $now->copy()->addWeeks(12)->addDay(),
+                        'end_date' => $now->copy()->addWeeks(24),
                         'user_id' => $user->id
                     ]);
 
                     // Block 3: Third block
                     $block3 = Block::create([
                         'block_number' => 3,
-                        'start_date' => $now->copy()->addWeeks(28)->addDay(),
-                        'end_date' => $now->copy()->addWeeks(42),
+                        'start_date' => $now->copy()->addWeeks(24)->addDay(),
+                        'end_date' => $now->copy()->addWeeks(36),
                         'user_id' => $user->id
                     ]);
 
@@ -216,15 +216,12 @@ class AdminDashboardController extends Controller
      */
     private function createSessionsForBlock(Block $block): void
     {
-        // Initialize session counter for this block
-        $sessionCount = 1;
-
-        // Iterate through all 14 weeks
-        for ($week = 1; $week <= 14; $week++) {
+        // Iterate through all 12 weeks
+        for ($week = 1; $week <= 12; $week++) {
             $weekStartDate = Carbon::parse($block->start_date ?: now())->addWeeks($week - 1);
 
-            // Weeks 7 and 14 are REST weeks
-            if (in_array($week, [7, 14])) {
+            // Weeks 6 and 12 are REST weeks
+            if (in_array($week, [6, 12])) {
                 TrainingSession::create([
                     'block_id'       => $block->id,
                     'week_number'    => $week,
@@ -233,60 +230,65 @@ class AdminDashboardController extends Controller
                     'release_date'   => $weekStartDate,
                 ]);
             }
-            // Week 6: 1 training + 1 testing
-            elseif ($week == 6) {
-                // Training session
+            // Week 5: Session 1 (training) + Session 2 (testing)
+            elseif ($week == 5) {
+                // Session 1: Training
                 TrainingSession::create([
                     'block_id'       => $block->id,
                     'week_number'    => $week,
-                    'session_number' => $sessionCount,
+                    'session_number' => 1,
                     'session_type'   => 'training',
                     'release_date'   => $weekStartDate,
                 ]);
-                $sessionCount++;
 
-                // Testing session
+                // Session 2: Testing
                 TrainingSession::create([
                     'block_id'       => $block->id,
                     'week_number'    => $week,
-                    'session_number' => -1,
+                    'session_number' => 2,
                     'session_type'   => 'testing',
                     'release_date'   => $weekStartDate->copy()->addDays(1),
                 ]);
             }
-            // Week 13: 1 training + 1 testing
-            elseif ($week == 13) {
-                // Training session
+            // Week 11: Session 1 (training) + Session 2 (testing)
+            elseif ($week == 11) {
+                // Session 1: Training
                 TrainingSession::create([
                     'block_id'       => $block->id,
                     'week_number'    => $week,
-                    'session_number' => $sessionCount,
+                    'session_number' => 1,
                     'session_type'   => 'training',
                     'release_date'   => $weekStartDate,
                 ]);
-                $sessionCount++;
 
-                // Testing session
+                // Session 2: Testing
                 TrainingSession::create([
                     'block_id'       => $block->id,
                     'week_number'    => $week,
-                    'session_number' => -1,
+                    'session_number' => 2,
                     'session_type'   => 'testing',
                     'release_date'   => $weekStartDate->copy()->addDays(1),
                 ]);
             }
-            // Regular weeks with 2 training sessions each
+            // Regular weeks (1-4, 7-10): Session 1 and Session 2 (both training)
             else {
-                for ($i = 0; $i <= 1; $i++) {
-                    TrainingSession::create([
-                        'block_id'       => $block->id,
-                        'week_number'    => $week,
-                        'session_number' => $sessionCount,
-                        'session_type'   => 'training',
-                        'release_date'   => $weekStartDate->copy()->addDays($i),
-                    ]);
-                    $sessionCount++;
-                }
+                // Session 1: Training
+                TrainingSession::create([
+                    'block_id'       => $block->id,
+                    'week_number'    => $week,
+                    'session_number' => 1,
+                    'session_type'   => 'training',
+                    'release_date'   => $weekStartDate,
+                ]);
+
+                // Session 2: Training
+                TrainingSession::create([
+                    'block_id'       => $block->id,
+                    'week_number'    => $week,
+                    'session_number' => 2,
+                    'session_type'   => 'training',
+                    'release_date'   => $weekStartDate->copy()->addDays(1),
+                ]);
             }
         }
     }
