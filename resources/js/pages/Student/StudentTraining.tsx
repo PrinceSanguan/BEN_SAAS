@@ -204,8 +204,8 @@ const StudentTraining: React.FC<StudentTrainingProps> = ({ blocks, username = 'A
 
     // Get week status for visual indicator
     const getWeekStatus = (week: Week) => {
-        // Check if this is a rest week (weeks 7 and 14)
-        const isRestWeek = week.week_number === 7 || week.week_number === 14;
+        // Check if this is a rest week (weeks 6 and 12)
+        const isRestWeek = week.week_number === 6 || week.week_number === 12;
 
         if (isRestWeek) return 'rest';
 

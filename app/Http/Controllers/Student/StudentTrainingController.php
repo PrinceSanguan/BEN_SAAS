@@ -70,15 +70,29 @@ class StudentTrainingController extends Controller
                     $restSessions = $sessions->where('session_type', 'rest');
                     $weekLabel = "Week {$weekNumber}: ✅ REST WEEK";
 
-                    $mappedSessions = $restSessions->map(function ($session) use ($completedSessions, $currentDate) {
+                    $mappedSessions = $sessions->map(function ($session) use ($completedSessions, $currentDate) {
+                        $displayLabel = '';
+                        if ($session->session_type === 'testing') {
+                            $displayLabel = 'TESTING';
+                        } elseif ($session->session_type === 'rest') {
+                            $displayLabel = 'REST WEEK';
+                        } else {
+                            $displayLabel = "Session {$session->session_number}";
+                        }
+
+                        $releaseDate = $session->release_date ? Carbon::parse($session->release_date) : null;
+                        $isCompleted = in_array($session->id, $completedSessions);
+                        $isLocked = $releaseDate ? $currentDate->lt($releaseDate) : true;
+                        $formattedReleaseDate = $releaseDate ? $releaseDate->format('F j, Y') : 'Not scheduled';
+
                         return [
                             'id' => $session->id,
                             'session_number' => $session->session_number,
                             'session_type' => $session->session_type,
-                            'is_completed' => true,
-                            'is_locked' => false,
-                            'label' => 'REST WEEK',
-                            'release_date' => $session->release_date ? Carbon::parse($session->release_date)->format('F j, Y') : 'Not scheduled',
+                            'is_completed' => $isCompleted,
+                            'is_locked' => $isLocked,
+                            'label' => $displayLabel,
+                            'release_date' => $formattedReleaseDate,
                             'raw_release_date' => $session->release_date,
                         ];
                     })->values();
@@ -86,19 +100,15 @@ class StudentTrainingController extends Controller
                     $training = $sessions->where('session_type', 'training');
                     $testing = $sessions->where('session_type', 'testing');
 
-                    $trainLabels = $training->map(fn($s) => "TRAINING #{$s->session_number}")->toArray();
-                    $testLabels = $testing->map(fn($s) => "TESTING")->toArray();
-
-                    $labelTrain = $trainLabels ? "✅ " . implode(" & ", $trainLabels) : '';
-                    $labelTest = $testLabels ? "✅ " . implode(" & ", $testLabels) : '';
-
-                    $weekLabelParts = array_filter([$labelTrain, $labelTest]);
-                    $weekLabel = $weekLabelParts ? "Week {$weekNumber}: " . implode(", ", $weekLabelParts) : "Week {$weekNumber}: No sessions";
+                    $weekLabel = "Week {$weekNumber}";
 
                     $mappedSessions = $sessions->map(function ($session) use ($completedSessions, $currentDate) {
+                        // Same mapping logic as above
                         $displayLabel = '';
                         if ($session->session_type === 'testing') {
                             $displayLabel = 'TESTING';
+                        } elseif ($session->session_type === 'rest') {
+                            $displayLabel = 'REST WEEK';
                         } else {
                             $displayLabel = "Session {$session->session_number}";
                         }
