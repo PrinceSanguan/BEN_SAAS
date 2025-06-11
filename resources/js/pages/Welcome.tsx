@@ -40,15 +40,23 @@ export default function Welcome() {
             </Head>
 
             {/* Sub-components below */}
-            <div className="bg-gray-950 text-white">
+            <div className="bg-gray-960 text-white">
                 <Hero />
-                <About />
-                <Training />
+                <div id="about-us">
+                    <About />
+                </div>
+                <div id="our-training">
+                    <Training />
+                </div>
                 <Features />
                 <HowItWorks />
                 <TopThreeLeaderboard />
-                <Testimonials />
-                <CTA />
+                <div id="testimonials">
+                    <Testimonials />
+                </div>
+                <div id="apply">
+                    <CTA />
+                </div>
                 <Footer />
             </div>
         </>
