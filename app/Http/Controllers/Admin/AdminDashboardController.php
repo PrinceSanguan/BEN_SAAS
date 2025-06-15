@@ -809,7 +809,7 @@ class AdminDashboardController extends Controller
                         'block_number' => $block->block_number,
                         'start_date' => $block->start_date ? Carbon::parse($block->start_date)->format('Y-m-d') : null,
                         'end_date' => $block->end_date ? Carbon::parse($block->end_date)->format('Y-m-d') : null,
-                        'duration_weeks' => 14,
+                        'duration_weeks' => 12,
                     ];
                 }),
                 'strengthLevel' => $strengthLevel,
