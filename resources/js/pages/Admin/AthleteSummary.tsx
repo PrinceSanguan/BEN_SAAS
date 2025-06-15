@@ -74,10 +74,9 @@ export default function AthleteSummary({ athlete, progressData, xpInfo }: Props)
             <div id="summary-content" className="mx-auto bg-white print:!mx-0 print:!w-full">
                 <div className="page-content" style={{ padding: '5mm', minHeight: '180mm' }}>
                     {/* Compact Header */}
-                    <div className="mb-3 border-b border-gray-300 pb-2 text-center">
-                        <h1 className="mb-1 text-2xl font-bold text-gray-900">{athlete.username}</h1>
-                        <p className="text-sm font-medium text-gray-600">Performance Summary Report</p>
-                        <div className="mt-1 flex items-center justify-center gap-3 text-xs text-gray-500">
+                    <div className="mb-2 border-b border-gray-300 pb-1 text-center">
+                        <h1 className="mb-0.5 text-xl font-bold text-gray-900">{athlete.username}</h1>
+                        <div className="flex items-center justify-center gap-3 text-xs text-gray-500">
                             <span>Generated: {new Date().toLocaleDateString()}</span>
                             <span>•</span>
                             <span>Email: {athlete.email}</span>
@@ -85,7 +84,7 @@ export default function AthleteSummary({ athlete, progressData, xpInfo }: Props)
                     </div>
 
                     {/* Compact Stats Overview */}
-                    <div className="mb-3 grid grid-cols-4 gap-2">
+                    <div className="mb-2 grid grid-cols-4 gap-1">
                         <div className="rounded-lg border border-blue-200 bg-blue-50 p-2 text-center">
                             <h3 className="mb-1 text-xs font-bold text-blue-600 uppercase">Strength Level</h3>
                             <div className="mb-1 text-2xl font-bold text-blue-900">{athlete.strength_level || 1}</div>
@@ -118,67 +117,25 @@ export default function AthleteSummary({ athlete, progressData, xpInfo }: Props)
                         </div>
 
                         <div className="rounded-lg border border-orange-200 bg-orange-50 p-2 text-center">
-                            <h3 className="mb-1 text-xs font-bold text-orange-600 uppercase">Member Since</h3>
-                            <div className="mb-1 text-sm font-bold text-orange-900">
-                                {new Date(athlete.created_at).toLocaleDateString('en-US', {
-                                    year: 'numeric',
-                                    month: 'short',
-                                })}
+                            <h3 className="mb-1 text-xs font-bold text-orange-600 uppercase">Pre-training baseline Results</h3>
+                            <div className="text-xs text-orange-900">
+                                <div>Standing Long Jump: {athlete.training_results?.standing_long_jump || '-'} cm</div>
+                                <div>SL Jump (L): {athlete.training_results?.single_leg_jump_left || '-'} cm</div>
                             </div>
-                            <p className="text-xs text-orange-600">Join Date</p>
                         </div>
                     </div>
 
-                    {/* Compact Training Results - Only show 6 most important */}
-                    {athlete.training_results && (
-                        <div className="mb-3">
-                            <h2 className="mb-2 border-b border-gray-200 pb-1 text-sm font-bold text-gray-900">Pre-Training Baseline Results</h2>
-                            <div className="grid grid-cols-6 gap-1">
-                                <div className="rounded border border-gray-300 bg-gray-50 p-1">
-                                    <p className="mb-1 text-xs font-bold text-gray-500">Standing Long Jump</p>
-                                    <p className="text-sm font-bold text-gray-900">{athlete.training_results.standing_long_jump || '-'}</p>
-                                    <p className="text-xs text-gray-600">cm</p>
-                                </div>
-                                <div className="rounded border border-gray-300 bg-gray-50 p-1">
-                                    <p className="mb-1 text-xs font-bold text-gray-500">SL Jump (L)</p>
-                                    <p className="text-sm font-bold text-gray-900">{athlete.training_results.single_leg_jump_left || '-'}</p>
-                                    <p className="text-xs text-gray-600">cm</p>
-                                </div>
-                                <div className="rounded border border-gray-300 bg-gray-50 p-1">
-                                    <p className="mb-1 text-xs font-bold text-gray-500">SL Jump (R)</p>
-                                    <p className="text-sm font-bold text-gray-900">{athlete.training_results.single_leg_jump_right || '-'}</p>
-                                    <p className="text-xs text-gray-600">cm</p>
-                                </div>
-                                <div className="rounded border border-gray-300 bg-gray-50 p-1">
-                                    <p className="mb-1 text-xs font-bold text-gray-500">Wall Sit (L)</p>
-                                    <p className="text-sm font-bold text-gray-900">{athlete.training_results.single_leg_wall_sit_left || '-'}</p>
-                                    <p className="text-xs text-gray-600">sec</p>
-                                </div>
-                                <div className="rounded border border-gray-300 bg-gray-50 p-1">
-                                    <p className="mb-1 text-xs font-bold text-gray-500">Wall Sit (R)</p>
-                                    <p className="text-sm font-bold text-gray-900">{athlete.training_results.single_leg_wall_sit_right || '-'}</p>
-                                    <p className="text-xs text-gray-600">sec</p>
-                                </div>
-                                <div className="rounded border border-gray-300 bg-gray-50 p-1">
-                                    <p className="mb-1 text-xs font-bold text-gray-500">Bent Arm Hang</p>
-                                    <p className="text-sm font-bold text-gray-900">{athlete.training_results.bent_arm_hang || '-'}</p>
-                                    <p className="text-xs text-gray-600">sec</p>
-                                </div>
-                            </div>
-                        </div>
-                    )}
-
-                    {/* Compact Progress Charts - All on one page */}
+                    {/* Progress Charts - 4 per row */}
                     {progressDataArray.length > 0 && (
                         <div>
                             <h2 className="mb-2 border-b border-gray-200 pb-1 text-sm font-bold text-gray-900">
                                 Progress Charts & Performance Analysis
                             </h2>
 
-                            <div className="grid grid-cols-3 gap-1">
-                                {progressDataArray.slice(0, 6).map(([testKey, data]) => (
-                                    <div key={testKey} className="rounded border border-gray-200 bg-white p-1 shadow-sm">
-                                        <div className="mb-1 flex items-center justify-between">
+                            <div className="grid grid-cols-4 gap-2">
+                                {progressDataArray.map(([testKey, data]) => (
+                                    <div key={testKey} className="rounded border border-gray-200 bg-white p-2 shadow-sm">
+                                        <div className="mb-1 text-center">
                                             <div>
                                                 <h3 className="text-xs font-bold text-gray-900">{data.name}</h3>
                                                 <p className="text-xs text-gray-600">{data.sessions ? data.sessions.length : 0} points</p>
@@ -201,9 +158,9 @@ export default function AthleteSummary({ athlete, progressData, xpInfo }: Props)
                                         </div>
 
                                         {data.sessions && data.sessions.length > 0 ? (
-                                            <div className="h-12">
+                                            <div className="h-20">
                                                 <ResponsiveContainer width="100%" height="100%">
-                                                    <LineChart data={data.sessions} margin={{ top: 1, right: 2, left: 2, bottom: 1 }}>
+                                                    <LineChart data={data.sessions} margin={{ top: 2, right: 2, left: 2, bottom: 2 }}>
                                                         <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
                                                         <XAxis
                                                             dataKey="date"
@@ -235,84 +192,13 @@ export default function AthleteSummary({ athlete, progressData, xpInfo }: Props)
                                                 </ResponsiveContainer>
                                             </div>
                                         ) : (
-                                            <div className="flex h-12 items-center justify-center rounded bg-gray-50">
+                                            <div className="flex h-20 items-center justify-center rounded bg-gray-50">
                                                 <p className="text-xs text-gray-500">No data</p>
                                             </div>
                                         )}
                                     </div>
                                 ))}
                             </div>
-
-                            {/* Additional charts if more than 6 */}
-                            {progressDataArray.length > 6 && (
-                                <div className="mt-1 grid grid-cols-3 gap-1">
-                                    {progressDataArray.slice(6).map(([testKey, data]) => (
-                                        <div key={testKey} className="rounded border border-gray-200 bg-white p-1 shadow-sm">
-                                            <div className="mb-1 flex items-center justify-between">
-                                                <div>
-                                                    <h3 className="text-xs font-bold text-gray-900">{data.name}</h3>
-                                                    <p className="text-xs text-gray-600">{data.sessions ? data.sessions.length : 0} points</p>
-                                                </div>
-                                                {data.percentageIncrease !== null && (
-                                                    <span
-                                                        className={`inline-flex items-center rounded-full px-1 py-0.5 text-xs font-bold ${
-                                                            data.percentageIncrease > 0
-                                                                ? 'bg-green-100 text-green-800'
-                                                                : data.percentageIncrease < 0
-                                                                  ? 'bg-red-100 text-red-800'
-                                                                  : 'bg-gray-100 text-gray-800'
-                                                        }`}
-                                                    >
-                                                        {data.percentageIncrease > 0 ? '↗' : data.percentageIncrease < 0 ? '↘' : '→'}
-                                                        {data.percentageIncrease > 0 ? '+' : ''}
-                                                        {data.percentageIncrease}%
-                                                    </span>
-                                                )}
-                                            </div>
-
-                                            {data.sessions && data.sessions.length > 0 ? (
-                                                <div className="h-12">
-                                                    <ResponsiveContainer width="100%" height="100%">
-                                                        <LineChart data={data.sessions} margin={{ top: 1, right: 2, left: 2, bottom: 1 }}>
-                                                            <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                                                            <XAxis
-                                                                dataKey="date"
-                                                                tick={{ fontSize: 6, fill: '#4b5563' }}
-                                                                tickFormatter={(date) => {
-                                                                    const d = new Date(date);
-                                                                    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-                                                                }}
-                                                            />
-                                                            <YAxis tick={{ fontSize: 6, fill: '#4b5563' }} domain={['dataMin - 5', 'dataMax + 5']} />
-                                                            <Tooltip
-                                                                contentStyle={{
-                                                                    backgroundColor: '#ffffff',
-                                                                    border: '1px solid #e5e7eb',
-                                                                    borderRadius: '4px',
-                                                                    fontSize: '8px',
-                                                                }}
-                                                                formatter={(value, name) => [`${value}`, data.name]}
-                                                            />
-                                                            <Line
-                                                                type="monotone"
-                                                                dataKey="value"
-                                                                stroke="#2563eb"
-                                                                strokeWidth={1}
-                                                                dot={{ r: 1.5, fill: '#2563eb' }}
-                                                                activeDot={{ r: 2, fill: '#1d4ed8' }}
-                                                            />
-                                                        </LineChart>
-                                                    </ResponsiveContainer>
-                                                </div>
-                                            ) : (
-                                                <div className="flex h-12 items-center justify-center rounded bg-gray-50">
-                                                    <p className="text-xs text-gray-500">No data</p>
-                                                </div>
-                                            )}
-                                        </div>
-                                    ))}
-                                </div>
-                            )}
                         </div>
                     )}
 
