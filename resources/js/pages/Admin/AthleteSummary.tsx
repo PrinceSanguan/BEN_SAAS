@@ -24,6 +24,11 @@ type Athlete = {
 type Props = {
     athlete: Athlete;
     progressData?: { [key: string]: any };
+    sessionsData?: {
+        completed: number;
+        remaining: number;
+        total: number;
+    };
     xpInfo?: {
         total_xp: number;
         current_level: number;
@@ -31,7 +36,7 @@ type Props = {
     };
 };
 
-export default function AthleteSummary({ athlete, progressData, xpInfo }: Props) {
+export default function AthleteSummary({ athlete, progressData, sessionsData, xpInfo }: Props) {
     const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
 
     const generatePDF = () => {
@@ -117,11 +122,11 @@ export default function AthleteSummary({ athlete, progressData, xpInfo }: Props)
                         </div>
 
                         <div className="rounded-lg border border-orange-200 bg-orange-50 p-2 text-center">
-                            <h3 className="mb-1 text-xs font-bold text-orange-600 uppercase">Pre-training baseline Results</h3>
-                            <div className="text-xs text-orange-900">
-                                <div>Standing Long Jump: {athlete.training_results?.standing_long_jump || '-'} cm</div>
-                                <div>SL Jump (L): {athlete.training_results?.single_leg_jump_left || '-'} cm</div>
+                            <h3 className="mb-1 text-xs font-bold text-orange-600 uppercase">Sessions</h3>
+                            <div className="mb-1 text-2xl font-bold text-orange-900">
+                                {sessionsData?.completed || 0}/{sessionsData?.total || 0}
                             </div>
+                            <p className="text-xs text-orange-600">Accomplished</p>
                         </div>
                     </div>
 
