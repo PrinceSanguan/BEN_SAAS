@@ -1,12 +1,13 @@
+// resources/js/Pages/Welcome.tsx
 import { Head } from '@inertiajs/react';
 import { useEffect } from 'react';
 
+import About from '@/components/welcome/About';
+import Training from '@/components/welcome/Training';
 import CTA from '@/components/welcome/cta';
 import Features from '@/components/welcome/features';
 import Footer from '@/components/welcome/footer';
 import Hero from '@/components/welcome/hero';
-import About from '@/components/welcome/About';
-import Training from '@/components/welcome/Training';
 import HowItWorks from '@/components/welcome/howitworks';
 import Testimonials from '@/components/welcome/testimonials';
 
@@ -18,7 +19,11 @@ declare global {
     }
 }
 
-export default function Welcome() {
+interface WelcomeProps {
+    pageContent: Record<string, Record<string, string>>;
+}
+
+export default function Welcome({ pageContent }: WelcomeProps) {
     // Add dark mode class to body
     useEffect(() => {
         document.documentElement.classList.add('dark');
@@ -41,12 +46,12 @@ export default function Welcome() {
 
             {/* Sub-components below */}
             <div className="bg-gray-960 text-white">
-                <Hero />
+                <Hero pageContent={pageContent} />
                 <div id="about-us">
-                    <About />
+                    <About pageContent={pageContent} />
                 </div>
                 <div id="our-training">
-                    <Training />
+                    <Training pageContent={pageContent} />
                 </div>
                 <Features />
                 <HowItWorks />
@@ -55,7 +60,7 @@ export default function Welcome() {
                     <Testimonials />
                 </div>
                 <div id="apply">
-                    <CTA />
+                    <CTA pageContent={pageContent} />
                 </div>
                 <Footer />
             </div>

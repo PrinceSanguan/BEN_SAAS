@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\PageContent;
 use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
@@ -15,6 +16,7 @@ class DatabaseSeeder extends Seeder
 
             // First create users
             UserSeeder::class,
+            PageContentSeeder::class,
 
             // // Then create training blocks
             // BlockSeeder::class,
