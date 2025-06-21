@@ -84,6 +84,7 @@ Route::middleware([AdminMiddleware::class])->group(function () {
     //website editor
     Route::get('/admin/page-content', [AdminDashboardController::class, 'pageContent'])->name('admin.page-content');
     Route::post('/admin/page-content', [AdminDashboardController::class, 'updatePageContent'])->name('admin.page-content.update');
+    Route::get('/admin/page-content/preview', [AdminDashboardController::class, 'previewPageContent'])->name('admin.page-content.preview');
 });
 
 Route::post('/admin/logout', [LoginController::class, 'logout'])->name('admin.logout');

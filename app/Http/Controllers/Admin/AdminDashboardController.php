@@ -1342,7 +1342,7 @@ class AdminDashboardController extends Controller
             'field' => 'required|string',
             'value' => 'nullable|string',
             'type' => 'required|in:text,image,email',
-            'image' => 'nullable|image|max:2048'
+            'image' => 'nullable|image|mimes:webp|max:2048' // Only WebP allowed
         ]);
 
         if ($validated['type'] === 'image' && $request->hasFile('image')) {
@@ -1355,7 +1355,7 @@ class AdminDashboardController extends Controller
             }
 
             $image = $request->file('image');
-            $filename = time() . '_' . $image->getClientOriginalName();
+            $filename = time() . '_' . pathinfo($image->getClientOriginalName(), PATHINFO_FILENAME) . '.webp';
             $image->storeAs('', $filename, 'upload-image');
             $validated['value'] = $filename;
         }
@@ -1368,5 +1368,17 @@ class AdminDashboardController extends Controller
         );
 
         return redirect()->back()->with('success', 'Content updated successfully!');
+    }
+
+    public function previewPageContent()
+    {
+        $pageContent = PageContent::all()->groupBy('section')->map(function ($items) {
+            return $items->pluck('value', 'field');
+        });
+
+        return Inertia::render('Welcome', [
+            'pageContent' => $pageContent,
+            'isPreview' => true
+        ]);
     }
 }

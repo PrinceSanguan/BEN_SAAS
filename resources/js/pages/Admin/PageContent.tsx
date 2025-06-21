@@ -1,8 +1,9 @@
-// resources/js/Pages/Admin/PageContent.tsx
+// Update PageContent.tsx - Remove modal and replace with new tab
 import AdminSidebar from '@/components/admin/AdminSidebar';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Head, useForm } from '@inertiajs/react';
+import { ExternalLink, Eye } from 'lucide-react';
 import { useState } from 'react';
 
 interface PageContentProps {
@@ -45,9 +46,19 @@ export default function PageContent({ contents, activePage }: PageContentProps) 
     };
 
     const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        if (e.target.files?.[0]) {
-            setData('image', e.target.files[0]);
+        const file = e.target.files?.[0];
+        if (file) {
+            if (file.type !== 'image/webp') {
+                alert('Please select a WebP image file only.');
+                e.target.value = '';
+                return;
+            }
+            setData('image', file);
         }
+    };
+
+    const openPreview = () => {
+        window.open(route('admin.page-content.preview'), '_blank', 'width=1200,height=800,scrollbars=yes,resizable=yes');
     };
 
     return (
@@ -58,7 +69,14 @@ export default function PageContent({ contents, activePage }: PageContentProps) 
 
                 <main className="ml-64 flex-1 p-8">
                     <div className="mx-auto max-w-6xl">
-                        <h1 className="mb-8 text-3xl font-bold text-white">Page Content Management</h1>
+                        <div className="mb-8 flex items-center justify-between">
+                            <h1 className="text-3xl font-bold text-white">Page Content Management</h1>
+                            <Button onClick={openPreview} className="flex items-center gap-2 bg-green-600 text-white hover:bg-green-700">
+                                <Eye className="h-4 w-4" />
+                                Preview Landing Page
+                                <ExternalLink className="h-4 w-4" />
+                            </Button>
+                        </div>
 
                         {Object.entries(contents).map(([section, fields]) => (
                             <Card key={section} className="mb-6 border-slate-700 bg-slate-800">
@@ -90,10 +108,11 @@ export default function PageContent({ contents, activePage }: PageContentProps) 
                                                         <div>
                                                             <input
                                                                 type="file"
-                                                                accept="image/*"
+                                                                accept="image/webp"
                                                                 onChange={handleImageChange}
                                                                 className="w-full rounded border border-slate-600 bg-slate-700 p-2 text-white"
                                                             />
+                                                            <p className="mt-1 text-xs text-slate-400">Only WebP format is allowed</p>
                                                             {field.value && (
                                                                 <div className="mt-2">
                                                                     <img
