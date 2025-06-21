@@ -24,6 +24,8 @@ use Illuminate\Support\Str;
 use App\Models\EmailTemplate;
 use App\Models\TrainingResult;
 use App\Models\TestResult;
+use App\Models\PageContent;
+use Illuminate\Http\UploadedFile;
 
 
 class AdminDashboardController extends Controller
@@ -1321,5 +1323,62 @@ class AdminDashboardController extends Controller
         } catch (ModelNotFoundException $e) {
             return redirect()->back()->with('error', 'Athlete not found.');
         }
+    }
+
+    public function pageContent()
+    {
+        $contents = PageContent::all()->groupBy('section');
+
+        return Inertia::render('Admin/PageContent', [
+            'contents' => $contents,
+            'activePage' => 'page-content'
+        ]);
+    }
+
+    public function updatePageContent(Request $request)
+    {
+        $validated = $request->validate([
+            'section' => 'required|string',
+            'field' => 'required|string',
+            'value' => 'nullable|string',
+            'type' => 'required|in:text,image,email',
+            'image' => 'nullable|image|mimes:webp|max:2048' // Only WebP allowed
+        ]);
+
+        if ($validated['type'] === 'image' && $request->hasFile('image')) {
+            $existing = PageContent::where('section', $validated['section'])
+                ->where('field', $validated['field'])
+                ->first();
+
+            if ($existing) {
+                $existing->deleteOldImage();
+            }
+
+            $image = $request->file('image');
+            $filename = time() . '_' . pathinfo($image->getClientOriginalName(), PATHINFO_FILENAME) . '.webp';
+            $image->storeAs('', $filename, 'upload-image');
+            $validated['value'] = $filename;
+        }
+
+        PageContent::set(
+            $validated['section'],
+            $validated['field'],
+            $validated['value'],
+            $validated['type']
+        );
+
+        return redirect()->back()->with('success', 'Content updated successfully!');
+    }
+
+    public function previewPageContent()
+    {
+        $pageContent = PageContent::all()->groupBy('section')->map(function ($items) {
+            return $items->pluck('value', 'field');
+        });
+
+        return Inertia::render('Welcome', [
+            'pageContent' => $pageContent,
+            'isPreview' => true
+        ]);
     }
 }

@@ -4,7 +4,7 @@ import { HomeIcon, LogOut as LogOutIcon } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 
 interface AdminSidebarProps {
-    activePage: 'dashboard' | 'email-templates' | 'summaries';
+    activePage: 'dashboard' | 'email-templates' | 'summaries' | 'page-content';
     isMobile?: boolean;
     onClose?: () => void;
 }
@@ -221,6 +221,26 @@ export default function AdminSidebar({ activePage, isMobile = false, onClose }: 
                                 />
                             </svg>
                             <span>Email Templates</span>
+                        </Link>
+                    </li>
+                    <li>
+                        <Link
+                            href={safeRoute('admin.page-content')}
+                            className={`flex items-center rounded-lg px-4 py-3 transition-colors ${
+                                activePage === 'page-content'
+                                    ? 'border-l-4 border-[#4a90e2] bg-[#1e3a5f] text-[#4a90e2]'
+                                    : 'text-[#a3c0e6] hover:bg-[#112845] hover:text-white'
+                            }`}
+                        >
+                            <svg className="mr-3 h-5 w-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                                />
+                            </svg>
+                            <span>Page Content</span>
                         </Link>
                     </li>
                 </ul>
