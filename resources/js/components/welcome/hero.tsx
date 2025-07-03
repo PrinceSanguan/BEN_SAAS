@@ -1,25 +1,7 @@
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Link } from '@inertiajs/react';
 import gsap from 'gsap';
-import {
-    Activity,
-    ArrowRight,
-    Award,
-    BookOpen,
-    CheckCircle,
-    Clock,
-    Globe,
-    Menu,
-    Play,
-    Shield,
-    Star,
-    Target,
-    Trophy,
-    Users,
-    X,
-    Zap,
-} from 'lucide-react';
+import { Activity, ArrowRight, Award, CheckCircle, Clock, Menu, Play, Shield, Star, Target, X, Zap } from 'lucide-react';
 import type React from 'react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
@@ -363,38 +345,6 @@ const Hero: React.FC<HeroProps> = ({ pageContent }) => {
                 </div>
 
                 <div className="relative z-10 container mx-auto px-4 py-20 md:py-32">
-                    {/* Enhanced trust indicators */}
-                    <div className="mb-16 flex flex-wrap justify-center gap-4">
-                        <Badge
-                            variant="secondary"
-                            className="border border-white/30 bg-white/15 text-white backdrop-blur-md transition-all hover:scale-105 hover:bg-white/20"
-                        >
-                            <Star className="mr-2 h-4 w-4 fill-yellow-400 text-yellow-400" />
-                            4.9/5 Rating
-                        </Badge>
-                        <Badge
-                            variant="secondary"
-                            className="border border-white/30 bg-white/15 text-white backdrop-blur-md transition-all hover:scale-105 hover:bg-white/20"
-                        >
-                            <Trophy className="mr-2 h-4 w-4 text-amber-400" />
-                            Award Winning
-                        </Badge>
-                        <Badge
-                            variant="secondary"
-                            className="border border-white/30 bg-white/15 text-white backdrop-blur-md transition-all hover:scale-105 hover:bg-white/20"
-                        >
-                            <CheckCircle className="mr-2 h-4 w-4 text-green-400" />
-                            Science-Based
-                        </Badge>
-                        <Badge
-                            variant="secondary"
-                            className="border border-white/30 bg-white/15 text-white backdrop-blur-md transition-all hover:scale-105 hover:bg-white/20"
-                        >
-                            <Shield className="mr-2 h-4 w-4 text-blue-400" />
-                            Zero Injuries
-                        </Badge>
-                    </div>
-
                     <div className="mx-auto mb-24 max-w-6xl text-center">
                         <h1 ref={titleRef} className="mb-8 text-5xl leading-tight font-black tracking-tight text-white md:text-6xl lg:text-8xl">
                             {hero.main_title || 'Where Young Athletes'}
@@ -433,144 +383,6 @@ const Hero: React.FC<HeroProps> = ({ pageContent }) => {
                                 <Play className="h-6 w-6 fill-current" />
                                 {hero.demo_button || 'Watch Demo'}
                             </Button>
-                        </div>
-                    </div>
-
-                    {/* Enhanced Expert Profile Card */}
-                    <div ref={profileRef} className="mx-auto mb-24 max-w-5xl">
-                        <div className="group relative overflow-hidden rounded-3xl border-2 border-amber-500/50 bg-gradient-to-br from-slate-800/95 to-slate-900/95 shadow-2xl backdrop-blur-xl transition-all hover:border-amber-500/70">
-                            {/* Enhanced premium badge */}
-                            <div className="absolute top-8 right-8 z-10 rounded-full bg-gradient-to-r from-amber-400 to-amber-600 px-6 py-3 text-sm font-black text-black shadow-xl">
-                                ⭐ WORLD EXPERT
-                            </div>
-
-                            {/* Enhanced glow effect */}
-                            <div className="absolute inset-0 animate-pulse bg-gradient-to-r from-amber-500/15 via-transparent to-amber-500/15"></div>
-                            <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 via-transparent to-purple-500/5"></div>
-
-                            <div className="p-12">
-                                <div className="flex flex-col items-center gap-12 xl:flex-row xl:items-start">
-                                    {/* Enhanced Profile Image */}
-                                    <div className="relative">
-                                        <div className="h-48 w-48 rounded-full bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 p-2 shadow-2xl">
-                                            <div className="h-full w-full overflow-hidden rounded-full border-4 border-amber-500/60">
-                                                {hero.expert_image ? (
-                                                    <img
-                                                        src={`/upload-image/${hero.expert_image}`}
-                                                        alt={hero.expert_name || 'Expert'}
-                                                        className="h-full w-full object-cover"
-                                                    />
-                                                ) : (
-                                                    <img
-                                                        src="https://images.unsplash.com/photo-1568602471122-7832951cc4c5?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80"
-                                                        alt="Dr Ben Pullen - Youth Strength Training Expert"
-                                                        className="h-full w-full object-cover"
-                                                    />
-                                                )}
-                                            </div>
-                                        </div>
-                                        <div className="absolute -right-3 -bottom-3 rounded-full bg-gradient-to-r from-amber-500 to-amber-600 p-3 shadow-xl">
-                                            <Award className="h-8 w-8 text-black" />
-                                        </div>
-                                        {/* Enhanced floating rings */}
-                                        <div className="absolute inset-0 animate-ping rounded-full border-2 border-amber-400/40"></div>
-                                        <div className="absolute inset-0 animate-pulse rounded-full border border-amber-400/20 delay-1000"></div>
-                                    </div>
-
-                                    {/* Enhanced Profile Info */}
-                                    <div className="flex-1 text-center xl:text-left">
-                                        <div className="mb-3 flex items-center justify-center gap-4 xl:justify-start">
-                                            <h2 className="text-4xl font-black text-white md:text-5xl"> {hero.expert_name || 'Dr Ben Pullen'}</h2>
-                                            <div className="flex gap-1">
-                                                {[...Array(5)].map((_, i) => (
-                                                    <Star key={i} className="h-6 w-6 fill-amber-500 text-amber-500" />
-                                                ))}
-                                            </div>
-                                        </div>
-                                        <p className="mb-8 bg-gradient-to-r from-amber-400 to-amber-600 bg-clip-text text-2xl font-black text-amber-400 text-transparent md:text-3xl">
-                                            {hero.expert_title || 'PhD in Paediatric Strength Training'}
-                                        </p>
-
-                                        {/* Enhanced Badges */}
-                                        <div className="mb-8 flex flex-wrap justify-center gap-4 xl:justify-start">
-                                            <Badge className="rounded-full border border-amber-500/50 bg-amber-500/25 px-6 py-3 text-base font-bold text-amber-300 shadow-lg transition-all hover:bg-amber-500/30">
-                                                <Trophy className="mr-2 h-5 w-5" />
-                                                Youth Expert
-                                            </Badge>
-                                            <Badge className="rounded-full border border-blue-500/50 bg-blue-500/25 px-6 py-3 text-base font-bold text-blue-300 shadow-lg transition-all hover:bg-blue-500/30">
-                                                <BookOpen className="mr-2 h-5 w-5" />
-                                                Researcher
-                                            </Badge>
-                                            <Badge className="rounded-full border border-green-500/50 bg-green-500/25 px-6 py-3 text-base font-bold text-green-300 shadow-lg transition-all hover:bg-green-500/30">
-                                                <Globe className="mr-2 h-5 w-5" />
-                                                Published Author
-                                            </Badge>
-                                        </div>
-
-                                        <p className="mb-8 flex items-center justify-center gap-3 text-lg text-gray-300 xl:justify-start">
-                                            <Target className="h-6 w-6 text-amber-500" />
-                                            {hero.expert_description || 'Leading Youth Strength & Conditioning Expert Worldwide'}
-                                        </p>
-                                    </div>
-                                </div>
-
-                                {/* Enhanced Stats Row */}
-                                <div ref={statsRef} className="mt-12 grid grid-cols-2 gap-8 border-t border-slate-700/50 pt-10 md:grid-cols-4">
-                                    <div className="group text-center">
-                                        <div className="counter mb-2 text-3xl font-black text-amber-500 transition-transform group-hover:scale-110 md:text-4xl">
-                                            1000+
-                                        </div>
-                                        <div className="text-base font-medium text-gray-400">Athletes Trained</div>
-                                    </div>
-                                    <div className="group text-center">
-                                        <div className="counter mb-2 text-3xl font-black text-blue-500 transition-transform group-hover:scale-110 md:text-4xl">
-                                            10+
-                                        </div>
-                                        <div className="text-base font-medium text-gray-400">Years Experience</div>
-                                    </div>
-                                    <div className="group text-center">
-                                        <div className="counter mb-2 text-3xl font-black text-purple-500 transition-transform group-hover:scale-110 md:text-4xl">
-                                            PhD
-                                        </div>
-                                        <div className="text-base font-medium text-gray-400">Qualified</div>
-                                    </div>
-                                    <div className="group text-center">
-                                        <div className="counter mb-2 text-3xl font-black text-green-500 transition-transform group-hover:scale-110 md:text-4xl">
-                                            0
-                                        </div>
-                                        <div className="text-base font-medium text-gray-400">Injuries</div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Enhanced Info Cards */}
-                    <div className="mx-auto mb-24 grid max-w-5xl grid-cols-1 gap-8 lg:grid-cols-2">
-                        <div className="group flex items-start gap-8 rounded-2xl border border-slate-700/50 bg-slate-800/80 p-10 shadow-xl backdrop-blur-xl transition-all hover:scale-105 hover:bg-slate-800/90">
-                            <div className="flex-shrink-0 rounded-full bg-purple-900/60 p-5 transition-all group-hover:bg-purple-900/80">
-                                <Users className="h-8 w-8 text-purple-400" />
-                            </div>
-                            <div>
-                                <h3 className="mb-4 text-2xl font-bold text-white md:text-3xl">10+ Years Excellence</h3>
-                                <p className="text-lg leading-relaxed text-gray-300">
-                                    Coaching 1000+ youth athletes with proven results, innovative methodologies, and a track record of developing
-                                    champions across multiple sports.
-                                </p>
-                            </div>
-                        </div>
-
-                        <div className="group flex items-start gap-8 rounded-2xl border border-slate-700/50 bg-slate-800/80 p-10 shadow-xl backdrop-blur-xl transition-all hover:scale-105 hover:bg-slate-800/90">
-                            <div className="flex-shrink-0 rounded-full bg-green-900/60 p-5 transition-all group-hover:bg-green-900/80">
-                                <BookOpen className="h-8 w-8 text-green-400" />
-                            </div>
-                            <div>
-                                <h3 className="mb-4 text-2xl font-bold text-white md:text-3xl">Research Leader</h3>
-                                <p className="text-lg leading-relaxed text-gray-300">
-                                    Published youth strength & conditioning researcher with peer-reviewed studies shaping the future of athletic
-                                    development worldwide.
-                                </p>
-                            </div>
                         </div>
                     </div>
 

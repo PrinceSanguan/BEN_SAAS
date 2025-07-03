@@ -142,8 +142,6 @@ const About: React.FC<AboutProps> = ({ pageContent }) => {
     const achievements = [
         { icon: Users, label: 'Athletes Trained', value: '1,000+', color: 'blue' },
         { icon: Calendar, label: 'Years Experience', value: '10+', color: 'purple' },
-        { icon: BookOpen, label: 'Research Papers', value: '25+', color: 'green' },
-        { icon: Award, label: 'Success Rate', value: '98%', color: 'amber' },
     ];
 
     const credentials = [
