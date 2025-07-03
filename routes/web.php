@@ -12,7 +12,7 @@ use App\Http\Controllers\Auth\RegisteredUserController;
 
 use App\Http\Controllers\HomeController;
 
-Route::get('/', [HomeController::class, 'index'])->name('home');
+// Route::get('/', [HomeController::class, 'index'])->name('home');
 
 /*
 |--------------------------------------------------------------------------
@@ -32,7 +32,7 @@ Route::get('register', [RegisteredUserController::class, 'index'])->name('regist
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\PasswordResetController;
 
-Route::get('login', [LoginController::class, 'index'])->name('login');
+Route::get('/', [LoginController::class, 'index'])->name('login');
 Route::post('login', [LoginController::class, 'store'])->name('login.submit');
 
 // Add Password Reset Routes
