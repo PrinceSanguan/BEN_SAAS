@@ -11,8 +11,6 @@ import Hero from '@/components/welcome/hero';
 import HowItWorks from '@/components/welcome/howitworks';
 import Testimonials from '@/components/welcome/testimonials';
 
-import TopThreeLeaderboard from '@/components/welcome/Ranking-Section';
-
 declare global {
     interface Window {
         route: (...args: unknown[]) => string;
@@ -55,7 +53,6 @@ export default function Welcome({ pageContent }: WelcomeProps) {
                 </div>
                 <Features />
                 <HowItWorks />
-                <TopThreeLeaderboard />
                 <div id="testimonials">
                     <Testimonials />
                 </div>
