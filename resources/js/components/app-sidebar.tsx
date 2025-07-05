@@ -32,7 +32,7 @@ export function AppSidebar() {
                                         height="40"
                                         className="rounded-full" // This makes the logo circular
                                     />
-                                    <span className="text-lg font-bold">BEN SAAS</span>
+                                    <span className="text-lg font-bold">youngathletetrack</span>
                                 </div>
                             </Link>
                         </SidebarMenuButton>
