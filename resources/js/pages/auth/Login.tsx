@@ -1,6 +1,7 @@
 import { Head, useForm } from '@inertiajs/react';
 import { AlertCircle, LoaderCircle, Lock, User } from 'lucide-react';
-import { FormEventHandler } from 'react';
+import { FormEventHandler, useEffect, useRef } from 'react';
+import gsap from 'gsap';
 
 import InputError from '@/components/input-error';
 import TextLink from '@/components/text-link';
@@ -32,6 +33,30 @@ export default function Login({ status, errors }: LoginProps) {
         isAdmin: false,
     });
 
+    const circle1 = useRef<HTMLDivElement>(null);
+    const circle2 = useRef<HTMLDivElement>(null);
+    const circle3 = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        if (circle1.current && circle2.current && circle3.current) {
+            gsap.fromTo(
+                circle1.current,
+                { opacity: 0.2, y: -40 },
+                { opacity: 0.4, y: 0, duration: 2, repeat: -1, yoyo: true, ease: 'power1.inOut' }
+            );
+            gsap.fromTo(
+                circle2.current,
+                { opacity: 0.1, x: 40 },
+                { opacity: 0.2, x: 0, duration: 2.5, repeat: -1, yoyo: true, ease: 'power1.inOut', delay: 0.5 }
+            );
+            gsap.fromTo(
+                circle3.current,
+                { opacity: 0.05, y: 40 },
+                { opacity: 0.1, y: 0, duration: 3, repeat: -1, yoyo: true, ease: 'power1.inOut', delay: 1 }
+            );
+        }
+    }, []);
+
     const submit: FormEventHandler = (e) => {
         e.preventDefault();
         post(route('login.submit'), {
@@ -41,17 +66,28 @@ export default function Login({ status, errors }: LoginProps) {
 
     return (
         <div
-            className="relative min-h-screen bg-cover bg-center bg-no-repeat"
-            style={{
-                backgroundImage: "url('https://images.unsplash.com/photo-1599058917212-d750089bc07e?q=80&w=1469&auto=format&fit=crop')",
-            }}
+            className="relative min-h-screen bg-gradient-to-br from-[#0a1437] via-[#10182a] to-black overflow-hidden"
         >
+            {/* Subtle squared grid overlay */}
+            <div
+                aria-hidden="true"
+                className="pointer-events-none absolute inset-0 z-0"
+                style={{
+                    backgroundImage:
+                        'linear-gradient(to right, rgba(255,255,255,0.10) 1px, transparent 1px), linear-gradient(to bottom, rgba(255,255,255,0.10) 1px, transparent 1px)',
+                    backgroundSize: '40px 40px',
+                }}
+            />
+
+            {/* Subtle, dark blurred circles with animation refs */}
+            <div ref={circle1} className="absolute -top-32 -left-32 w-96 h-96 bg-blue-900 opacity-20 rounded-full filter blur-3xl z-0" />
+            <div ref={circle2} className="absolute top-1/2 left-3/4 w-80 h-80 bg-blue-800 opacity-15 rounded-full filter blur-2xl z-0" />
+            <div ref={circle3} className="absolute bottom-0 right-0 w-72 h-72 bg-blue-950 opacity-10 rounded-full filter blur-2xl z-0" />
+
             <Head title="Log in" />
 
-            <div className="absolute inset-0 bg-gradient-to-b from-black/70 to-black/30" />
-
             <div className="relative z-10 flex min-h-screen items-center justify-center p-4">
-                <div className="w-full max-w-sm rounded-lg bg-black/70 p-6 text-white shadow-2xl backdrop-blur-md">
+                <div className="w-full max-w-sm rounded-2xl bg-black/60 p-8 text-white shadow-2xl backdrop-blur-xl border border-white/10" style={{boxShadow: '0 8px 32px 0 rgba(10,20,55,0.37)'}}>
                     <h1 className="mb-2 text-center text-3xl font-extrabold">
                         <span className="text-blue-500">Young Athlete</span> <span className="text-white">App</span>
                     </h1>
