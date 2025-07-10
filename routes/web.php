@@ -80,6 +80,7 @@ Route::middleware([AdminMiddleware::class])->group(function () {
     Route::put('/admin/email-templates/{name}', [AdminDashboardController::class, 'updateEmailTemplate'])->name('admin.email-templates.update');
 
     Route::get('/admin/athletes/{id}/summary', [AdminDashboardController::class, 'showAthleteSummary'])->name('admin.athletes.summary');
+    Route::get('/admin/switch-back', [AdminDashboardController::class, 'switchBackToAdmin'])->name('admin.switch.back');
 
     //website editor
     Route::get('/admin/page-content', [AdminDashboardController::class, 'pageContent'])->name('admin.page-content');
@@ -100,14 +101,12 @@ use App\Http\Controllers\Student\StudentTrainingController;
 use App\Http\Controllers\LeaderboardController;
 use App\Http\Controllers\Student\ProgressController;
 use App\Http\Controllers\Student\XpController;
-use App\Http\Middleware\StudentMiddleware;
 
-Route::middleware(StudentMiddleware::class)->group(function () {
+Route::middleware(['auth'])->group(function () {
     Route::get('/student/dashboard', [StudentDashboardController::class, 'index'])->name('student.dashboard');
     Route::get('/student/training', [StudentTrainingController::class, 'index'])->name('student.training');
     Route::get('/training/session/{sessionId}', [StudentTrainingController::class, 'showSession'])->name('training.session.show');
     Route::post('/training/session/{sessionId}/save', [StudentTrainingController::class, 'saveTrainingResult'])->name('training.session.save');
-    // Add these routes to your Student middleware group
     Route::get('/leaderboard/consistency', [LeaderboardController::class, 'consistency'])->name('leaderboard.consistency');
     Route::get('/leaderboard/strength', [LeaderboardController::class, 'strength'])->name('leaderboard.strength');
 
