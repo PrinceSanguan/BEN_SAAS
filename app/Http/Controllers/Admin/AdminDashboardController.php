@@ -686,10 +686,6 @@ class AdminDashboardController extends Controller
             $strengthLevel = $userStat ? $userStat->strength_level : 1;
             $consistencyScore = $userStat ? round($userStat->consistency_score) : 0;
 
-            // Store admin ID in session
-            session(['admin_viewing_as_student' => Auth::id()]);
-            session(['viewing_student_id' => $athlete->id]);
-
             $testResults = \App\Models\TestResult::where('user_id', $athlete->id)->get();
             $preTrainingTest = \App\Models\PreTrainingTest::where('user_id', $athlete->id)->first();
             $testSessions = \App\Models\TrainingSession::where('session_type', 'testing')
@@ -1380,5 +1376,16 @@ class AdminDashboardController extends Controller
             'pageContent' => $pageContent,
             'isPreview' => true
         ]);
+    }
+
+    /**
+     * Switch back from student view to admin view
+     */
+    public function switchBackToAdmin()
+    {
+        // Clear the session variables that track admin viewing as student
+        session()->forget(['admin_viewing_as_student', 'viewing_student_id']);
+
+        return redirect()->route('admin.dashboard')->with('success', 'Switched back to admin view');
     }
 }
