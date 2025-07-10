@@ -63,19 +63,15 @@ class UserStatService
             ->where('training_sessions.session_type', 'training')
             ->count();
 
-        // Count completed testing sessions (for other metrics)
-        $completedTestingSessions = TestResult::where('user_id', $userId)->count();
 
-        // Calculate total sessions completed (for other metrics)
-        $totalSessionsCompleted = $completedTrainingSessions + $completedTestingSessions;
+        // Get user's blocks first, then count only sessions in those blocks
+        $userBlockIds = \App\Models\Block::where('user_id', $userId)->pluck('id');
 
-        // Get only available training sessions (those with release_date in the past)
+        // Get only available training sessions for this specific user (those with release_date in the past)
         $availableTrainingSessions = TrainingSession::where('session_type', 'training')
             ->where('release_date', '<=', now())
+            ->whereIn('block_id', $userBlockIds)
             ->count();
-
-        // Get total available sessions (for other metrics)
-        $totalAvailableSessions = TrainingSession::where('release_date', '<=', now())->count();
 
         // Get XP data from XP service
         $totalXp = $this->xpService->getTotalXp($userId);
