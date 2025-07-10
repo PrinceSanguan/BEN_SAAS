@@ -684,7 +684,27 @@ class AdminDashboardController extends Controller
             // Get user stats - use eloquent with to avoid multiple queries
             $userStat = UserStat::where('user_id', $athlete->id)->first();
             $strengthLevel = $userStat ? $userStat->strength_level : 1;
-            $consistencyScore = $userStat ? round($userStat->consistency_score) : 0;
+            // Calculate consistency score the same way as leaderboard (based on released sessions only)
+            $today = Carbon::now();
+
+            // Get blocks associated with this user
+            $userBlockIds = Block::where('user_id', $athlete->id)->pluck('id');
+
+            // Get available training sessions in blocks for this user (only those released)
+            $availableSessions = TrainingSession::where('session_type', 'training')
+                ->where('release_date', '<=', $today)
+                ->whereIn('block_id', $userBlockIds)
+                ->count();
+
+            // Get completed sessions for this user
+            $completedSessions = TrainingResult::where('user_id', $athlete->id)
+                ->whereNotNull('completed_at')
+                ->count();
+
+            // Calculate consistency percentage (same logic as leaderboard)
+            $consistencyScore = $availableSessions > 0
+                ? round(($completedSessions / $availableSessions) * 100)
+                : 0;
 
             $testResults = \App\Models\TestResult::where('user_id', $athlete->id)->get();
             $preTrainingTest = \App\Models\PreTrainingTest::where('user_id', $athlete->id)->first();
