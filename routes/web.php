@@ -88,6 +88,9 @@ Route::middleware([AdminMiddleware::class])->group(function () {
     Route::get('/admin/page-content', [AdminDashboardController::class, 'pageContent'])->name('admin.page-content');
     Route::post('/admin/page-content', [AdminDashboardController::class, 'updatePageContent'])->name('admin.page-content.update');
     Route::get('/admin/page-content/preview', [AdminDashboardController::class, 'previewPageContent'])->name('admin.page-content.preview');
+
+    Route::get('/admin/session-tracking', [AdminDashboardController::class, 'sessionTracking'])->name('admin.session.tracking');
+    Route::get('/admin/session-tracking/{athleteId}', [AdminDashboardController::class, 'athleteSessionDetails'])->name('admin.athlete.sessions');
 });
 
 Route::post('/admin/logout', [LoginController::class, 'logout'])->name('admin.logout');

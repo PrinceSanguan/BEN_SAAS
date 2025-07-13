@@ -349,7 +349,7 @@ class AdminDashboardController extends Controller
                     'username' => $user->username,
                     'email' => $user->parent_email,
                     'strength_level' => $user->userStat ? $user->userStat->strength_level : 1,
-                    'consistency_score' => $user->userStat ? round($user->userStat->consistency_score) : 0,
+                    'consistency_score' => $this->calculateRealTimeConsistencyScore($user->id),
                     'training_results' => $user->preTrainingTest ? [
                         'standing_long_jump' => $user->preTrainingTest->standing_long_jump,
                         'single_leg_jump_left' => $user->preTrainingTest->single_leg_jump_left,
@@ -1490,5 +1490,190 @@ class AdminDashboardController extends Controller
             ]);
             return redirect()->back()->with('error', 'Failed to correct data: ' . $e->getMessage());
         }
+    }
+
+    /**
+     * Calculate real-time consistency score for admin dashboard
+     */
+    private function calculateRealTimeConsistencyScore(int $userId): int
+    {
+        $today = Carbon::now();
+
+        // Get user's blocks
+        $userBlockIds = Block::where('user_id', $userId)->pluck('id');
+
+        // Get available sessions (only released ones)
+        $availableSessions = TrainingSession::where('session_type', 'training')
+            ->where('release_date', '<=', $today)
+            ->whereIn('block_id', $userBlockIds)
+            ->count();
+
+        // Get completed sessions
+        $completedSessions = TrainingResult::where('user_id', $userId)
+            ->whereNotNull('completed_at')
+            ->count();
+
+        return $availableSessions > 0
+            ? round(($completedSessions / $availableSessions) * 100)
+            : 0;
+    }
+
+    /**
+     * Display session tracking overview
+     */
+    public function sessionTracking()
+    {
+        $athletes = User::where('user_role', 'student')
+            ->with(['userStat'])
+            ->select('id', 'username', 'parent_email')
+            ->get()
+            ->map(function ($user) {
+                // Calculate real-time session stats
+                $userBlockIds = Block::where('user_id', $user->id)->pluck('id');
+
+                $availableSessions = TrainingSession::whereIn('block_id', $userBlockIds)
+                    ->where('release_date', '<=', now())
+                    ->count();
+
+                $completedTraining = TrainingResult::where('user_id', $user->id)
+                    ->whereNotNull('completed_at')
+                    ->count();
+
+                $completedTesting = TestResult::where('user_id', $user->id)
+                    ->whereNotNull('completed_at')
+                    ->count();
+
+                $totalCompleted = $completedTraining + $completedTesting;
+
+                return [
+                    'id' => $user->id,
+                    'username' => $user->username,
+                    'email' => $user->parent_email,
+                    'available_sessions' => $availableSessions,
+                    'completed_sessions' => $totalCompleted,
+                    'completed_training' => $completedTraining,
+                    'completed_testing' => $completedTesting,
+                    'consistency_percentage' => $availableSessions > 0 ? round(($totalCompleted / $availableSessions) * 100) : 0,
+                    'strength_level' => $user->userStat ? $user->userStat->strength_level : 1,
+                    'total_xp' => $user->userStat ? $user->userStat->total_xp : 0,
+                ];
+            });
+
+        return Inertia::render('Admin/SessionTracking', [
+            'athletes' => $athletes,
+            'activePage' => 'session-tracking'
+        ]);
+    }
+
+    /**
+     * Get detailed session information for a specific athlete
+     */
+    public function athleteSessionDetails($athleteId)
+    {
+        $athlete = User::with(['userStat'])->findOrFail($athleteId);
+
+        if ($athlete->user_role !== 'student') {
+            return redirect()->back()->with('error', 'User is not an athlete.');
+        }
+
+        // Get athlete's blocks
+        $blocks = Block::where('user_id', $athleteId)->orderBy('block_number')->get();
+
+        // Get all sessions for this athlete
+        $sessions = TrainingSession::whereIn('block_id', $blocks->pluck('id'))
+            ->with(['block'])
+            ->orderBy('release_date')
+            ->get()
+            ->map(function ($session) use ($athleteId) {
+                $isReleased = $session->release_date <= now();
+                $trainingResult = null;
+                $testResult = null;
+                $xpEarned = 0;
+
+                if ($session->session_type === 'training') {
+                    $trainingResult = TrainingResult::where('user_id', $athleteId)
+                        ->where('session_id', $session->id)
+                        ->first();
+
+                    // Calculate XP for this session if completed
+                    if ($trainingResult && $trainingResult->completed_at) {
+                        $xpEarned = 1; // Base XP for session completion
+
+                        // Check for weekly bonus (simplified calculation)
+                        $weekSessions = TrainingSession::where('week_number', $session->week_number)
+                            ->where('block_id', $session->block_id)
+                            ->where('session_type', 'training')
+                            ->count();
+
+                        $weekCompleted = TrainingResult::where('user_id', $athleteId)
+                            ->whereIn('session_id', TrainingSession::where('week_number', $session->week_number)
+                                ->where('block_id', $session->block_id)
+                                ->where('session_type', 'training')
+                                ->pluck('id'))
+                            ->whereNotNull('completed_at')
+                            ->count();
+
+                        if ($weekCompleted >= $weekSessions && $weekSessions > 1) {
+                            $xpEarned += 3; // Weekly bonus
+                        }
+                    }
+                } else {
+                    $testResult = TestResult::where('user_id', $athleteId)
+                        ->where('session_id', $session->id)
+                        ->first();
+
+                    if ($testResult && $testResult->completed_at) {
+                        $xpEarned = 8; // Testing XP
+                    }
+                }
+
+                return [
+                    'id' => $session->id,
+                    'session_type' => $session->session_type,
+                    'week_number' => $session->week_number,
+                    'session_number' => $session->session_number,
+                    'block_number' => $session->block ? $session->block->block_number : null,
+                    'release_date' => $session->release_date,
+                    'is_released' => $isReleased,
+                    'is_completed' => ($trainingResult && $trainingResult->completed_at) || ($testResult && $testResult->completed_at),
+                    'completed_at' => $trainingResult ? $trainingResult->completed_at : ($testResult ? $testResult->completed_at : null),
+                    'xp_earned' => $xpEarned,
+                    'session_details' => $trainingResult ? [
+                        'warmup_completed' => $trainingResult->warmup_completed,
+                        'plyometrics_score' => $trainingResult->plyometrics_score,
+                        'power_score' => $trainingResult->power_score,
+                        'lower_body_strength_score' => $trainingResult->lower_body_strength_score,
+                        'upper_body_core_strength_score' => $trainingResult->upper_body_core_strength_score,
+                    ] : ($testResult ? [
+                        'standing_long_jump' => $testResult->standing_long_jump,
+                        'single_leg_jump_left' => $testResult->single_leg_jump_left,
+                        'single_leg_jump_right' => $testResult->single_leg_jump_right,
+                        'wall_sit_assessment' => $testResult->wall_sit_assessment,
+                        'high_plank_assessment' => $testResult->high_plank_assessment,
+                        'bent_arm_hang_assessment' => $testResult->bent_arm_hang_assessment,
+                    ] : null),
+                ];
+            });
+
+        return Inertia::render('Admin/AthleteSessionDetails', [
+            'athlete' => [
+                'id' => $athlete->id,
+                'username' => $athlete->username,
+                'email' => $athlete->parent_email,
+                'strength_level' => $athlete->userStat ? $athlete->userStat->strength_level : 1,
+                'total_xp' => $athlete->userStat ? $athlete->userStat->total_xp : 0,
+                'consistency_score' => $athlete->userStat ? round($athlete->userStat->consistency_score) : 0,
+            ],
+            'sessions' => $sessions,
+            'summary' => [
+                'total_sessions' => $sessions->count(),
+                'completed_sessions' => $sessions->where('is_completed', true)->count(),
+                'released_sessions' => $sessions->where('is_released', true)->count(),
+                'total_xp_earned' => $sessions->sum('xp_earned'),
+                'training_completed' => $sessions->where('session_type', 'training')->where('is_completed', true)->count(),
+                'testing_completed' => $sessions->where('session_type', 'testing')->where('is_completed', true)->count(),
+            ],
+            'activePage' => 'session-tracking'
+        ]);
     }
 }
