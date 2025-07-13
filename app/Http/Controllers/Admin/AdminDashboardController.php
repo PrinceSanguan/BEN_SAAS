@@ -1416,25 +1416,28 @@ class AdminDashboardController extends Controller
     public function viewSubmissionLogs(Request $request)
     {
         $logs = [];
-        $logFile = storage_path('logs/laravel.log');
+        $debugInfo = [];
 
-        // Debug information for production
-        $debugInfo = [
-            'log_file_path' => $logFile,
-            'file_exists' => file_exists($logFile),
-            'is_readable' => file_exists($logFile) ? is_readable($logFile) : false,
-            'file_size' => file_exists($logFile) ? filesize($logFile) : 0,
-            'storage_path' => storage_path(),
-            'environment' => app()->environment(),
+        // For cloud.laravel.com, try multiple log sources
+        $logSources = [
+            storage_path('logs/laravel.log'),
+            '/tmp/laravel.log',
+            base_path('storage/logs/laravel.log'),
         ];
 
-        // Try to write a test log entry to verify logging is working
-        Log::info('Testing log write from admin panel', [
-            'timestamp' => now()->toISOString(),
-            'admin_user' => auth()->id()
-        ]);
+        $logFile = null;
+        foreach ($logSources as $source) {
+            if (file_exists($source) && is_readable($source)) {
+                $logFile = $source;
+                break;
+            }
+        }
 
-        if (file_exists($logFile)) {
+        // If file-based logging isn't accessible, use database logging as fallback
+        if (!$logFile) {
+            // Create a database table for logs if file access fails
+            $logs = $this->getLogsFromDatabase();
+        } else {
             $content = file_get_contents($logFile);
             $logLines = explode("\n", $content);
 
@@ -1450,14 +1453,60 @@ class AdminDashboardController extends Controller
                 }
             }
 
-            // Get last 200 submission logs and reverse for newest first
             $logs = array_slice(array_reverse($filtered), 0, 200);
         }
 
+        $debugInfo = [
+            'log_file_used' => $logFile ?? 'database fallback',
+            'environment' => app()->environment(),
+            'logs_count' => count($logs),
+            'storage_path' => storage_path(),
+            'base_path' => base_path(),
+        ];
+
+        // Write test log
+        Log::info('Testing log write from admin panel', [
+            'timestamp' => now()->toISOString(),
+            'admin_user' => auth()->id(),
+            'debug_info' => $debugInfo
+        ]);
+
         return Inertia::render('Admin/SubmissionLogs', [
             'logs' => $logs,
+            'debugInfo' => $debugInfo,
             'activePage' => 'submission-logs'
         ]);
+    }
+
+    /**
+     * Fallback method to get logs from database
+     */
+    private function getLogsFromDatabase()
+    {
+        // Create a simple log entries table as fallback
+        try {
+            // Get recent training results with their metadata for debugging
+            $recentSaves = TrainingResult::with(['user', 'session.block'])
+                ->where('updated_at', '>=', now()->subDays(7))
+                ->orderBy('updated_at', 'desc')
+                ->limit(50)
+                ->get()
+                ->map(function ($result) {
+                    return [
+                        'timestamp' => $result->updated_at->format('Y-m-d H:i:s'),
+                        'message' => "Training score save - User: {$result->user->username}, Session: {$result->session_id}",
+                        'context' => [
+                            'user_id' => $result->user_id,
+                            'session_id' => $result->session_id,
+                            'scores' => $result->getAllScores()
+                        ]
+                    ];
+                });
+
+            return $recentSaves->toArray();
+        } catch (\Exception $e) {
+            return [['timestamp' => now()->format('Y-m-d H:i:s'), 'message' => 'Database fallback failed: ' . $e->getMessage()]];
+        }
     }
 
     /**

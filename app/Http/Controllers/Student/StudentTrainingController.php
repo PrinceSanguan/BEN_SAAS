@@ -320,16 +320,19 @@ class StudentTrainingController extends Controller
                     ]
                 );
 
-                // Verify the data was saved correctly
+                // Verify the data was saved correctly with enhanced checks
                 $savedResult = TrainingResult::where('user_id', $user->id)
                     ->where('session_id', $sessionId)
                     ->first();
 
+                // Enhanced logging with more detail
                 \Log::info('Training score save result', [
                     'user_id' => $user->id,
                     'username' => $user->username,
                     'session_id' => $sessionId,
                     'operation' => $result->wasRecentlyCreated ? 'created' : 'updated',
+                    'raw_input' => $request->all(),
+                    'validated_data' => $validated,
                     'saved_data' => $savedResult ? $savedResult->only([
                         'plyometrics_score',
                         'power_score',
@@ -337,31 +340,46 @@ class StudentTrainingController extends Controller
                         'upper_body_core_strength_score',
                         'warmup_completed'
                     ]) : null,
-                    'timestamp' => now()->toISOString()
+                    'database_id' => $savedResult ? $savedResult->id : null,
+                    'timestamp' => now()->toISOString(),
+                    'request_headers' => $request->headers->all(),
                 ]);
 
-                // Verify data integrity
-                if (
-                    !$savedResult ||
-                    $savedResult->plyometrics_score !== $validated['plyometrics_score'] ||
-                    $savedResult->lower_body_strength_score !== $validated['lower_body_strength_score'] ||
-                    $savedResult->upper_body_core_strength_score !== $validated['upper_body_core_strength_score']
-                ) {
+                // Enhanced verification with more specific checks
+                $verificationFailed = false;
+                $verificationErrors = [];
 
+                if (!$savedResult) {
+                    $verificationFailed = true;
+                    $verificationErrors[] = 'No result found after save';
+                } else {
+                    // Check each field individually for better debugging
+                    foreach (['plyometrics_score', 'lower_body_strength_score', 'upper_body_core_strength_score', 'power_score'] as $field) {
+                        if ($savedResult->$field !== $validated[$field]) {
+                            $verificationFailed = true;
+                            $verificationErrors[] = "Field {$field}: expected '{$validated[$field]}', got '{$savedResult->$field}'";
+                        }
+                    }
+                }
+
+                if ($verificationFailed) {
                     \Log::error('Data persistence verification failed', [
                         'user_id' => $user->id,
                         'username' => $user->username,
                         'session_id' => $sessionId,
+                        'errors' => $verificationErrors,
                         'expected' => $validated,
                         'actual' => $savedResult ? $savedResult->only([
                             'plyometrics_score',
                             'power_score',
                             'lower_body_strength_score',
                             'upper_body_core_strength_score'
-                        ]) : null
+                        ]) : null,
+                        'db_connection' => DB::connection()->getName(),
+                        'timestamp' => now()->toISOString()
                     ]);
 
-                    throw new \Exception('Data verification failed after save');
+                    throw new \Exception('Data verification failed: ' . implode(', ', $verificationErrors));
                 }
             }
 
