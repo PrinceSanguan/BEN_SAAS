@@ -80,6 +80,8 @@ Route::middleware([AdminMiddleware::class])->group(function () {
     Route::put('/admin/email-templates/{name}', [AdminDashboardController::class, 'updateEmailTemplate'])->name('admin.email-templates.update');
 
     Route::get('/admin/athletes/{id}/summary', [AdminDashboardController::class, 'showAthleteSummary'])->name('admin.athletes.summary');
+    Route::get('/admin/submission-logs', [AdminDashboardController::class, 'viewSubmissionLogs'])->name('admin.submission-logs');
+    Route::post('/admin/athletes/{athleteId}/sessions/{sessionId}/correct', [AdminDashboardController::class, 'correctAthleteData'])->name('admin.correct-data');
     Route::get('/admin/switch-back', [AdminDashboardController::class, 'switchBackToAdmin'])->name('admin.switch.back');
 
     //website editor

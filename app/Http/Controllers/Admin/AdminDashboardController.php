@@ -25,7 +25,8 @@ use App\Models\EmailTemplate;
 use App\Models\TrainingResult;
 use App\Models\TestResult;
 use App\Models\PageContent;
-use Illuminate\Http\UploadedFile;
+
+
 
 
 class AdminDashboardController extends Controller
@@ -866,7 +867,7 @@ class AdminDashboardController extends Controller
             DB::beginTransaction();
 
             // Log received data for debugging
-            \Log::info('Updating block dates', [
+            Log::info('Updating block dates', [
                 'athlete_id' => $athleteId,
                 'blocks' => $validated['blocks']
             ]);
@@ -887,7 +888,7 @@ class AdminDashboardController extends Controller
                 $block->end_date = $blockData['end_date'];
                 $block->save();
 
-                \Log::info('Updated block', [
+                Log::info('Updated block', [
                     'block_id' => $block->id,
                     'start_date' => $block->start_date,
                     'end_date' => $block->end_date
@@ -902,7 +903,7 @@ class AdminDashboardController extends Controller
             return redirect()->back()->with('success', 'Block dates updated successfully for ' . $athlete->username);
         } catch (\Exception $e) {
             DB::rollBack();
-            \Log::error('Failed to update block dates: ' . $e->getMessage(), [
+            Log::error('Failed to update block dates: ' . $e->getMessage(), [
                 'exception' => $e,
                 'trace' => $e->getTraceAsString()
             ]);
@@ -1407,5 +1408,92 @@ class AdminDashboardController extends Controller
         session()->forget(['admin_viewing_as_student', 'viewing_student_id']);
 
         return redirect()->route('admin.dashboard')->with('success', 'Switched back to admin view');
+    }
+
+    /**
+     * View submission logs for debugging
+     */
+    public function viewSubmissionLogs(Request $request)
+    {
+        $logs = [];
+        $logFile = storage_path('logs/laravel.log');
+
+        if (file_exists($logFile)) {
+            $content = file_get_contents($logFile);
+            $logLines = explode("\n", $content);
+
+            // Filter for score submission logs only
+            $filtered = [];
+            foreach ($logLines as $line) {
+                if (
+                    strpos($line, 'Training score submission') !== false ||
+                    strpos($line, 'Training score save result') !== false ||
+                    strpos($line, 'Data persistence verification failed') !== false
+                ) {
+                    $filtered[] = $line;
+                }
+            }
+
+            // Get last 200 submission logs and reverse for newest first
+            $logs = array_slice(array_reverse($filtered), 0, 200);
+        }
+
+        return Inertia::render('Admin/SubmissionLogs', [
+            'logs' => $logs,
+            'activePage' => 'submission-logs'
+        ]);
+    }
+
+    /**
+     * Manually correct athlete data for cases like Beckett's
+     */
+    public function correctAthleteData(Request $request, $athleteId, $sessionId)
+    {
+        $validated = $request->validate([
+            'warmup_completed' => 'required|in:YES,NO',
+            'plyometrics_score' => 'required|string',
+            'power_score' => 'required|string',
+            'lower_body_strength_score' => 'required|string',
+            'upper_body_core_strength_score' => 'required|string',
+        ]);
+
+        DB::beginTransaction();
+
+        try {
+            $athlete = User::findOrFail($athleteId);
+            $session = TrainingSession::findOrFail($sessionId);
+
+            $result = TrainingResult::updateOrCreate(
+                ['user_id' => $athleteId, 'session_id' => $sessionId],
+                $validated + ['completed_at' => now()]
+            );
+
+            Log::info('Manual data correction applied by admin', [
+                'admin_user_id' => auth()->id(),
+                'athlete_id' => $athleteId,
+                'athlete_username' => $athlete->username,
+                'session_id' => $sessionId,
+                'session_details' => [
+                    'block_number' => $session->block ? $session->block->block_number : 'unknown',
+                    'week_number' => $session->week_number,
+                    'session_type' => $session->session_type
+                ],
+                'corrected_data' => $validated,
+                'timestamp' => now()->toISOString()
+            ]);
+
+            DB::commit();
+
+            return redirect()->back()->with('success', 'Data corrected successfully for ' . $athlete->username);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Manual data correction failed', [
+                'admin_user_id' => auth()->id(),
+                'athlete_id' => $athleteId,
+                'session_id' => $sessionId,
+                'error' => $e->getMessage()
+            ]);
+            return redirect()->back()->with('error', 'Failed to correct data: ' . $e->getMessage());
+        }
     }
 }

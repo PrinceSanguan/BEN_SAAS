@@ -13,6 +13,7 @@ use Inertia\Inertia;
 use App\Models\TrainingSession;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
 
 class StudentTrainingController extends Controller
 {
@@ -243,80 +244,158 @@ class StudentTrainingController extends Controller
         $session = TrainingSession::findOrFail($sessionId);
         $currentDate = Carbon::now();
 
-        // Check if session is available based on release date
-        $releaseDate = $session->release_date ? Carbon::parse($session->release_date) : null;
-        if ($releaseDate && $currentDate->lt($releaseDate)) {
+        DB::beginTransaction();
+
+        try {
+
+            // Check if session is available based on release date
+            $releaseDate = $session->release_date ? Carbon::parse($session->release_date) : null;
+            if ($releaseDate && $currentDate->lt($releaseDate)) {
+                return redirect()->route('student.training')
+                    ->with('error', 'This session is not available yet. It will be released on ' . $releaseDate->format('F j, Y') . '.');
+            }
+
+            if (strtolower($session->session_type) === 'testing') {
+                $validated = $request->validate([
+                    'standing_long_jump'       => 'required|numeric',
+                    'single_leg_jump_left'     => 'required|numeric',
+                    'single_leg_jump_right'    => 'required|numeric',
+                    'single_leg_wall_sit_left' => 'required|numeric', // Changed from wall_sit_assessment
+                    'single_leg_wall_sit_right' => 'required|numeric',
+                    'core_endurance_left'      => 'required|numeric',
+                    'core_endurance_right'     => 'required|numeric',
+                    'bent_arm_hang_assessment' => 'nullable|numeric',
+                ]);
+
+                TestResult::updateOrCreate(
+                    [
+                        'user_id'    => $user->id,
+                        'session_id' => $sessionId,
+                    ],
+                    [
+                        'standing_long_jump'       => $validated['standing_long_jump'],
+                        'single_leg_jump_left'     => $validated['single_leg_jump_left'],
+                        'single_leg_jump_right'    => $validated['single_leg_jump_right'],
+                        'single_leg_wall_sit_left' => $validated['single_leg_wall_sit_left'], // Changed
+                        'single_leg_wall_sit_right' => $validated['single_leg_wall_sit_right'], // Changed
+                        'core_endurance_left'      => $validated['core_endurance_left'],
+                        'core_endurance_right'     => $validated['core_endurance_right'],
+                        'bent_arm_hang_assessment' => $validated['bent_arm_hang_assessment'] ?? null,
+                        'completed_at'             => now(),
+                    ]
+                );
+            } else {
+                $validated = $request->validate([
+                    'warmup_completed'               => 'required|in:YES,NO',
+                    'plyometrics_score'              => 'required|string',
+                    'power_score'                    => 'required|string',
+                    'lower_body_strength_score'      => 'required|string',
+                    'upper_body_core_strength_score' => 'required|string',
+                ]);
+
+                // Log the submission attempt
+                \Log::info('Training score submission', [
+                    'user_id' => $user->id,
+                    'username' => $user->username,
+                    'session_id' => $sessionId,
+                    'session_type' => $session->session_type,
+                    'block_number' => $session->block ? $session->block->block_number : 'unknown',
+                    'week_number' => $session->week_number,
+                    'submitted_data' => $validated,
+                    'timestamp' => now()->toISOString()
+                ]);
+
+                $result = TrainingResult::updateOrCreate(
+                    [
+                        'user_id'    => $user->id,
+                        'session_id' => $sessionId,
+                    ],
+                    [
+                        'warmup_completed'               => $validated['warmup_completed'],
+                        'plyometrics_score'              => $validated['plyometrics_score'],
+                        'power_score'                    => $validated['power_score'],
+                        'lower_body_strength_score'      => $validated['lower_body_strength_score'],
+                        'upper_body_core_strength_score' => $validated['upper_body_core_strength_score'],
+                        'completed_at'                   => now(),
+                    ]
+                );
+
+                // Verify the data was saved correctly
+                $savedResult = TrainingResult::where('user_id', $user->id)
+                    ->where('session_id', $sessionId)
+                    ->first();
+
+                \Log::info('Training score save result', [
+                    'user_id' => $user->id,
+                    'username' => $user->username,
+                    'session_id' => $sessionId,
+                    'operation' => $result->wasRecentlyCreated ? 'created' : 'updated',
+                    'saved_data' => $savedResult ? $savedResult->only([
+                        'plyometrics_score',
+                        'power_score',
+                        'lower_body_strength_score',
+                        'upper_body_core_strength_score',
+                        'warmup_completed'
+                    ]) : null,
+                    'timestamp' => now()->toISOString()
+                ]);
+
+                // Verify data integrity
+                if (
+                    !$savedResult ||
+                    $savedResult->plyometrics_score !== $validated['plyometrics_score'] ||
+                    $savedResult->lower_body_strength_score !== $validated['lower_body_strength_score'] ||
+                    $savedResult->upper_body_core_strength_score !== $validated['upper_body_core_strength_score']
+                ) {
+
+                    \Log::error('Data persistence verification failed', [
+                        'user_id' => $user->id,
+                        'username' => $user->username,
+                        'session_id' => $sessionId,
+                        'expected' => $validated,
+                        'actual' => $savedResult ? $savedResult->only([
+                            'plyometrics_score',
+                            'power_score',
+                            'lower_body_strength_score',
+                            'upper_body_core_strength_score'
+                        ]) : null
+                    ]);
+
+                    throw new \Exception('Data verification failed after save');
+                }
+            }
+
+            // Calculate and award XP for this session and update user stats
+            $this->userStatService->updateStatsAfterSession($user->id, $sessionId);
+
+            // Get the updated XP data for the success message
+            $xpSummary = $this->xpService->getUserXpSummary($user->id);
+            $successMessage = 'Training results saved successfully!';
+
+            // Add XP information to the success message
+            if ($xpSummary['current_level'] > 1) {
+                $successMessage .= ' Your current strength level is ' . $xpSummary['current_level'] . '.';
+            }
+
+            DB::commit();
+
             return redirect()->route('student.training')
-                ->with('error', 'This session is not available yet. It will be released on ' . $releaseDate->format('F j, Y') . '.');
-        }
+                ->with('success', $successMessage);
+        } catch (\Exception $e) {
+            DB::rollBack();
 
-        if (strtolower($session->session_type) === 'testing') {
-            $validated = $request->validate([
-                'standing_long_jump'       => 'required|numeric',
-                'single_leg_jump_left'     => 'required|numeric',
-                'single_leg_jump_right'    => 'required|numeric',
-                'single_leg_wall_sit_left' => 'required|numeric', // Changed from wall_sit_assessment
-                'single_leg_wall_sit_right' => 'required|numeric',
-                'core_endurance_left'      => 'required|numeric',
-                'core_endurance_right'     => 'required|numeric',
-                'bent_arm_hang_assessment' => 'nullable|numeric',
+            \Log::error('Training score save transaction failed', [
+                'user_id' => $user->id,
+                'username' => $user->username,
+                'session_id' => $sessionId,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+                'timestamp' => now()->toISOString()
             ]);
 
-            TestResult::updateOrCreate(
-                [
-                    'user_id'    => $user->id,
-                    'session_id' => $sessionId,
-                ],
-                [
-                    'standing_long_jump'       => $validated['standing_long_jump'],
-                    'single_leg_jump_left'     => $validated['single_leg_jump_left'],
-                    'single_leg_jump_right'    => $validated['single_leg_jump_right'],
-                    'single_leg_wall_sit_left' => $validated['single_leg_wall_sit_left'], // Changed
-                    'single_leg_wall_sit_right' => $validated['single_leg_wall_sit_right'], // Changed
-                    'core_endurance_left'      => $validated['core_endurance_left'],
-                    'core_endurance_right'     => $validated['core_endurance_right'],
-                    'bent_arm_hang_assessment' => $validated['bent_arm_hang_assessment'] ?? null,
-                    'completed_at'             => now(),
-                ]
-            );
-        } else {
-            $validated = $request->validate([
-                'warmup_completed'               => 'required|in:YES,NO',
-                'plyometrics_score'              => 'required|string',
-                'power_score'                    => 'required|string',
-                'lower_body_strength_score'      => 'required|string',
-                'upper_body_core_strength_score' => 'required|string',
-            ]);
-
-            TrainingResult::updateOrCreate(
-                [
-                    'user_id'    => $user->id,
-                    'session_id' => $sessionId,
-                ],
-                [
-                    'warmup_completed'               => $validated['warmup_completed'],
-                    'plyometrics_score'              => $validated['plyometrics_score'],
-                    'power_score'                    => $validated['power_score'],
-                    'lower_body_strength_score'      => $validated['lower_body_strength_score'],
-                    'upper_body_core_strength_score' => $validated['upper_body_core_strength_score'],
-                    'completed_at'                   => now(),
-                ]
-            );
+            return redirect()->back()
+                ->with('error', 'Failed to save training results. Please try again.')
+                ->withInput();
         }
-
-        // Calculate and award XP for this session and update user stats
-        $this->userStatService->updateStatsAfterSession($user->id, $sessionId);
-
-        // Get the updated XP data for the success message
-        $xpSummary = $this->xpService->getUserXpSummary($user->id);
-        $successMessage = 'Training results saved successfully!';
-
-        // Add XP information to the success message
-        if ($xpSummary['current_level'] > 1) {
-            $successMessage .= ' Your current strength level is ' . $xpSummary['current_level'] . '.';
-        }
-
-        return redirect()->route('student.training')
-            ->with('success', $successMessage);
     }
 }
