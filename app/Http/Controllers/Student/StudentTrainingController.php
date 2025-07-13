@@ -294,7 +294,7 @@ class StudentTrainingController extends Controller
                 ]);
 
                 // Log the submission attempt
-                \Log::info('Training score submission', [
+                \App\Services\DatabaseLoggerService::logTrainingSubmission('info', 'Training score submission', [
                     'user_id' => $user->id,
                     'username' => $user->username,
                     'session_id' => $sessionId,
@@ -325,8 +325,7 @@ class StudentTrainingController extends Controller
                     ->where('session_id', $sessionId)
                     ->first();
 
-                // Enhanced logging with more detail
-                \Log::info('Training score save result', [
+                \App\Services\DatabaseLoggerService::logTrainingSubmission('info', 'Training score save result', [
                     'user_id' => $user->id,
                     'username' => $user->username,
                     'session_id' => $sessionId,
@@ -342,7 +341,6 @@ class StudentTrainingController extends Controller
                     ]) : null,
                     'database_id' => $savedResult ? $savedResult->id : null,
                     'timestamp' => now()->toISOString(),
-                    'request_headers' => $request->headers->all(),
                 ]);
 
                 // Enhanced verification with more specific checks
@@ -363,7 +361,7 @@ class StudentTrainingController extends Controller
                 }
 
                 if ($verificationFailed) {
-                    \Log::error('Data persistence verification failed', [
+                    \App\Services\DatabaseLoggerService::logTrainingSubmission('error', 'Data persistence verification failed', [
                         'user_id' => $user->id,
                         'username' => $user->username,
                         'session_id' => $sessionId,
@@ -402,7 +400,7 @@ class StudentTrainingController extends Controller
         } catch (\Exception $e) {
             DB::rollBack();
 
-            \Log::error('Training score save transaction failed', [
+            \App\Services\DatabaseLoggerService::logTrainingSubmission('error', 'Training score save transaction failed', [
                 'user_id' => $user->id,
                 'username' => $user->username,
                 'session_id' => $sessionId,

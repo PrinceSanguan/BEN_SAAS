@@ -1415,57 +1415,18 @@ class AdminDashboardController extends Controller
      */
     public function viewSubmissionLogs(Request $request)
     {
-        $logs = [];
-        $debugInfo = [];
-
-        // For cloud.laravel.com, try multiple log sources
-        $logSources = [
-            storage_path('logs/laravel.log'),
-            '/tmp/laravel.log',
-            base_path('storage/logs/laravel.log'),
-        ];
-
-        $logFile = null;
-        foreach ($logSources as $source) {
-            if (file_exists($source) && is_readable($source)) {
-                $logFile = $source;
-                break;
-            }
-        }
-
-        // If file-based logging isn't accessible, use database logging as fallback
-        if (!$logFile) {
-            // Create a database table for logs if file access fails
-            $logs = $this->getLogsFromDatabase();
-        } else {
-            $content = file_get_contents($logFile);
-            $logLines = explode("\n", $content);
-
-            // Filter for score submission logs only
-            $filtered = [];
-            foreach ($logLines as $line) {
-                if (
-                    strpos($line, 'Training score submission') !== false ||
-                    strpos($line, 'Training score save result') !== false ||
-                    strpos($line, 'Data persistence verification failed') !== false
-                ) {
-                    $filtered[] = $line;
-                }
-            }
-
-            $logs = array_slice(array_reverse($filtered), 0, 200);
-        }
+        // Get logs directly from database
+        $logs = \App\Services\DatabaseLoggerService::getRecentLogs(200);
 
         $debugInfo = [
-            'log_file_used' => $logFile ?? 'database fallback',
+            'source' => 'database',
             'environment' => app()->environment(),
             'logs_count' => count($logs),
-            'storage_path' => storage_path(),
-            'base_path' => base_path(),
+            'database_connection' => DB::connection()->getName(),
         ];
 
-        // Write test log
-        Log::info('Testing log write from admin panel', [
+        // Write test log to verify logging is working
+        \App\Services\DatabaseLoggerService::logTrainingSubmission('info', 'Testing database log write from admin panel', [
             'timestamp' => now()->toISOString(),
             'admin_user' => auth()->id(),
             'debug_info' => $debugInfo
@@ -1476,37 +1437,6 @@ class AdminDashboardController extends Controller
             'debugInfo' => $debugInfo,
             'activePage' => 'submission-logs'
         ]);
-    }
-
-    /**
-     * Fallback method to get logs from database
-     */
-    private function getLogsFromDatabase()
-    {
-        // Create a simple log entries table as fallback
-        try {
-            // Get recent training results with their metadata for debugging
-            $recentSaves = TrainingResult::with(['user', 'session.block'])
-                ->where('updated_at', '>=', now()->subDays(7))
-                ->orderBy('updated_at', 'desc')
-                ->limit(50)
-                ->get()
-                ->map(function ($result) {
-                    return [
-                        'timestamp' => $result->updated_at->format('Y-m-d H:i:s'),
-                        'message' => "Training score save - User: {$result->user->username}, Session: {$result->session_id}",
-                        'context' => [
-                            'user_id' => $result->user_id,
-                            'session_id' => $result->session_id,
-                            'scores' => $result->getAllScores()
-                        ]
-                    ];
-                });
-
-            return $recentSaves->toArray();
-        } catch (\Exception $e) {
-            return [['timestamp' => now()->format('Y-m-d H:i:s'), 'message' => 'Database fallback failed: ' . $e->getMessage()]];
-        }
     }
 
     /**
@@ -1533,7 +1463,7 @@ class AdminDashboardController extends Controller
                 $validated + ['completed_at' => now()]
             );
 
-            Log::info('Manual data correction applied by admin', [
+            \App\Services\DatabaseLoggerService::logTrainingSubmission('info', 'Manual data correction applied by admin', [
                 'admin_user_id' => auth()->id(),
                 'athlete_id' => $athleteId,
                 'athlete_username' => $athlete->username,
@@ -1552,7 +1482,7 @@ class AdminDashboardController extends Controller
             return redirect()->back()->with('success', 'Data corrected successfully for ' . $athlete->username);
         } catch (\Exception $e) {
             DB::rollBack();
-            Log::error('Manual data correction failed', [
+            \App\Services\DatabaseLoggerService::logTrainingSubmission('error', 'Manual data correction failed', [
                 'admin_user_id' => auth()->id(),
                 'athlete_id' => $athleteId,
                 'session_id' => $sessionId,
