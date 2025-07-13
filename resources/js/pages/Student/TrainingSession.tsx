@@ -1,8 +1,8 @@
+import Sidebar from '@/components/Student/Sidebar';
 import { Head, useForm } from '@inertiajs/react';
 import gsap from 'gsap';
-import { Activity, ArrowLeft, Award, BarChart2, Home, LogOut, Menu, TrendingUp, Trophy, User, X } from 'lucide-react';
+import { ArrowLeft, Menu } from 'lucide-react';
 import React, { useEffect, useRef, useState } from 'react';
-import Sidebar from '@/components/Student/Sidebar';
 
 interface SessionData {
     session_number?: string | number;
@@ -189,11 +189,7 @@ const TrainingSession: React.FC<TrainingSessionProps> = ({ session = {}, existin
         <div ref={pageRef} className="flex min-h-screen bg-gradient-to-b from-[#0a1e3c] to-[#0f2a4a]">
             <Head title={`Training Session ${sessionNumber}`} />
 
-            <Sidebar
-                username={username}
-                routes={routes}
-                currentRoute={window.location.pathname}
-            />
+            <Sidebar username={username} routes={routes} currentRoute={window.location.pathname} />
 
             <div className="flex-1 lg:ml-64">
                 <header ref={headerRef} className="sticky top-0 z-10 border-b border-[#1e3a5f] bg-[#0a1e3c]/80 px-4 py-4 backdrop-blur-md">
@@ -368,8 +364,11 @@ const TrainingSession: React.FC<TrainingSessionProps> = ({ session = {}, existin
                                         </label>
                                         <input
                                             type="text"
-                                            value={data.plyometrics_score}
-                                            onChange={(e) => setData('plyometrics_score', e.target.value)}
+                                            value={data.plyometrics_score || ''}
+                                            onChange={(e) => {
+                                                const value = e.target.value.trim();
+                                                setData('plyometrics_score', value);
+                                            }}
                                             className="focus:ring-opacity-50 mt-1 block w-full rounded-md border-[#1e3a5f] bg-[#0a1e3c] text-white shadow-sm focus:border-[#4a90e2] focus:ring focus:ring-[#4a90e2]"
                                             placeholder="Enter your score"
                                         />
@@ -381,8 +380,11 @@ const TrainingSession: React.FC<TrainingSessionProps> = ({ session = {}, existin
                                         </label>
                                         <input
                                             type="text"
-                                            value={data.power_score}
-                                            onChange={(e) => setData('power_score', e.target.value)}
+                                            value={data.power_score || ''}
+                                            onChange={(e) => {
+                                                const value = e.target.value.trim();
+                                                setData('power_score', value);
+                                            }}
                                             className="focus:ring-opacity-50 mt-1 block w-full rounded-md border-[#1e3a5f] bg-[#0a1e3c] text-white shadow-sm focus:border-[#4a90e2] focus:ring focus:ring-[#4a90e2]"
                                             placeholder="Enter your score/level"
                                         />
@@ -394,8 +396,11 @@ const TrainingSession: React.FC<TrainingSessionProps> = ({ session = {}, existin
                                         </label>
                                         <input
                                             type="text"
-                                            value={data.lower_body_strength_score}
-                                            onChange={(e) => setData('lower_body_strength_score', e.target.value)}
+                                            value={data.lower_body_strength_score || ''}
+                                            onChange={(e) => {
+                                                const value = e.target.value.trim();
+                                                setData('lower_body_strength_score', value);
+                                            }}
                                             className="focus:ring-opacity-50 mt-1 block w-full rounded-md border-[#1e3a5f] bg-[#0a1e3c] text-white shadow-sm focus:border-[#4a90e2] focus:ring focus:ring-[#4a90e2]"
                                             placeholder="Enter your score"
                                         />
@@ -409,8 +414,12 @@ const TrainingSession: React.FC<TrainingSessionProps> = ({ session = {}, existin
                                         </label>
                                         <input
                                             type="text"
-                                            value={data.upper_body_core_strength_score}
-                                            onChange={(e) => setData('upper_body_core_strength_score', e.target.value)}
+                                            value={data.upper_body_core_strength_score || ''}
+                                            onChange={(e) => {
+                                                // Ensure only valid string values are sent
+                                                const value = e.target.value.trim();
+                                                setData('upper_body_core_strength_score', value);
+                                            }}
                                             className="focus:ring-opacity-50 mt-1 block w-full rounded-md border-[#1e3a5f] bg-[#0a1e3c] text-white shadow-sm focus:border-[#4a90e2] focus:ring focus:ring-[#4a90e2]"
                                             placeholder="Enter your score"
                                         />
