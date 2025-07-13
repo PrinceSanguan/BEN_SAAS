@@ -1418,6 +1418,22 @@ class AdminDashboardController extends Controller
         $logs = [];
         $logFile = storage_path('logs/laravel.log');
 
+        // Debug information for production
+        $debugInfo = [
+            'log_file_path' => $logFile,
+            'file_exists' => file_exists($logFile),
+            'is_readable' => file_exists($logFile) ? is_readable($logFile) : false,
+            'file_size' => file_exists($logFile) ? filesize($logFile) : 0,
+            'storage_path' => storage_path(),
+            'environment' => app()->environment(),
+        ];
+
+        // Try to write a test log entry to verify logging is working
+        Log::info('Testing log write from admin panel', [
+            'timestamp' => now()->toISOString(),
+            'admin_user' => auth()->id()
+        ]);
+
         if (file_exists($logFile)) {
             $content = file_get_contents($logFile);
             $logLines = explode("\n", $content);
