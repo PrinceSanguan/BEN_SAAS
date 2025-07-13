@@ -4,7 +4,7 @@ import { HomeIcon, LogOut as LogOutIcon } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 
 interface AdminSidebarProps {
-    activePage: 'dashboard' | 'email-templates' | 'summaries' | 'page-content' | 'submission-logs';
+    activePage: 'dashboard' | 'email-templates' | 'summaries' | 'page-content' | 'submission-logs' | 'session-tracking';
     isMobile?: boolean;
     onClose?: () => void;
 }
@@ -261,6 +261,26 @@ export default function AdminSidebar({ activePage, isMobile = false, onClose }: 
                                 />
                             </svg>
                             <span>Submission Logs</span>
+                        </Link>
+                    </li>
+                    <li>
+                        <Link
+                            href={safeRoute('admin.session.tracking')}
+                            className={`flex items-center rounded-lg px-4 py-3 transition-colors ${
+                                activePage === 'session-tracking'
+                                    ? 'border-l-4 border-[#4a90e2] bg-[#1e3a5f] text-[#4a90e2]'
+                                    : 'text-[#a3c0e6] hover:bg-[#112845] hover:text-white'
+                            }`}
+                        >
+                            <svg className="mr-3 h-5 w-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                                />
+                            </svg>
+                            <span>Session Tracking</span>
                         </Link>
                     </li>
                 </ul>
