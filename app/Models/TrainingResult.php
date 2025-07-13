@@ -38,12 +38,10 @@ class TrainingResult extends Model
      *
      * @var array<string, string>
      */
+
     protected $casts = [
         'completed_at' => 'datetime',
-        // Optionally cast numerical values if needed
-        'plyometrics_score' => 'integer',
-        'lower_body_strength_score' => 'integer',
-        'upper_body_core_strength_score' => 'integer',
+        // Keep scores as strings to match validation rules
     ];
 
     /**
