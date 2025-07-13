@@ -1,6 +1,6 @@
 import AdminSidebar from '@/components/admin/AdminSidebar';
 import { Head, router } from '@inertiajs/react';
-import { CheckCircle, Download, Eye, Filter, Search, Target, Trophy, Users } from 'lucide-react';
+import { CheckCircle, Eye, Filter, Search, Target, Trophy, Users } from 'lucide-react';
 import { useState } from 'react';
 
 interface Athlete {
@@ -108,12 +108,7 @@ export default function SessionTracking({ athletes, activePage }: Props) {
                                 <h1 className="text-2xl font-bold text-white">Session Tracking</h1>
                                 <p className="mt-1 text-gray-400">Monitor athlete session completion and progress</p>
                             </div>
-                            <div className="flex items-center space-x-4">
-                                <button className="flex items-center space-x-2 rounded-lg bg-blue-600 px-4 py-2 text-white transition-colors hover:bg-blue-700">
-                                    <Download className="h-4 w-4" />
-                                    <span>Export Report</span>
-                                </button>
-                            </div>
+                            s
                         </div>
 
                         {/* Summary Stats */}

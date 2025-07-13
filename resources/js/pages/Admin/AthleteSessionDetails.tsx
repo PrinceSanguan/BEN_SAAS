@@ -1,6 +1,6 @@
 import AdminSidebar from '@/components/admin/AdminSidebar';
 import { Head, router } from '@inertiajs/react';
-import { ArrowLeft, Calendar, CheckCircle, Clock, Download, Eye, Filter, Target, Trophy, XCircle } from 'lucide-react';
+import { ArrowLeft, Calendar, CheckCircle, Clock, Eye, Filter, Target, Trophy, XCircle } from 'lucide-react';
 import { useState } from 'react';
 
 interface SessionDetails {
@@ -255,10 +255,6 @@ export default function AthleteSessionDetails({ athlete, sessions, summary, acti
                                     <span>Back to Session Tracking</span>
                                 </button>
                             </div>
-                            <button className="flex items-center space-x-2 rounded-lg bg-blue-600 px-4 py-2 text-white transition-colors hover:bg-blue-700">
-                                <Download className="h-4 w-4" />
-                                <span>Export Report</span>
-                            </button>
                         </div>
 
                         {/* Athlete Info */}
