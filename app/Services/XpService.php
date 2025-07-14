@@ -340,11 +340,20 @@ class XpService
 
         // If user completed required training sessions with all fields filled
         if ($results->count() >= $requiredTrainingSessions && $allFieldsFilled) {
-            // Check if this bonus was already awarded
+            // Calculate the calendar week boundaries based on session release dates
+            $firstSessionReleaseDate = TrainingSession::whereIn('id', $trainingSessions)
+                ->orderBy('release_date')
+                ->first()
+                ->release_date;
+
+            $weekStart = Carbon::parse($firstSessionReleaseDate)->startOfWeek();
+            $weekEnd = Carbon::parse($firstSessionReleaseDate)->endOfWeek();
+
+            // Check if this bonus was already awarded for this calendar week
             $existingBonus = XpTransaction::where('user_id', $userId)
                 ->where('xp_source', 'week_complete')
-                ->where('transaction_date', '>=', Carbon::now()->startOfWeek())
-                ->where('transaction_date', '<=', Carbon::now()->endOfWeek())
+                ->where('transaction_date', '>=', $weekStart)
+                ->where('transaction_date', '<=', $weekEnd)
                 ->first();
 
             if (!$existingBonus) {
@@ -426,11 +435,21 @@ class XpService
             $completedTrainingCount >= 1 && $completedTestingCount >= 1 &&
             $allTrainingFieldsFilled && $allTestingFieldsFilled
         ) {
-            // Check if this bonus was already awarded
+            // Calculate the calendar week boundaries based on session release dates
+            $firstSessionReleaseDate = TrainingSession::where('week_number', $weekNumber)
+                ->where('block_id', $blockId)
+                ->orderBy('release_date')
+                ->first()
+                ->release_date;
+
+            $weekStart = Carbon::parse($firstSessionReleaseDate)->startOfWeek();
+            $weekEnd = Carbon::parse($firstSessionReleaseDate)->endOfWeek();
+
+            // Check if this bonus was already awarded for this calendar week
             $existingBonus = XpTransaction::where('user_id', $userId)
                 ->where('xp_source', 'training_and_testing')
-                ->where('transaction_date', '>=', Carbon::now()->startOfWeek())
-                ->where('transaction_date', '<=', Carbon::now()->endOfWeek())
+                ->where('transaction_date', '>=', $weekStart)
+                ->where('transaction_date', '<=', $weekEnd)
                 ->first();
 
             if (!$existingBonus) {
