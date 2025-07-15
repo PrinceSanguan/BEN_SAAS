@@ -15,7 +15,7 @@ class XpService
     /**
      * XP constants
      */
-    const XP_SESSION_COMPLETE = 1;
+    const XP_SESSION_COMPLETE = 4;
     const XP_WEEK_COMPLETE = 3;
     const XP_TESTING_COMPLETE = 8;
     const XP_TRAINING_AND_TESTING_WEEK = 5;

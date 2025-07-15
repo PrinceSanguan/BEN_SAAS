@@ -24,6 +24,7 @@ use Illuminate\Support\Str;
 use App\Models\EmailTemplate;
 use App\Models\TrainingResult;
 use App\Models\TestResult;
+use App\Services\UserStatService;
 use App\Models\PageContent;
 
 
@@ -1572,6 +1573,9 @@ class AdminDashboardController extends Controller
     {
         $athlete = User::with(['userStat'])->findOrFail($athleteId);
 
+        // Ensure user stats are up to date
+        app(UserStatService::class)->updateUserStats($athleteId);
+
         if ($athlete->user_role !== 'student') {
             return redirect()->back()->with('error', 'User is not an athlete.');
         }
@@ -1595,27 +1599,13 @@ class AdminDashboardController extends Controller
                         ->where('session_id', $session->id)
                         ->first();
 
-                    // Calculate XP for this session if completed
+                    // Get real XP earned for this session from XP transactions
                     if ($trainingResult && $trainingResult->completed_at) {
-                        $xpEarned = 1; // Base XP for session completion
-
-                        // Check for weekly bonus (simplified calculation)
-                        $weekSessions = TrainingSession::where('week_number', $session->week_number)
-                            ->where('block_id', $session->block_id)
-                            ->where('session_type', 'training')
-                            ->count();
-
-                        $weekCompleted = TrainingResult::where('user_id', $athleteId)
-                            ->whereIn('session_id', TrainingSession::where('week_number', $session->week_number)
-                                ->where('block_id', $session->block_id)
-                                ->where('session_type', 'training')
-                                ->pluck('id'))
-                            ->whereNotNull('completed_at')
-                            ->count();
-
-                        if ($weekCompleted >= $weekSessions && $weekSessions > 1) {
-                            $xpEarned += 3; // Weekly bonus
-                        }
+                        $xpEarned = \App\Models\XpTransaction::where('user_id', $athleteId)
+                            ->where('created_at', '>=', $trainingResult->completed_at->startOfDay())
+                            ->where('created_at', '<=', $trainingResult->completed_at->endOfDay())
+                            ->whereIn('xp_source', ['session_complete', 'week_complete'])
+                            ->sum('xp_amount');
                     }
                 } else {
                     $testResult = TestResult::where('user_id', $athleteId)
@@ -1623,7 +1613,11 @@ class AdminDashboardController extends Controller
                         ->first();
 
                     if ($testResult && $testResult->completed_at) {
-                        $xpEarned = 8; // Testing XP
+                        $xpEarned = \App\Models\XpTransaction::where('user_id', $athleteId)
+                            ->where('created_at', '>=', $testResult->completed_at->startOfDay())
+                            ->where('created_at', '<=', $testResult->completed_at->endOfDay())
+                            ->whereIn('xp_source', ['testing_complete', 'training_and_testing'])
+                            ->sum('xp_amount');
                     }
                 }
 
