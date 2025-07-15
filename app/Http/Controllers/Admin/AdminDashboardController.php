@@ -1599,13 +1599,44 @@ class AdminDashboardController extends Controller
                         ->where('session_id', $session->id)
                         ->first();
 
-                    // Get real XP earned for this session from XP transactions
+                    // Calculate XP for this specific session
                     if ($trainingResult && $trainingResult->completed_at) {
-                        $xpEarned = \App\Models\XpTransaction::where('user_id', $athleteId)
-                            ->where('created_at', '>=', $trainingResult->completed_at->startOfDay())
-                            ->where('created_at', '<=', $trainingResult->completed_at->endOfDay())
-                            ->whereIn('xp_source', ['session_complete', 'week_complete'])
-                            ->sum('xp_amount');
+                        // Base session XP (4 XP per training session)
+                        $xpEarned = 4;
+
+                        // Check if this session earned weekly bonus
+                        $weekSessions = TrainingSession::where('week_number', $session->week_number)
+                            ->where('block_id', $session->block_id)
+                            ->where('session_type', 'training')
+                            ->count();
+
+                        $weekCompleted = TrainingResult::where('user_id', $athleteId)
+                            ->whereIn('session_id', TrainingSession::where('week_number', $session->week_number)
+                                ->where('block_id', $session->block_id)
+                                ->where('session_type', 'training')
+                                ->pluck('id'))
+                            ->whereNotNull('completed_at')
+                            ->count();
+
+                        // Required sessions for this week
+                        $requiredSessions = in_array($session->week_number, [5, 11]) ? 1 : 2;
+
+                        // If this session completed the week, add weekly bonus
+                        if ($weekCompleted >= $requiredSessions && $weekSessions >= $requiredSessions) {
+                            // Check if this was the session that completed the week
+                            $isLastSessionInWeek = TrainingResult::where('user_id', $athleteId)
+                                ->whereIn('session_id', TrainingSession::where('week_number', $session->week_number)
+                                    ->where('block_id', $session->block_id)
+                                    ->where('session_type', 'training')
+                                    ->pluck('id'))
+                                ->whereNotNull('completed_at')
+                                ->orderBy('completed_at', 'desc')
+                                ->first();
+
+                            if ($isLastSessionInWeek && $isLastSessionInWeek->session_id == $session->id) {
+                                $xpEarned += 3; // Add weekly bonus to the last completed session
+                            }
+                        }
                     }
                 } else {
                     $testResult = TestResult::where('user_id', $athleteId)
@@ -1613,11 +1644,23 @@ class AdminDashboardController extends Controller
                         ->first();
 
                     if ($testResult && $testResult->completed_at) {
-                        $xpEarned = \App\Models\XpTransaction::where('user_id', $athleteId)
-                            ->where('created_at', '>=', $testResult->completed_at->startOfDay())
-                            ->where('created_at', '<=', $testResult->completed_at->endOfDay())
-                            ->whereIn('xp_source', ['testing_complete', 'training_and_testing'])
-                            ->sum('xp_amount');
+                        // Base testing XP (8 XP per testing session)
+                        $xpEarned = 8;
+
+                        // Check for training + testing bonus (weeks 5, 11 only)
+                        if (in_array($session->week_number, [5, 11])) {
+                            $hasTrainingInSameWeek = TrainingResult::where('user_id', $athleteId)
+                                ->whereIn('session_id', TrainingSession::where('week_number', $session->week_number)
+                                    ->where('block_id', $session->block_id)
+                                    ->where('session_type', 'training')
+                                    ->pluck('id'))
+                                ->whereNotNull('completed_at')
+                                ->exists();
+
+                            if ($hasTrainingInSameWeek) {
+                                $xpEarned += 5; // Add training + testing bonus
+                            }
+                        }
                     }
                 }
 
