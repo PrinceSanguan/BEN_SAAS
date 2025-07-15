@@ -15,7 +15,6 @@ class XpService
     /**
      * XP constants
      */
-    const XP_SESSION_COMPLETE = 4;
     const XP_WEEK_COMPLETE = 3;
     const XP_TESTING_COMPLETE = 8;
     const XP_TRAINING_AND_TESTING_WEEK = 5;
@@ -41,6 +40,7 @@ class XpService
      * @param int $sessionId
      * @return int Amount of XP earned
      */
+
     public function calculateSessionXp(int $userId, int $sessionId): int
     {
         // Get the session
@@ -58,7 +58,12 @@ class XpService
                 ->first();
 
             if ($this->isTrainingComplete($trainingResult)) {
-                $xpAmount += self::XP_SESSION_COMPLETE;
+                // Get current level BEFORE awarding XP
+                $currentLevel = $this->getCurrentLevel($userId);
+
+                // Award XP based on current level
+                $sessionXp = $this->getXpForCurrentLevel($currentLevel);
+                $xpAmount += $sessionXp;
                 $xpSource = 'session_complete';
 
                 // Check for weekly bonus
@@ -80,7 +85,7 @@ class XpService
                 ->first();
 
             if ($this->isTestingComplete($testResult)) {
-                $xpAmount += self::XP_TESTING_COMPLETE;
+                $xpAmount += 8; // Fixed 8 XP for testing sessions
                 $xpSource = 'testing_complete';
 
                 // Check for testing + training bonus in the same week
@@ -97,6 +102,24 @@ class XpService
         }
 
         return $xpAmount;
+    }
+
+    /**
+     * Get XP earned per session based on current level
+     *
+     * @param int $level
+     * @return int
+     */
+    private function getXpForCurrentLevel(int $level): int
+    {
+        return match ($level) {
+            1 => 1,   // Level 1: 1 XP per session
+            2 => 3,   // Level 2: 3 XP per session  
+            3 => 6,   // Level 3: 6 XP per session
+            4 => 10,  // Level 4: 10 XP per session
+            5 => 15,  // Level 5: 15 XP per session
+            default => 15  // Level 6+: 15 XP per session
+        };
     }
 
     /**

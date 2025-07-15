@@ -8,20 +8,21 @@ use App\Models\TrainingResult;
 use App\Models\TestResult;
 use App\Models\XpTransaction;
 use App\Models\UserStat;
-use App\Services\XpService;
+use App\Models\TrainingSession;
 use App\Services\UserStatService;
+use Carbon\Carbon;
 
 class FixAllAthletesXp extends Command
 {
     protected $signature = 'fix:all-athletes-xp {--force : Force reset without confirmation}';
-    protected $description = 'Recalculate XP for all athletes based on current system';
+    protected $description = 'Recalculate XP for all athletes based on correct dynamic system';
 
     public function handle()
     {
-        $this->info("🏃‍♂️ Starting XP recalculation for all athletes...");
+        $this->info("🏃‍♂️ Starting CORRECTED XP recalculation for all athletes...");
 
         if (!$this->option('force')) {
-            if (!$this->confirm('This will reset ALL XP calculations. Are you sure?')) {
+            if (!$this->confirm('This will reset ALL XP calculations with the corrected system. Are you sure?')) {
                 $this->info('Operation cancelled.');
                 return 0;
             }
@@ -43,9 +44,7 @@ class FixAllAthletesXp extends Command
         XpTransaction::truncate();
         $this->info("Deleted $deletedTransactions existing XP transactions");
 
-        $xpService = app(XpService::class);
         $userStatService = app(UserStatService::class);
-
         $totalProcessed = 0;
         $totalXpAwarded = 0;
 
@@ -53,57 +52,87 @@ class FixAllAthletesXp extends Command
         foreach ($athletes as $athlete) {
             $this->info("📊 Processing: {$athlete->username} (ID: {$athlete->id})");
 
-            $userXpEarned = 0;
+            // Get all completed sessions ordered by completion date
+            $completedSessions = collect();
 
-            // Get completed training sessions
-            $completedTraining = TrainingResult::where('user_id', $athlete->id)
+            // Get training sessions
+            $trainingResults = TrainingResult::where('user_id', $athlete->id)
                 ->whereNotNull('completed_at')
+                ->with('session')
                 ->get();
 
-            // Get completed testing sessions
-            $completedTesting = TestResult::where('user_id', $athlete->id)
+            foreach ($trainingResults as $result) {
+                $completedSessions->push([
+                    'type' => 'training',
+                    'session_id' => $result->session_id,
+                    'completed_at' => $result->completed_at,
+                    'session' => $result->session,
+                    'result' => $result
+                ]);
+            }
+
+            // Get testing sessions
+            $testingResults = TestResult::where('user_id', $athlete->id)
                 ->whereNotNull('completed_at')
+                ->with('session')
                 ->get();
 
-            $this->line("  - Training sessions completed: {$completedTraining->count()}");
-            $this->line("  - Testing sessions completed: {$completedTesting->count()}");
-
-            // Process training sessions
-            foreach ($completedTraining as $result) {
-                try {
-                    $xp = $xpService->calculateSessionXp($athlete->id, $result->session_id);
-                    $userXpEarned += $xp;
-                    if ($xp > 0) {
-                        $this->line("    ✅ Training Session {$result->session_id}: +{$xp} XP");
-                    }
-                } catch (\Exception $e) {
-                    $this->error("    ❌ Error processing training session {$result->session_id}: " . $e->getMessage());
-                }
+            foreach ($testingResults as $result) {
+                $completedSessions->push([
+                    'type' => 'testing',
+                    'session_id' => $result->session_id,
+                    'completed_at' => $result->completed_at,
+                    'session' => $result->session,
+                    'result' => $result
+                ]);
             }
 
-            // Process testing sessions
-            foreach ($completedTesting as $result) {
-                try {
-                    $xp = $xpService->calculateSessionXp($athlete->id, $result->session_id);
-                    $userXpEarned += $xp;
-                    if ($xp > 0) {
-                        $this->line("    ✅ Testing Session {$result->session_id}: +{$xp} XP");
-                    }
-                } catch (\Exception $e) {
-                    $this->error("    ❌ Error processing testing session {$result->session_id}: " . $e->getMessage());
+            // Sort by completion date to process chronologically
+            $completedSessions = $completedSessions->sortBy('completed_at');
+
+            $this->line("  - Total sessions completed: {$completedSessions->count()}");
+
+            $currentTotalXp = 0;
+            $currentLevel = 1;
+
+            // Process each session chronologically
+            foreach ($completedSessions as $sessionData) {
+                // Get XP for this session based on CURRENT level
+                $sessionXp = $this->getXpForCurrentLevel($currentLevel);
+
+                if ($sessionData['type'] === 'training') {
+                    // Award base XP for training session
+                    $this->createXpTransaction($athlete->id, $sessionXp, 'session_complete');
+                    $currentTotalXp += $sessionXp;
+
+                    $this->line("    ✅ Training Session {$sessionData['session_id']}: +{$sessionXp} XP (Level {$currentLevel})");
+                } else if ($sessionData['type'] === 'testing') {
+                    // Award 8 XP for testing session
+                    $this->createXpTransaction($athlete->id, 8, 'testing_complete');
+                    $currentTotalXp += 8;
+
+                    $this->line("    ✅ Testing Session {$sessionData['session_id']}: +8 XP (Testing)");
                 }
+
+                // Update current level after each session
+                $currentLevel = $this->calculateLevel($currentTotalXp);
             }
+
+            // Now check for bonuses
+            $this->processWeeklyBonuses($athlete->id, $trainingResults, $testingResults);
+            $this->processTrainingTestingBonuses($athlete->id, $trainingResults, $testingResults);
+            $this->processMonthlyBonuses($athlete->id, $completedSessions);
 
             // Update user stats
             $userStat = $userStatService->updateUserStats($athlete->id);
 
-            // Get final XP totals
-            $finalTotalXp = $xpService->getTotalXp($athlete->id);
-            $currentLevel = $xpService->getCurrentLevel($athlete->id);
+            // Get final totals
+            $finalTotalXp = XpTransaction::where('user_id', $athlete->id)->sum('xp_amount');
+            $finalLevel = $this->calculateLevel($finalTotalXp);
 
             $this->info("  📈 Final Results:");
             $this->info("    - Total XP: {$finalTotalXp}");
-            $this->info("    - Strength Level: {$currentLevel}");
+            $this->info("    - Strength Level: {$finalLevel}");
             $this->info("    - Consistency Score: {$userStat->consistency_score}%");
 
             // Show XP breakdown
@@ -125,7 +154,7 @@ class FixAllAthletesXp extends Command
         }
 
         // Summary
-        $this->info("🎉 XP Recalculation Complete!");
+        $this->info("🎉 CORRECTED XP Recalculation Complete!");
         $this->info("📊 Summary:");
         $this->info("  - Athletes processed: {$totalProcessed}");
         $this->info("  - Total XP awarded: {$totalXpAwarded}");
@@ -146,8 +175,145 @@ class FixAllAthletesXp extends Command
             $rank++;
         }
 
-        $this->info("✨ All athletes now have consistent XP calculations!");
+        $this->info("✨ All athletes now have CORRECT XP calculations!");
 
         return 0;
+    }
+
+    /**
+     * Get XP earned per session based on current level
+     */
+    private function getXpForCurrentLevel(int $level): int
+    {
+        return match ($level) {
+            1 => 1,   // Level 1: 1 XP per session
+            2 => 3,   // Level 2: 3 XP per session
+            3 => 6,   // Level 3: 6 XP per session
+            4 => 10,  // Level 4: 10 XP per session
+            5 => 15,  // Level 5: 15 XP per session
+            default => 15  // Level 6+: 15 XP per session
+        };
+    }
+
+    /**
+     * Calculate level based on total XP
+     */
+    private function calculateLevel(int $totalXp): int
+    {
+        if ($totalXp < 1) return 1;
+        if ($totalXp < 3) return 1;
+        if ($totalXp < 6) return 2;
+        if ($totalXp < 10) return 3;
+        if ($totalXp < 15) return 4;
+        return 5;
+    }
+
+    /**
+     * Create XP transaction
+     */
+    private function createXpTransaction(int $userId, int $xpAmount, string $source): void
+    {
+        XpTransaction::create([
+            'user_id' => $userId,
+            'xp_amount' => $xpAmount,
+            'xp_source' => $source,
+            'transaction_date' => now(),
+        ]);
+    }
+
+    /**
+     * Process weekly bonuses
+     */
+    private function processWeeklyBonuses(int $userId, $trainingResults, $testingResults): void
+    {
+        // Group training sessions by week and block
+        $weeklyGroups = $trainingResults->groupBy(function ($result) {
+            return $result->session->block_id . '-' . $result->session->week_number;
+        });
+
+        foreach ($weeklyGroups as $groupKey => $weekResults) {
+            $parts = explode('-', $groupKey);
+            $blockId = $parts[0];
+            $weekNumber = $parts[1];
+
+            // Get all training sessions for this week
+            $totalTrainingInWeek = TrainingSession::where('block_id', $blockId)
+                ->where('week_number', $weekNumber)
+                ->where('session_type', 'training')
+                ->count();
+
+            // Check if all sessions completed within 7 days
+            if ($weekResults->count() >= $totalTrainingInWeek && $totalTrainingInWeek > 0) {
+                $firstCompletion = $weekResults->min('completed_at');
+                $lastCompletion = $weekResults->max('completed_at');
+
+                $daysDiff = Carbon::parse($firstCompletion)->diffInDays(Carbon::parse($lastCompletion));
+
+                if ($daysDiff <= 7) {
+                    $this->createXpTransaction($userId, 3, 'week_complete');
+                    $this->line("    🎁 Weekly bonus: +3 XP (Week {$weekNumber})");
+                }
+            }
+        }
+    }
+
+    /**
+     * Process training + testing bonuses
+     */
+    private function processTrainingTestingBonuses(int $userId, $trainingResults, $testingResults): void
+    {
+        // Check weeks 5 and 11 for training + testing completion
+        foreach ([5, 11] as $weekNumber) {
+            $trainingInWeek = $trainingResults->filter(function ($result) use ($weekNumber) {
+                return $result->session && $result->session->week_number == $weekNumber;
+            });
+
+            $testingInWeek = $testingResults->filter(function ($result) use ($weekNumber) {
+                return $result->session && $result->session->week_number == $weekNumber;
+            });
+
+            if ($trainingInWeek->count() > 0 && $testingInWeek->count() > 0) {
+                // Check if completed within same week
+                $allCompletions = $trainingInWeek->pluck('completed_at')
+                    ->merge($testingInWeek->pluck('completed_at'));
+
+                $firstCompletion = $allCompletions->min();
+                $lastCompletion = $allCompletions->max();
+
+                $daysDiff = Carbon::parse($firstCompletion)->diffInDays(Carbon::parse($lastCompletion));
+
+                if ($daysDiff <= 7) {
+                    $this->createXpTransaction($userId, 5, 'training_and_testing');
+                    $this->line("    🏆 Training + Testing bonus: +5 XP (Week {$weekNumber})");
+                }
+            }
+        }
+    }
+
+    /**
+     * Process monthly bonuses (simplified - could be enhanced)
+     */
+    private function processMonthlyBonuses(int $userId, $completedSessions): void
+    {
+        // Group by month and check if all sessions completed within 4-week periods
+        // This is a simplified version - you might want to implement more complex logic
+
+        $monthlyGroups = $completedSessions->groupBy(function ($session) {
+            return Carbon::parse($session['completed_at'])->format('Y-m');
+        });
+
+        foreach ($monthlyGroups as $month => $sessions) {
+            if ($sessions->count() >= 8) { // Assuming 8+ sessions in a month qualifies
+                $firstCompletion = $sessions->min('completed_at');
+                $lastCompletion = $sessions->max('completed_at');
+
+                $daysDiff = Carbon::parse($firstCompletion)->diffInDays(Carbon::parse($lastCompletion));
+
+                if ($daysDiff <= 28) { // Within 4 weeks
+                    $this->createXpTransaction($userId, 12, 'month_complete');
+                    $this->line("    🎖️ Monthly bonus: +12 XP ({$month})");
+                }
+            }
+        }
     }
 }
