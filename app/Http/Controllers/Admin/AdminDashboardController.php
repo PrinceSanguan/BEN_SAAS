@@ -1599,12 +1599,27 @@ class AdminDashboardController extends Controller
                         ->where('session_id', $session->id)
                         ->first();
 
-                    // Calculate XP for this specific session
                     if ($trainingResult && $trainingResult->completed_at) {
-                        // Base session XP (4 XP per training session)
-                        $xpEarned = 4;
+                        // Get user's level when this session was completed
+                        // For display purposes, we'll calculate what level they were at this session
+                        $sessionsBeforeThis = TrainingResult::where('user_id', $athleteId)
+                            ->whereNotNull('completed_at')
+                            ->where('completed_at', '<', $trainingResult->completed_at)
+                            ->count();
 
-                        // Check if this session earned weekly bonus
+                        $testingSessionsBefore = TestResult::where('user_id', $athleteId)
+                            ->whereNotNull('completed_at')
+                            ->where('completed_at', '<', $trainingResult->completed_at)
+                            ->count();
+
+                        // Calculate approximate XP before this session (simplified)
+                        $approximateXpBefore = $sessionsBeforeThis + ($testingSessionsBefore * 8);
+                        $levelAtTime = $this->calculateLevelFromXp($approximateXpBefore);
+
+                        // Award XP based on level at time of completion
+                        $xpEarned = $this->getXpForLevel($levelAtTime);
+
+                        // Check if this session earned weekly bonus (simplified check)
                         $weekSessions = TrainingSession::where('week_number', $session->week_number)
                             ->where('block_id', $session->block_id)
                             ->where('session_type', 'training')
@@ -1618,12 +1633,9 @@ class AdminDashboardController extends Controller
                             ->whereNotNull('completed_at')
                             ->count();
 
-                        // Required sessions for this week
                         $requiredSessions = in_array($session->week_number, [5, 11]) ? 1 : 2;
 
-                        // If this session completed the week, add weekly bonus
                         if ($weekCompleted >= $requiredSessions && $weekSessions >= $requiredSessions) {
-                            // Check if this was the session that completed the week
                             $isLastSessionInWeek = TrainingResult::where('user_id', $athleteId)
                                 ->whereIn('session_id', TrainingSession::where('week_number', $session->week_number)
                                     ->where('block_id', $session->block_id)
@@ -1644,8 +1656,7 @@ class AdminDashboardController extends Controller
                         ->first();
 
                     if ($testResult && $testResult->completed_at) {
-                        // Base testing XP (8 XP per testing session)
-                        $xpEarned = 8;
+                        $xpEarned = 8; // Fixed 8 XP for testing sessions
 
                         // Check for training + testing bonus (weeks 5, 11 only)
                         if (in_array($session->week_number, [5, 11])) {
@@ -1712,5 +1723,36 @@ class AdminDashboardController extends Controller
             ],
             'activePage' => 'session-tracking'
         ]);
+    }
+
+
+    // Add these helper methods to the AdminDashboardController class:
+
+    /**
+     * Calculate level from total XP
+     */
+    private function calculateLevelFromXp(int $totalXp): int
+    {
+        if ($totalXp < 1) return 1;
+        if ($totalXp < 3) return 1;
+        if ($totalXp < 6) return 2;
+        if ($totalXp < 10) return 3;
+        if ($totalXp < 15) return 4;
+        return 5;
+    }
+
+    /**
+     * Get XP earned per session based on level
+     */
+    private function getXpForLevel(int $level): int
+    {
+        return match ($level) {
+            1 => 1,   // Level 1: 1 XP per session
+            2 => 3,   // Level 2: 3 XP per session
+            3 => 6,   // Level 3: 6 XP per session
+            4 => 10,  // Level 4: 10 XP per session
+            5 => 15,  // Level 5: 15 XP per session
+            default => 15  // Level 6+: 15 XP per session
+        };
     }
 }
