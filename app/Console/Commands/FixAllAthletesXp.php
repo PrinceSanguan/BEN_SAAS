@@ -185,14 +185,8 @@ class FixAllAthletesXp extends Command
      */
     private function getXpForCurrentLevel(int $level): int
     {
-        return match ($level) {
-            1 => 1,   // Level 1: 1 XP per session
-            2 => 3,   // Level 2: 3 XP per session
-            3 => 6,   // Level 3: 6 XP per session
-            4 => 10,  // Level 4: 10 XP per session
-            5 => 15,  // Level 5: 15 XP per session
-            default => 15  // Level 6+: 15 XP per session
-        };
+        // Fixed XP per training session regardless of level
+        return 1;
     }
 
     /**
@@ -200,12 +194,50 @@ class FixAllAthletesXp extends Command
      */
     private function calculateLevel(int $totalXp): int
     {
-        if ($totalXp < 1) return 1;
-        if ($totalXp < 3) return 1;
-        if ($totalXp < 6) return 2;
-        if ($totalXp < 10) return 3;
-        if ($totalXp < 15) return 4;
-        return 5;
+        // Use triangular number formula: Level n requires sum(1 to n) XP
+        $levelThresholds = [
+            1 => 0,   // Level 1: 0 XP (starting level)
+            2 => 3,   // Level 2: 3 XP (1+2 = 3)
+            3 => 6,   // Level 3: 6 XP (1+2+3 = 6)
+            4 => 10,  // Level 4: 10 XP (1+2+3+4 = 10)
+            5 => 15,  // Level 5: 15 XP (1+2+3+4+5 = 15)
+            6 => 21,  // Level 6: 21 XP (1+2+3+4+5+6 = 21)
+            7 => 28,  // Level 7: 28 XP (1+2+3+4+5+6+7 = 28)
+            8 => 36,  // Level 8: 36 XP (1+2+3+4+5+6+7+8 = 36)
+            9 => 45,  // Level 9: 45 XP (1+2+3+4+5+6+7+8+9 = 45)
+            10 => 55, // Level 10: 55 XP (1+2+3+4+5+6+7+8+9+10 = 55)
+        ];
+
+        $level = 1;
+        foreach ($levelThresholds as $lvl => $threshold) {
+            if ($totalXp >= $threshold) {
+                $level = $lvl;
+            } else {
+                break;
+            }
+        }
+
+        // For levels beyond 10, continue the triangular pattern
+        if ($level === 10 && $totalXp > $levelThresholds[10]) {
+            $remainingXp = $totalXp - $levelThresholds[10];
+            $nextLevel = 11;
+
+            while (true) {
+                $xpForNextLevel = ($nextLevel * ($nextLevel + 1)) / 2; // Triangular number
+                $xpForCurrentLevel = (($nextLevel - 1) * $nextLevel) / 2;
+                $xpGap = $xpForNextLevel - $xpForCurrentLevel;
+
+                if ($remainingXp < $xpGap) {
+                    break;
+                }
+
+                $remainingXp -= $xpGap;
+                $level = $nextLevel;
+                $nextLevel++;
+            }
+        }
+
+        return $level;
     }
 
     /**

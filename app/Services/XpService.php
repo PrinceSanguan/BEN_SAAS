@@ -25,12 +25,16 @@ class XpService
      * These represent the minimum XP required to reach each level
      */
     const LEVEL_THRESHOLDS = [
-        1 => 1,    // Level 1: 1 XP
-        2 => 3,    // Level 2: 3 XP (2 XP more than Level 1)
-        3 => 6,    // Level 3: 6 XP (3 XP more than Level 2)
-        4 => 10,   // Level 4: 10 XP (4 XP more than Level 3)
-        5 => 15,   // Level 5: 15 XP (5 XP more than Level 4)
-        // If more levels are needed, add them here following the pattern
+        1 => 0,    // Level 1: 0 XP (starting level)
+        2 => 3,    // Level 2: 3 XP (1+2 = 3)
+        3 => 6,    // Level 3: 6 XP (1+2+3 = 6)
+        4 => 10,   // Level 4: 10 XP (1+2+3+4 = 10)
+        5 => 15,   // Level 5: 15 XP (1+2+3+4+5 = 15)
+        6 => 21,   // Level 6: 21 XP (1+2+3+4+5+6 = 21)
+        7 => 28,   // Level 7: 28 XP (1+2+3+4+5+6+7 = 28)
+        8 => 36,   // Level 8: 36 XP (1+2+3+4+5+6+7+8 = 36)
+        9 => 45,   // Level 9: 45 XP (1+2+3+4+5+6+7+8+9 = 45)
+        10 => 55,  // Level 10: 55 XP (1+2+3+4+5+6+7+8+9+10 = 55)
     ];
 
     /**
@@ -112,14 +116,8 @@ class XpService
      */
     private function getXpForCurrentLevel(int $level): int
     {
-        return match ($level) {
-            1 => 1,   // Level 1: 1 XP per session
-            2 => 3,   // Level 2: 3 XP per session  
-            3 => 6,   // Level 3: 6 XP per session
-            4 => 10,  // Level 4: 10 XP per session
-            5 => 15,  // Level 5: 15 XP per session
-            default => 15  // Level 6+: 15 XP per session
-        };
+        // Fixed XP per training session regardless of level
+        return 1;
     }
 
     /**
@@ -165,18 +163,9 @@ class XpService
             return self::LEVEL_THRESHOLDS[$level];
         }
 
-        // For levels beyond our defined thresholds, follow the pattern
-        // Each level requires N more XP than the previous level
-        // (where N is the level number)
-        $lastDefinedLevel = max(array_keys(self::LEVEL_THRESHOLDS));
-        $lastLevelXp = self::LEVEL_THRESHOLDS[$lastDefinedLevel];
-
-        $additionalXp = 0;
-        for ($i = $lastDefinedLevel + 1; $i <= $level; $i++) {
-            $additionalXp += $i;
-        }
-
-        return $lastLevelXp + $additionalXp;
+        // For levels beyond our defined thresholds, use triangular number formula
+        // Level n requires sum(1 to n) XP total
+        return ($level * ($level + 1)) / 2;
     }
 
     /**
@@ -205,7 +194,7 @@ class XpService
         $totalXp = $this->getTotalXp($userId);
 
         // If no XP, return level 1
-        if ($totalXp < self::LEVEL_THRESHOLDS[1]) {
+        if ($totalXp <= self::LEVEL_THRESHOLDS[1]) {
             return 1;
         }
 
@@ -229,12 +218,15 @@ class XpService
             $nextLevel = $level + 1;
 
             while (true) {
-                $xpForNextLevel = $nextLevel; // Each level requires N more XP
-                if ($remainingXp < $xpForNextLevel) {
+                $xpForNextLevel = ($nextLevel * ($nextLevel + 1)) / 2; // Triangular number
+                $xpForCurrentLevel = (($nextLevel - 1) * $nextLevel) / 2;
+                $xpGap = $xpForNextLevel - $xpForCurrentLevel;
+
+                if ($remainingXp < $xpGap) {
                     break;
                 }
 
-                $remainingXp -= $xpForNextLevel;
+                $remainingXp -= $xpGap;
                 $level = $nextLevel;
                 $nextLevel++;
             }
