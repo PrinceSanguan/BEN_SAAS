@@ -194,50 +194,18 @@ class FixAllAthletesXp extends Command
      */
     private function calculateLevel(int $totalXp): int
     {
-        // Use triangular number formula: Level n requires sum(1 to n) XP
-        $levelThresholds = [
-            1 => 0,   // Level 1: 0 XP (starting level)
-            2 => 3,   // Level 2: 3 XP (1+2 = 3)
-            3 => 6,   // Level 3: 6 XP (1+2+3 = 6)
-            4 => 10,  // Level 4: 10 XP (1+2+3+4 = 10)
-            5 => 15,  // Level 5: 15 XP (1+2+3+4+5 = 15)
-            6 => 21,  // Level 6: 21 XP (1+2+3+4+5+6 = 21)
-            7 => 28,  // Level 7: 28 XP (1+2+3+4+5+6+7 = 28)
-            8 => 36,  // Level 8: 36 XP (1+2+3+4+5+6+7+8 = 36)
-            9 => 45,  // Level 9: 45 XP (1+2+3+4+5+6+7+8+9 = 45)
-            10 => 55, // Level 10: 55 XP (1+2+3+4+5+6+7+8+9+10 = 55)
-        ];
+        // Dynamic level calculation using inverse triangular number formula
+        // For level n: XP = (n-1) * n / 2
+        // Solving for n: n = (1 + sqrt(1 + 8*XP)) / 2
 
-        $level = 1;
-        foreach ($levelThresholds as $lvl => $threshold) {
-            if ($totalXp >= $threshold) {
-                $level = $lvl;
-            } else {
-                break;
-            }
+        if ($totalXp <= 0) {
+            return 1;
         }
 
-        // For levels beyond 10, continue the triangular pattern
-        if ($level === 10 && $totalXp > $levelThresholds[10]) {
-            $remainingXp = $totalXp - $levelThresholds[10];
-            $nextLevel = 11;
+        $level = floor((1 + sqrt(1 + 8 * $totalXp)) / 2) + 1;
 
-            while (true) {
-                $xpForNextLevel = ($nextLevel * ($nextLevel + 1)) / 2; // Triangular number
-                $xpForCurrentLevel = (($nextLevel - 1) * $nextLevel) / 2;
-                $xpGap = $xpForNextLevel - $xpForCurrentLevel;
-
-                if ($remainingXp < $xpGap) {
-                    break;
-                }
-
-                $remainingXp -= $xpGap;
-                $level = $nextLevel;
-                $nextLevel++;
-            }
-        }
-
-        return $level;
+        // Ensure minimum level is 1
+        return max(1, $level);
     }
 
     /**

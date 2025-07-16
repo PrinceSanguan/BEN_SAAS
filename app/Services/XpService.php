@@ -20,22 +20,6 @@ class XpService
     const XP_TRAINING_AND_TESTING_WEEK = 5;
     const XP_MONTH_COMPLETE = 12;
 
-    /**
-     * Level thresholds
-     * These represent the minimum XP required to reach each level
-     */
-    const LEVEL_THRESHOLDS = [
-        1 => 0,    // Level 1: 0 XP (starting level)
-        2 => 3,    // Level 2: 3 XP (1+2 = 3)
-        3 => 6,    // Level 3: 6 XP (1+2+3 = 6)
-        4 => 10,   // Level 4: 10 XP (1+2+3+4 = 10)
-        5 => 15,   // Level 5: 15 XP (1+2+3+4+5 = 15)
-        6 => 21,   // Level 6: 21 XP (1+2+3+4+5+6 = 21)
-        7 => 28,   // Level 7: 28 XP (1+2+3+4+5+6+7 = 28)
-        8 => 36,   // Level 8: 36 XP (1+2+3+4+5+6+7+8 = 36)
-        9 => 45,   // Level 9: 45 XP (1+2+3+4+5+6+7+8+9 = 45)
-        10 => 55,  // Level 10: 55 XP (1+2+3+4+5+6+7+8+9+10 = 55)
-    ];
 
     /**
      * Calculate XP for a user based on session completion
@@ -158,14 +142,14 @@ class XpService
      */
     public function getTotalXpForLevel(int $level): int
     {
-        // If level exists in thresholds, return it
-        if (isset(self::LEVEL_THRESHOLDS[$level])) {
-            return self::LEVEL_THRESHOLDS[$level];
+        // Dynamic calculation using triangular number formula
+        // Level 1 = 0 XP, Level 2 = 3 XP, Level 3 = 6 XP, etc.
+        if ($level <= 1) {
+            return 0;
         }
 
-        // For levels beyond our defined thresholds, use triangular number formula
-        // Level n requires sum(1 to n) XP total
-        return ($level * ($level + 1)) / 2;
+        // For level n: XP required = (n-1) * n / 2
+        return (($level - 1) * $level) / 2;
     }
 
     /**
@@ -194,45 +178,17 @@ class XpService
         $totalXp = $this->getTotalXp($userId);
 
         // If no XP, return level 1
-        if ($totalXp <= self::LEVEL_THRESHOLDS[1]) {
+        if ($totalXp <= 0) {
             return 1;
         }
 
-        // Find the highest level that the user's XP meets or exceeds
-        $level = 1;
-        foreach (self::LEVEL_THRESHOLDS as $lvl => $threshold) {
-            if ($totalXp >= $threshold) {
-                $level = $lvl;
-            } else {
-                break; // Stop once we find a threshold higher than user's XP
-            }
-        }
+        // Dynamic level calculation using inverse triangular number formula
+        // For level n: XP = (n-1) * n / 2
+        // Solving for n: n = (1 + sqrt(1 + 8*XP)) / 2
+        $level = floor((1 + sqrt(1 + 8 * $totalXp)) / 2) + 1;
 
-        // If user's XP exceeds our defined thresholds, calculate level based on the pattern
-        if (
-            $level === max(array_keys(self::LEVEL_THRESHOLDS)) &&
-            $totalXp > self::LEVEL_THRESHOLDS[$level]
-        ) {
-
-            $remainingXp = $totalXp - self::LEVEL_THRESHOLDS[$level];
-            $nextLevel = $level + 1;
-
-            while (true) {
-                $xpForNextLevel = ($nextLevel * ($nextLevel + 1)) / 2; // Triangular number
-                $xpForCurrentLevel = (($nextLevel - 1) * $nextLevel) / 2;
-                $xpGap = $xpForNextLevel - $xpForCurrentLevel;
-
-                if ($remainingXp < $xpGap) {
-                    break;
-                }
-
-                $remainingXp -= $xpGap;
-                $level = $nextLevel;
-                $nextLevel++;
-            }
-        }
-
-        return $level;
+        // Ensure minimum level is 1
+        return max(1, $level);
     }
 
     /**
