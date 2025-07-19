@@ -1,7 +1,7 @@
 import Sidebar from '@/components/Student/Sidebar';
 import { Head, useForm } from '@inertiajs/react';
 import gsap from 'gsap';
-import { ArrowLeft, Menu } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 import React, { useEffect, useRef, useState } from 'react';
 
 interface SessionData {
@@ -189,15 +189,15 @@ const TrainingSession: React.FC<TrainingSessionProps> = ({ session = {}, existin
         <div ref={pageRef} className="flex min-h-screen bg-gradient-to-b from-[#0a1e3c] to-[#0f2a4a]">
             <Head title={`Training Session ${sessionNumber}`} />
 
-            <Sidebar username={username} routes={routes} currentRoute={window.location.pathname} />
+            {/* Sidebar - Hidden on mobile */}
+            <div className="hidden lg:block">
+                <Sidebar username={username} routes={routes} currentRoute={window.location.pathname} />
+            </div>
 
             <div className="flex-1 lg:ml-64">
-                <header ref={headerRef} className="sticky top-0 z-10 border-b border-[#1e3a5f] bg-[#0a1e3c]/80 px-4 py-4 backdrop-blur-md">
-                    <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-2">
+                <header ref={headerRef} className="sticky top-0 z-10 border-b border-[#1e3a5f] bg-[#0a1e3c]/80 px-4 py-4 backdrop-blur-md lg:px-8">
+                    <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-2 lg:px-4">
                         <div className="flex items-center">
-                            <button onClick={toggleSidebar} className="mr-4 text-[#a3c0e6] hover:text-white lg:hidden">
-                                <Menu className="h-6 w-6" />
-                            </button>
                             <div>
                                 <h1 className="text-2xl font-bold text-white">Session {sessionNumber}</h1>
                                 <p className="text-[#a3c0e6]">
@@ -209,7 +209,7 @@ const TrainingSession: React.FC<TrainingSessionProps> = ({ session = {}, existin
                     </div>
                 </header>
 
-                <main ref={mainContentRef} className="mx-auto max-w-7xl px-4 py-6 pb-24 lg:pb-6">
+                <main ref={mainContentRef} className="mx-auto max-w-7xl px-4 py-6 pb-24 lg:px-8 lg:pb-6">
                     <div className="overflow-hidden rounded-xl border border-[#1e3a5f] bg-[#112845] shadow-lg">
                         <form onSubmit={handleSubmit} className="space-y-6 p-6">
                             {isTesting ? (
