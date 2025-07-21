@@ -64,8 +64,8 @@ class StudentTrainingController extends Controller
             $sessionsByWeek = collect($block->sessions)->groupBy('week_number');
 
             $weeks = $sessionsByWeek->map(function ($sessions, $weekNumber) use ($completedSessions, $currentDate) {
-                // Check if this is a rest week (weeks 7 and 14)
-                $isRestWeek = in_array($weekNumber, [7, 14]);
+                // Check if this is a rest week (weeks 6 and 12)
+                $isRestWeek = in_array($weekNumber, [6, 12]);
 
                 if ($isRestWeek) {
                     $restSessions = $sessions->where('session_type', 'rest');
