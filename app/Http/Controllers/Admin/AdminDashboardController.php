@@ -1650,6 +1650,9 @@ class AdminDashboardController extends Controller
                             }
                         }
                     }
+                } else if ($session->session_type === 'rest' && $isReleased) {
+                    // Rest weeks automatically get 2 XP when released
+                    $xpEarned = 2;
                 } else {
                     $testResult = TestResult::where('user_id', $athleteId)
                         ->where('session_id', $session->id)
@@ -1683,8 +1686,12 @@ class AdminDashboardController extends Controller
                     'block_number' => $session->block ? $session->block->block_number : null,
                     'release_date' => $session->release_date,
                     'is_released' => $isReleased,
-                    'is_completed' => ($trainingResult && $trainingResult->completed_at) || ($testResult && $testResult->completed_at),
-                    'completed_at' => $trainingResult ? $trainingResult->completed_at : ($testResult ? $testResult->completed_at : null),
+                    'is_completed' => $session->session_type === 'rest'
+                        ? $isReleased
+                        : (($trainingResult && $trainingResult->completed_at) || ($testResult && $testResult->completed_at)),
+                    'completed_at' => $session->session_type === 'rest'
+                        ? ($isReleased ? $session->release_date : null)
+                        : ($trainingResult ? $trainingResult->completed_at : ($testResult ? $testResult->completed_at : null)),
                     'xp_earned' => $xpEarned,
                     'session_details' => $trainingResult ? [
                         'warmup_completed' => $trainingResult->warmup_completed,
