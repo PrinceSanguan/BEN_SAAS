@@ -137,7 +137,32 @@ export default function AthleteSummary({ athlete, progressData, sessionsComplete
                                         <div className="mb-1 text-center">
                                             <div>
                                                 <h3 className="text-xs font-bold text-gray-900">{data.name}</h3>
-                                                <p className="text-xs text-gray-600">{data.sessions ? data.sessions.length : 0} points</p>
+                                                <p className="text-xs text-gray-600">
+                                                    {(() => {
+                                                        if (!data.sessions || data.sessions.length < 2) return '0 points';
+
+                                                        const firstValue = data.sessions[0].value;
+                                                        const lastValue = data.sessions[data.sessions.length - 1].value;
+                                                        const improvement = lastValue - firstValue;
+
+                                                        // Define units for each test type
+                                                        const units: { [key: string]: string } = {
+                                                            'Standing Long Jump': 'cm',
+                                                            'Single Leg Jump (LEFT)': 'cm',
+                                                            'Single Leg Jump (RIGHT)': 'cm',
+                                                            'Single Leg Wall Sit (LEFT)': 's',
+                                                            'Single Leg Wall Sit (RIGHT)': 's',
+                                                            'Core Endurance (LEFT)': 's',
+                                                            'Core Endurance (RIGHT)': 's',
+                                                            'Bent Arm Hold': 's',
+                                                        };
+
+                                                        const unit = units[data.name] || '';
+                                                        const sign = improvement > 0 ? '+' : '';
+
+                                                        return `${sign}${improvement.toFixed(1)}${unit}`;
+                                                    })()}
+                                                </p>
                                             </div>
                                             {data.percentageIncrease !== null && (
                                                 <span
