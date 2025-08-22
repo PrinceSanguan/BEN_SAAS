@@ -30,6 +30,7 @@ use App\Models\PageContent;
 
 
 
+
 class AdminDashboardController extends Controller
 {
     /**
@@ -693,15 +694,32 @@ class AdminDashboardController extends Controller
             $userBlockIds = Block::where('user_id', $athlete->id)->pluck('id');
 
             // Get available training sessions in blocks for this user (only those released)
-            $availableSessions = TrainingSession::where('session_type', 'training')
+            $availableTrainingSessions = TrainingSession::where('session_type', 'training')
                 ->where('release_date', '<=', $today)
                 ->whereIn('block_id', $userBlockIds)
                 ->count();
 
-            // Get completed sessions for this user
-            $completedSessions = TrainingResult::where('user_id', $athlete->id)
+            // Get available testing sessions in blocks for this user (only those released)
+            $availableTestingSessions = TrainingSession::where('session_type', 'testing')
+                ->where('release_date', '<=', $today)
+                ->whereIn('block_id', $userBlockIds)
+                ->count();
+
+            // Calculate total available sessions (training + testing)
+            $availableSessions = $availableTrainingSessions + $availableTestingSessions;
+
+            // Get completed training sessions for this user
+            $completedTrainingSessions = TrainingResult::where('user_id', $athlete->id) // Use $athlete->id instead of $user->id
                 ->whereNotNull('completed_at')
                 ->count();
+
+            // Get completed testing sessions for this user
+            $completedTestingSessions = TestResult::where('user_id', $athlete->id) // Use $athlete->id instead of $user->id
+                ->whereNotNull('completed_at')
+                ->count();
+
+            // Calculate total completed sessions (training + testing)
+            $completedSessions = $completedTrainingSessions + $completedTestingSessions;
 
             // Calculate consistency percentage (same logic as leaderboard)
             $consistencyScore = $availableSessions > 0
@@ -1503,16 +1521,33 @@ class AdminDashboardController extends Controller
         // Get user's blocks
         $userBlockIds = Block::where('user_id', $userId)->pluck('id');
 
-        // Get available sessions (only released ones)
-        $availableSessions = TrainingSession::where('session_type', 'training')
+        // Get available training sessions (only released ones)
+        $availableTrainingSessions = TrainingSession::where('session_type', 'training')
             ->where('release_date', '<=', $today)
             ->whereIn('block_id', $userBlockIds)
             ->count();
 
-        // Get completed sessions
-        $completedSessions = TrainingResult::where('user_id', $userId)
+        // Get available testing sessions (only released ones)
+        $availableTestingSessions = TrainingSession::where('session_type', 'testing')
+            ->where('release_date', '<=', $today)
+            ->whereIn('block_id', $userBlockIds)
+            ->count();
+
+        // Total available sessions
+        $availableSessions = $availableTrainingSessions + $availableTestingSessions;
+
+        // Get completed training sessions
+        $completedTrainingSessions = TrainingResult::where('user_id', $userId)
             ->whereNotNull('completed_at')
             ->count();
+
+        // Get completed testing sessions
+        $completedTestingSessions = TestResult::where('user_id', $userId)
+            ->whereNotNull('completed_at')
+            ->count();
+
+        // Total completed sessions
+        $completedSessions = $completedTrainingSessions + $completedTestingSessions;
 
         return $availableSessions > 0
             ? round(($completedSessions / $availableSessions) * 100)
