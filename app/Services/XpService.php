@@ -263,8 +263,10 @@ class XpService
         return !empty($result->standing_long_jump) &&
             !empty($result->single_leg_jump_left) &&
             !empty($result->single_leg_jump_right) &&
-            !empty($result->wall_sit_assessment) &&
-            !empty($result->high_plank_assessment);
+            !empty($result->single_leg_wall_sit_left) &&
+            !empty($result->single_leg_wall_sit_right) &&
+            !empty($result->core_endurance_left) &&
+            !empty($result->core_endurance_right);
     }
 
     /**
