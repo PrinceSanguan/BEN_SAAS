@@ -169,28 +169,48 @@ class StudentDashboardController extends Controller
      */
     private function calculateConsistencyScore(int $userId): int
     {
-        // Get the last 4 weeks of sessions
-        $fourWeeksAgo = Carbon::now()->subWeeks(4);
-        $today = Carbon::now();
+        // Get the user's stat from database which has the correct calculation
+        $userStat = UserStat::where('user_id', $userId)->first();
 
-        // Use a join to get both sessions and completed results in a single query
-        // But only count sessions that are available TODAY or earlier (not future sessions)
-        $sessionsInfo = TrainingSession::where('release_date', '>=', $fourWeeksAgo)
-            ->where('release_date', '<=', $today) // Only include sessions up to today
-            ->where('session_type', 'training')
-            ->leftJoin('training_results', function ($join) use ($userId) {
-                $join->on('training_sessions.id', '=', 'training_results.session_id')
-                    ->where('training_results.user_id', '=', $userId);
-            })
-            ->selectRaw('COUNT(training_sessions.id) as total_sessions, COUNT(training_results.id) as completed_sessions')
-            ->first();
-
-        if (!$sessionsInfo || $sessionsInfo->total_sessions == 0) {
-            return 0;
+        if ($userStat && $userStat->consistency_score) {
+            return round($userStat->consistency_score);
         }
 
-        // Calculate percentage (0-100)
-        return round(($sessionsInfo->completed_sessions / $sessionsInfo->total_sessions) * 100);
+        // Fallback: Calculate it the same way as UserStatService if no stat exists
+        $today = Carbon::now();
+
+        // Get user's blocks
+        $userBlockIds = Block::where('user_id', $userId)->pluck('id');
+
+        // Get available training sessions
+        $availableTrainingSessions = TrainingSession::where('session_type', 'training')
+            ->where('release_date', '<=', $today)
+            ->whereIn('block_id', $userBlockIds)
+            ->count();
+
+        // Get available testing sessions
+        $availableTestingSessions = TrainingSession::where('session_type', 'testing')
+            ->where('release_date', '<=', $today)
+            ->whereIn('block_id', $userBlockIds)
+            ->count();
+
+        $totalAvailable = $availableTrainingSessions + $availableTestingSessions;
+
+        // Get completed training sessions
+        $completedTraining = TrainingResult::where('user_id', $userId)
+            ->whereNotNull('completed_at')
+            ->count();
+
+        // Get completed testing sessions
+        $completedTesting = \App\Models\TestResult::where('user_id', $userId)
+            ->whereNotNull('completed_at')
+            ->count();
+
+        $totalCompleted = $completedTraining + $completedTesting;
+
+        return $totalAvailable > 0
+            ? round(($totalCompleted / $totalAvailable) * 100)
+            : 0;
     }
 
     /**

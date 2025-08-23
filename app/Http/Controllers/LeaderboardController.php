@@ -54,17 +54,36 @@ class LeaderboardController extends Controller
                 ->pluck('id');
 
             // Get available training sessions in blocks for this user
-            $availableSessions = DB::table('training_sessions')
+            $availableTrainingSessions = DB::table('training_sessions')
                 ->where('session_type', 'training')
                 ->where('release_date', '<=', $today)
                 ->whereIn('block_id', $userBlocks)
                 ->count();
 
-            // Get completed sessions for this user
-            $completedSessions = DB::table('training_results')
+            // Get available testing sessions in blocks for this user
+            $availableTestingSessions = DB::table('training_sessions')
+                ->where('session_type', 'testing')
+                ->where('release_date', '<=', $today)
+                ->whereIn('block_id', $userBlocks)
+                ->count();
+
+            // Total available sessions (excluding rest weeks)
+            $availableSessions = $availableTrainingSessions + $availableTestingSessions;
+
+            // Get completed training sessions for this user
+            $completedTrainingSessions = DB::table('training_results')
                 ->where('user_id', $student->id)
                 ->whereNotNull('completed_at')
                 ->count();
+
+            // Get completed testing sessions for this user
+            $completedTestingSessions = DB::table('test_results')
+                ->where('user_id', $student->id)
+                ->whereNotNull('completed_at')
+                ->count();
+
+            // Total completed sessions
+            $completedSessions = $completedTrainingSessions + $completedTestingSessions;
 
             // Calculate consistency percentage
             $consistencyPercentage = $availableSessions > 0
