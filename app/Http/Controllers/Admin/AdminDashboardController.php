@@ -1567,9 +1567,20 @@ class AdminDashboardController extends Controller
                 // Calculate real-time session stats
                 $userBlockIds = Block::where('user_id', $user->id)->pluck('id');
 
-                $availableSessions = TrainingSession::whereIn('block_id', $userBlockIds)
+                // Get available training sessions (exclude rest weeks)
+                $availableTrainingSessions = TrainingSession::whereIn('block_id', $userBlockIds)
+                    ->where('session_type', 'training')
                     ->where('release_date', '<=', now())
                     ->count();
+
+                // Get available testing sessions
+                $availableTestingSessions = TrainingSession::whereIn('block_id', $userBlockIds)
+                    ->where('session_type', 'testing')
+                    ->where('release_date', '<=', now())
+                    ->count();
+
+                // Total available sessions (training + testing, NO rest)
+                $availableSessions = $availableTrainingSessions + $availableTestingSessions;
 
                 $completedTraining = TrainingResult::where('user_id', $user->id)
                     ->whereNotNull('completed_at')
