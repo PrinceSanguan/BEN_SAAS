@@ -51,8 +51,8 @@ class TrainingSessionSeeder extends Seeder
         // Reset session counter for each block
         $sessionCount = 1;
 
-        // Iterate through all 14 weeks
-        for ($week = 1; $week <= 14; $week++) {
+        // Iterate through all 12 weeks
+        for ($week = 1; $week <= 12; $week++) {
             $weekStartDate = Carbon::parse($block->start_date ?: now())->addWeeks($week - 1);
 
             // Week 7 is a REST week

@@ -126,14 +126,14 @@ class AdminDashboardController extends Controller
                     $block1 = Block::create([
                         'block_number' => 1,
                         'start_date' => $now,
-                        'end_date' => $now->copy()->addWeeks(12),
+                        'end_date' => $now->copy()->addWeeks(12)->subDay(),
                         'user_id' => $user->id
                     ]);
 
                     // Block 2: Complete reset, starting after Block 1
                     $block2 = Block::create([
                         'block_number' => 2,
-                        'start_date' => $now->copy()->addWeeks(12)->addDay(),
+                        'start_date' => $now->copy()->addWeeks(12),
                         'end_date' => $now->copy()->addWeeks(24),
                         'user_id' => $user->id
                     ]);
@@ -141,8 +141,8 @@ class AdminDashboardController extends Controller
                     // Block 3: Third block
                     $block3 = Block::create([
                         'block_number' => 3,
-                        'start_date' => $now->copy()->addWeeks(24)->addDay(),
-                        'end_date' => $now->copy()->addWeeks(36),
+                        'start_date' => $now->copy()->addWeeks(24),
+                        'end_date' => $now->copy()->addWeeks(36)->subDay(),
                         'user_id' => $user->id
                     ]);
 

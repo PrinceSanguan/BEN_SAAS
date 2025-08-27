@@ -85,15 +85,15 @@ const ViewAthleteDashboard: React.FC<ViewAthleteDashboardProps> = ({
                 // Calculate the start date for this block
                 const blockStartDate = new Date(newStartDate);
 
-                // For blocks after the selected one, add 14 weeks per previous block
+                // For blocks after the selected one, add 12 weeks per previous block
                 if (block.block_number > blockNumber) {
                     const blocksToSkip = block.block_number - blockNumber;
-                    blockStartDate.setDate(blockStartDate.getDate() + blocksToSkip * 14 * 7 + blocksToSkip); // 14 weeks + 1 day between blocks
+                    blockStartDate.setDate(blockStartDate.getDate() + blocksToSkip * 12 * 7); // 12 weeks per block
                 }
 
-                // Calculate end date (start date + 14 weeks - 1 day)
+                // Calculate end date (start date + 12 weeks - 1 day)
                 const blockEndDate = new Date(blockStartDate);
-                blockEndDate.setDate(blockEndDate.getDate() + 14 * 7 - 1);
+                blockEndDate.setDate(blockEndDate.getDate() + 12 * 7 - 1);
 
                 return {
                     ...block,
