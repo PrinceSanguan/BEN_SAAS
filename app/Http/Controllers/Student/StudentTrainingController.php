@@ -285,6 +285,30 @@ class StudentTrainingController extends Controller
                         'completed_at'             => now(),
                     ]
                 );
+
+                // Only commit for training results (test results commit earlier)
+                if (strtolower($session->session_type) !== 'testing') {
+                    DB::commit();
+                }
+
+                // Calculate XP after successful save
+                $xpEarned = $this->xpService->calculateSessionXp($user->id, $sessionId);
+                $this->userStatService->updateUserStats($user->id);
+
+                // Log successful test submission
+                \App\Services\DatabaseLoggerService::logTrainingSubmission('info', 'Test results saved successfully', [
+                    'user_id' => $user->id,
+                    'username' => $user->username,
+                    'session_id' => $sessionId,
+                    'block_number' => $session->block ? $session->block->block_number : 'unknown',
+                    'week_number' => $session->week_number,
+                    'xp_earned' => $xpEarned,
+                    'timestamp' => now()->toISOString()
+                ]);
+
+                // Return without additional commit since we already committed for test results
+                return redirect()->route('student.training')
+                    ->with('success', "Test results saved successfully! You earned {$xpEarned} XP.");
             } else {
                 $validated = $request->validate([
                     'warmup_completed'               => 'required|in:YES,NO',

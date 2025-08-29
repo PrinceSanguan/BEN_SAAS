@@ -259,7 +259,6 @@ class XpService
         }
 
         // Bent Arm Hang Assessment is a bonus assessment and doesn't affect XP calculations
-        // as specified in requirements, so we exclude it from the completeness check
         return !empty($result->standing_long_jump) &&
             !empty($result->single_leg_jump_left) &&
             !empty($result->single_leg_jump_right) &&
