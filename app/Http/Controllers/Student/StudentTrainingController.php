@@ -286,10 +286,8 @@ class StudentTrainingController extends Controller
                     ]
                 );
 
-                // Only commit for training results (test results commit earlier)
-                if (strtolower($session->session_type) !== 'testing') {
-                    DB::commit();
-                }
+                // Commit the transaction for both training and testing
+                DB::commit();
 
                 // Calculate XP after successful save
                 $xpEarned = $this->xpService->calculateSessionXp($user->id, $sessionId);
