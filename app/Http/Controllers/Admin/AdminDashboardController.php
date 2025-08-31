@@ -1633,6 +1633,8 @@ class AdminDashboardController extends Controller
         $sessions = TrainingSession::whereIn('block_id', $blocks->pluck('id'))
             ->with(['block'])
             ->orderBy('release_date')
+            ->orderBy('week_number')
+            ->orderBy('session_number')
             ->get()
             ->map(function ($session) use ($athleteId) {
                 $isReleased = $session->release_date <= now();
