@@ -309,7 +309,7 @@ class StudentTrainingController extends Controller
                 ]);
 
                 // Return without additional commit since we already committed for test results
-                return redirect()->route('student.training')
+                return redirect()->back()
                     ->with('success', "Test results saved successfully! You earned {$xpEarned} XP.");
             } else {
                 $validated = $request->validate([
@@ -422,7 +422,7 @@ class StudentTrainingController extends Controller
 
             DB::commit();
 
-            return redirect()->route('student.training')
+            return redirect()->back()
                 ->with('success', $successMessage);
         } catch (\Exception $e) {
             DB::rollBack();
