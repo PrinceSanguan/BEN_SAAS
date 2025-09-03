@@ -258,14 +258,18 @@ class StudentTrainingController extends Controller
 
             if (strtolower($session->session_type) === 'testing') {
                 $validated = $request->validate([
-                    'standing_long_jump'       => 'required|numeric',
-                    'single_leg_jump_left'     => 'required|numeric',
-                    'single_leg_jump_right'    => 'required|numeric',
-                    'single_leg_wall_sit_left' => 'required|numeric', // Changed from wall_sit_assessment
-                    'single_leg_wall_sit_right' => 'required|numeric',
-                    'core_endurance_left'      => 'required|numeric',
-                    'core_endurance_right'     => 'required|numeric',
-                    'bent_arm_hang_assessment' => 'nullable|numeric',
+                    'standing_long_jump'       => 'required|numeric|min:0',
+                    'single_leg_jump_left'     => 'required|numeric|min:0',
+                    'single_leg_jump_right'    => 'required|numeric|min:0',
+                    'single_leg_wall_sit_left' => 'required|numeric|min:0',
+                    'single_leg_wall_sit_right' => 'required|numeric|min:0',
+                    'core_endurance_left'      => 'required|numeric|min:0',
+                    'core_endurance_right'     => 'required|numeric|min:0',
+                    'bent_arm_hang_assessment' => 'nullable|numeric|min:0',
+                ], [
+                    '*.numeric' => 'Please enter numbers only. For time, use seconds (e.g., 96 instead of 1m36s)',
+                    '*.required' => 'This field is required. Enter 0 if you couldn\'t complete the test',
+                    '*.min' => 'Please enter a positive number or 0',
                 ]);
 
                 TestResult::updateOrCreate(

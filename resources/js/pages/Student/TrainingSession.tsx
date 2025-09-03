@@ -214,18 +214,41 @@ const TrainingSession: React.FC<TrainingSessionProps> = ({ session = {}, existin
                         <form onSubmit={handleSubmit} className="space-y-6 p-6">
                             {isTesting ? (
                                 <>
+                                    <div className="mb-6 rounded-lg border border-blue-500/30 bg-blue-900/30 p-4">
+                                        <h3 className="mb-2 text-sm font-semibold text-blue-400">📝 Important Instructions:</h3>
+                                        <ul className="space-y-1 text-xs text-gray-300">
+                                            <li>
+                                                • Enter all measurements as <strong>numbers only</strong>
+                                            </li>
+                                            <li>
+                                                • Distance measurements: Use <strong>centimeters</strong> (e.g., 135)
+                                            </li>
+                                            <li>
+                                                • Time measurements: Use <strong>seconds</strong> (e.g., 96 instead of 1m36s)
+                                            </li>
+                                            <li>• If you couldn't complete a test, leave it blank or enter 0</li>
+                                            <li>• Do not enter text like "Was raining" - use the blank field instead</li>
+                                        </ul>
+                                    </div>
                                     <div>
                                         <label className="mb-2 block text-sm font-medium tracking-wider text-[#4a90e2] uppercase">
-                                            STANDING LONG JUMP – What was your best score?
+                                            STANDING LONG JUMP – What was your best score? (cm)
                                         </label>
                                         <input
-                                            type="text"
+                                            type="number"
+                                            step="0.1"
                                             value={data.standing_long_jump}
-                                            onChange={(e) => setData('standing_long_jump', e.target.value)}
+                                            onChange={(e) => {
+                                                const value = e.target.value;
+                                                // Allow empty string or valid number
+                                                if (value === '' || !isNaN(parseFloat(value))) {
+                                                    setData('standing_long_jump', value);
+                                                }
+                                            }}
                                             className="focus:ring-opacity-50 mt-1 block w-full rounded-md border-[#1e3a5f] bg-[#0a1e3c] text-white shadow-sm focus:border-[#4a90e2] focus:ring focus:ring-[#4a90e2]"
-                                            placeholder="Enter your score"
+                                            placeholder="Enter distance in centimeters (e.g., 125)"
                                         />
-                                        {errors.standing_long_jump && <p className="mt-1 text-sm text-red-400">{errors.standing_long_jump}</p>}
+                                        <p className="mt-1 text-xs text-gray-400">Enter numeric values only</p>
                                     </div>
                                     <div>
                                         <label className="mb-2 block text-sm font-medium tracking-wider text-[#4a90e2] uppercase">
@@ -255,18 +278,24 @@ const TrainingSession: React.FC<TrainingSessionProps> = ({ session = {}, existin
                                     </div>
                                     <div>
                                         <label className="mb-2 block text-sm font-medium tracking-wider text-[#4a90e2] uppercase">
-                                            SINGLE LEG WALL SIT (LEFT) – What was your best score?
+                                            SINGLE LEG WALL SIT (LEFT) – What was your best score? (seconds)
                                         </label>
                                         <input
-                                            type="text"
+                                            type="number"
+                                            step="1"
                                             value={data.single_leg_wall_sit_left}
-                                            onChange={(e) => setData('single_leg_wall_sit_left', e.target.value)}
+                                            onChange={(e) => {
+                                                const value = e.target.value;
+                                                if (value === '' || !isNaN(parseFloat(value))) {
+                                                    setData('single_leg_wall_sit_left', value);
+                                                }
+                                            }}
                                             className="focus:ring-opacity-50 mt-1 block w-full rounded-md border-[#1e3a5f] bg-[#0a1e3c] text-white shadow-sm focus:border-[#4a90e2] focus:ring focus:ring-[#4a90e2]"
-                                            placeholder="Enter your score"
+                                            placeholder="Enter time in seconds (e.g., 45)"
                                         />
-                                        {errors.single_leg_wall_sit_left && (
-                                            <p className="mt-1 text-sm text-red-400">{errors.single_leg_wall_sit_left}</p>
-                                        )}
+                                        <p className="mt-1 text-xs text-gray-400">
+                                            Enter time as total seconds, not minutes (e.g., 96 instead of 1m36s)
+                                        </p>
                                     </div>
                                     <div>
                                         <label className="mb-2 block text-sm font-medium tracking-wider text-[#4a90e2] uppercase">
@@ -286,16 +315,22 @@ const TrainingSession: React.FC<TrainingSessionProps> = ({ session = {}, existin
 
                                     <div>
                                         <label className="mb-2 block text-sm font-medium tracking-wider text-[#4a90e2] uppercase">
-                                            CORE ENDURANCE (LEFT) – What was your best score?
+                                            CORE ENDURANCE (LEFT) – What was your best score? (seconds)
                                         </label>
                                         <input
-                                            type="text"
+                                            type="number"
+                                            step="1"
                                             value={data.core_endurance_left}
-                                            onChange={(e) => setData('core_endurance_left', e.target.value)}
+                                            onChange={(e) => {
+                                                const value = e.target.value;
+                                                if (value === '' || !isNaN(parseFloat(value))) {
+                                                    setData('core_endurance_left', value);
+                                                }
+                                            }}
                                             className="focus:ring-opacity-50 mt-1 block w-full rounded-md border-[#1e3a5f] bg-[#0a1e3c] text-white shadow-sm focus:border-[#4a90e2] focus:ring focus:ring-[#4a90e2]"
-                                            placeholder="Enter your score"
+                                            placeholder="Enter time in seconds (e.g., 63)"
                                         />
-                                        {errors.core_endurance_left && <p className="mt-1 text-sm text-red-400">{errors.core_endurance_left}</p>}
+                                        <p className="mt-1 text-xs text-gray-400">Enter time as total seconds</p>
                                     </div>
                                     <div>
                                         <label className="mb-2 block text-sm font-medium tracking-wider text-[#4a90e2] uppercase">
@@ -312,18 +347,22 @@ const TrainingSession: React.FC<TrainingSessionProps> = ({ session = {}, existin
                                     </div>
                                     <div>
                                         <label className="mb-2 block text-sm font-medium tracking-wider text-[#4a90e2] uppercase">
-                                            BENT ARM HANG ASSESSMENT – What was your best score?
+                                            BENT ARM HANG ASSESSMENT – What was your best score? (seconds)
                                         </label>
                                         <input
-                                            type="text"
+                                            type="number"
+                                            step="1"
                                             value={data.bent_arm_hang_assessment}
-                                            onChange={(e) => setData('bent_arm_hang_assessment', e.target.value)}
+                                            onChange={(e) => {
+                                                const value = e.target.value;
+                                                if (value === '' || !isNaN(parseFloat(value))) {
+                                                    setData('bent_arm_hang_assessment', value);
+                                                }
+                                            }}
                                             className="focus:ring-opacity-50 mt-1 block w-full rounded-md border-[#1e3a5f] bg-[#0a1e3c] text-white shadow-sm focus:border-[#4a90e2] focus:ring focus:ring-[#4a90e2]"
-                                            placeholder="Enter your score"
+                                            placeholder="Enter time in seconds or leave blank if not performed"
                                         />
-                                        {errors.bent_arm_hang_assessment && (
-                                            <p className="mt-1 text-sm text-red-400">{errors.bent_arm_hang_assessment}</p>
-                                        )}
+                                        <p className="mt-1 text-xs text-gray-400">Leave blank if unable to complete due to conditions</p>
                                     </div>
                                 </>
                             ) : (
