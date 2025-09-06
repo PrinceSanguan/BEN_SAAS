@@ -1751,8 +1751,10 @@ class AdminDashboardController extends Controller
                         'standing_long_jump' => $testResult->standing_long_jump,
                         'single_leg_jump_left' => $testResult->single_leg_jump_left,
                         'single_leg_jump_right' => $testResult->single_leg_jump_right,
-                        'wall_sit_assessment' => $testResult->wall_sit_assessment,
-                        'high_plank_assessment' => $testResult->high_plank_assessment,
+                        'single_leg_wall_sit_left' => $testResult->single_leg_wall_sit_left,
+                        'single_leg_wall_sit_right' => $testResult->single_leg_wall_sit_right,
+                        'core_endurance_left' => $testResult->core_endurance_left,
+                        'core_endurance_right' => $testResult->core_endurance_right,
                         'bent_arm_hang_assessment' => $testResult->bent_arm_hang_assessment,
                     ] : null),
                 ];

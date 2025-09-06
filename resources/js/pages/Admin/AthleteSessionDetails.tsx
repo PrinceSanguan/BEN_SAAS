@@ -12,8 +12,10 @@ interface SessionDetails {
     standing_long_jump?: number;
     single_leg_jump_left?: number;
     single_leg_jump_right?: number;
-    wall_sit_assessment?: number;
-    high_plank_assessment?: number;
+    single_leg_wall_sit_left?: number;
+    single_leg_wall_sit_right?: number;
+    core_endurance_left?: number;
+    core_endurance_right?: number;
     bent_arm_hang_assessment?: number;
 }
 
@@ -208,18 +210,34 @@ export default function AthleteSessionDetails({ athlete, sessions, summary, acti
                                             </span>
                                         </div>
                                         <div className="flex justify-between">
-                                            <span className="text-gray-400">Wall Sit Assessment:</span>
+                                            <span className="text-gray-400">Single Leg Wall Sit (Left):</span>
                                             <span className="text-white">
-                                                {session.session_details.wall_sit_assessment
-                                                    ? `${session.session_details.wall_sit_assessment} sec`
+                                                {session.session_details.single_leg_wall_sit_left
+                                                    ? `${session.session_details.single_leg_wall_sit_left} sec`
                                                     : 'N/A'}
                                             </span>
                                         </div>
                                         <div className="flex justify-between">
-                                            <span className="text-gray-400">High Plank Assessment:</span>
+                                            <span className="text-gray-400">Single Leg Wall Sit (Right):</span>
                                             <span className="text-white">
-                                                {session.session_details.high_plank_assessment
-                                                    ? `${session.session_details.high_plank_assessment} sec`
+                                                {session.session_details.single_leg_wall_sit_right
+                                                    ? `${session.session_details.single_leg_wall_sit_right} sec`
+                                                    : 'N/A'}
+                                            </span>
+                                        </div>
+                                        <div className="flex justify-between">
+                                            <span className="text-gray-400">Core Endurance (Left):</span>
+                                            <span className="text-white">
+                                                {session.session_details.core_endurance_left
+                                                    ? `${session.session_details.core_endurance_left} sec`
+                                                    : 'N/A'}
+                                            </span>
+                                        </div>
+                                        <div className="flex justify-between">
+                                            <span className="text-gray-400">Core Endurance (Right):</span>
+                                            <span className="text-white">
+                                                {session.session_details.core_endurance_right
+                                                    ? `${session.session_details.core_endurance_right} sec`
                                                     : 'N/A'}
                                             </span>
                                         </div>
