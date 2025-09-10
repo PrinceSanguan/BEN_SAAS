@@ -257,16 +257,59 @@ class StudentTrainingController extends Controller
             }
 
             if (strtolower($session->session_type) === 'testing') {
-                $validated = $request->validate([
-                    'standing_long_jump'       => 'required|numeric|min:0',
-                    'single_leg_jump_left'     => 'required|numeric|min:0',
-                    'single_leg_jump_right'    => 'required|numeric|min:0',
-                    'single_leg_wall_sit_left' => 'required|numeric|min:0',
-                    'single_leg_wall_sit_right' => 'required|numeric|min:0',
-                    'core_endurance_left'      => 'required|numeric|min:0',
-                    'core_endurance_right'     => 'required|numeric|min:0',
-                    'bent_arm_hang_assessment' => 'nullable|numeric|min:0',
-                ], [
+                // Check if this is an update to existing results
+                $existingResult = TestResult::where('user_id', $user->id)
+                    ->where('session_id', $sessionId)
+                    ->first();
+                
+                // If updating existing result, merge with existing values
+                if ($existingResult) {
+                    $existingValues = [
+                        'standing_long_jump' => $existingResult->standing_long_jump,
+                        'single_leg_jump_left' => $existingResult->single_leg_jump_left,
+                        'single_leg_jump_right' => $existingResult->single_leg_jump_right,
+                        'single_leg_wall_sit_left' => $existingResult->single_leg_wall_sit_left,
+                        'single_leg_wall_sit_right' => $existingResult->single_leg_wall_sit_right,
+                        'core_endurance_left' => $existingResult->core_endurance_left,
+                        'core_endurance_right' => $existingResult->core_endurance_right,
+                        'bent_arm_hang_assessment' => $existingResult->bent_arm_hang_assessment,
+                    ];
+                    
+                    // Merge existing values with new input (new input overwrites)
+                    $mergedData = array_merge($existingValues, $request->only([
+                        'standing_long_jump',
+                        'single_leg_jump_left',
+                        'single_leg_jump_right',
+                        'single_leg_wall_sit_left',
+                        'single_leg_wall_sit_right',
+                        'core_endurance_left',
+                        'core_endurance_right',
+                        'bent_arm_hang_assessment'
+                    ]));
+                    
+                    // Validate the merged data
+                    $validated = validator($mergedData, [
+                        'standing_long_jump'       => 'required|numeric|min:0',
+                        'single_leg_jump_left'     => 'required|numeric|min:0',
+                        'single_leg_jump_right'    => 'required|numeric|min:0',
+                        'single_leg_wall_sit_left' => 'required|numeric|min:0',
+                        'single_leg_wall_sit_right' => 'required|numeric|min:0',
+                        'core_endurance_left'      => 'required|numeric|min:0',
+                        'core_endurance_right'     => 'required|numeric|min:0',
+                        'bent_arm_hang_assessment' => 'nullable|numeric|min:0',
+                    ])->validate();
+                } else {
+                    // For new submissions, all fields except bent_arm_hang are required
+                    $validated = $request->validate([
+                        'standing_long_jump'       => 'required|numeric|min:0',
+                        'single_leg_jump_left'     => 'required|numeric|min:0',
+                        'single_leg_jump_right'    => 'required|numeric|min:0',
+                        'single_leg_wall_sit_left' => 'required|numeric|min:0',
+                        'single_leg_wall_sit_right' => 'required|numeric|min:0',
+                        'core_endurance_left'      => 'required|numeric|min:0',
+                        'core_endurance_right'     => 'required|numeric|min:0',
+                        'bent_arm_hang_assessment' => 'nullable|numeric|min:0',
+                    ], [
                     '*.numeric' => 'Please enter numbers only. For time, use seconds (e.g., 96 instead of 1m36s)',
                     '*.required' => 'This field is required. Enter 0 if you couldn\'t complete the test',
                     '*.min' => 'Please enter a positive number or 0',
