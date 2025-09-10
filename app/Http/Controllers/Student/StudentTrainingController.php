@@ -308,6 +308,10 @@ class StudentTrainingController extends Controller
                     'timestamp' => now()->toISOString()
                 ]);
 
+                // Update progress tracking for charts
+                $progressService = app(\App\Services\ProgressTrackingService::class);
+                $progressService->updateProgressFromTestResult($user->id, $sessionId, $validated);
+
                 // Return without additional commit since we already committed for test results
                 return redirect()->back()
                     ->with('success', "Test results saved successfully! You earned {$xpEarned} XP.");
